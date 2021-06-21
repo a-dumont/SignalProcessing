@@ -1,0 +1,4 @@
+include SignalProcessing/fft/libfft.so
+include SignalProcessing/fft/libfft.pyd
+include SignalProcessing/correlations/libcorrelations.so
+include SignalProcessing/correlations/libcorrelations.pyd
