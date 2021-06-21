@@ -1,7 +1,7 @@
 NAME = correlations
 PYLIB_EXT = $(if $(filter $(OS),Windows_NT),.pyd,.so)
 TARGET_STATIC = lib$(NAME).a
-TARGET_PYLIB = $(NAME)/lib$(NAME)$(PYLIB_EXT)
+TARGET_PYLIB = obj/lib$(NAME)$(PYLIB_EXT)
 
 IDIR = includes
 ODIR = obj
