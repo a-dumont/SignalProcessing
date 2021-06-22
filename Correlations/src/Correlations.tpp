@@ -146,7 +146,7 @@ void complete_correlation_Block(int n, int N, DatatypeIn* in1, DatatypeIn* in2, 
 	}
 
 	// Divide by the number of blocks
-	for (int i=0; i<(N/2+1); i++)
+	for (int i=0; i<(3*k); i++)
 	{
 		out[i] /= h;
 	}
