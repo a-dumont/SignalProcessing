@@ -37,9 +37,9 @@ DataType FFT_py(DataType py_in,int N)
 
 	int n = buf_in.size;
 
-	if (N > 1<<17 || N > n)
+	if (N > 4096 )
 	{
-		throw std::runtime_error("U dumbdumb N bigger than array size, or N makes stack overflow");
+		throw std::runtime_error("U dumbdumb N too big, can't optimize");
 	}
 
 	int howmany = n/N;
@@ -127,9 +127,9 @@ np_complex rFFT_py(DataType py_in,int N)
 
 	int n = buf_in.size;
 
-	if (N > n)
+	if (N > 4096 )
 	{
-		throw std::runtime_error("U dumbdumb N bigger than array size");
+		throw std::runtime_error("U dumbdumb N too big, can't optimize");
 	}
 	int howmany = n/N;
 	

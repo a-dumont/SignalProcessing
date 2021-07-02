@@ -1,3 +1,4 @@
+#include <string>
 template<class DataType>
 void FFT(int n, DataType* in, DataType* out)
 {
@@ -22,6 +23,8 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
 	int dist = N;
 	int stride = 1;
 
+    fftw_import_wisdom_from_filename(&wisdom_path[0]);
+
 	fftw_plan plan = fftw_plan_many_dft(
 					rank,
 					length,
@@ -35,8 +38,9 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
 					stride,
 					dist,
 					1,
-					FFTW_ESTIMATE);
+					FFTW_EXHAUSTIVE);
 
+    fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
 }
@@ -79,6 +83,8 @@ void rFFT_Block(int n, int N, DataTypeIn* in, DataTypeOut* out)
 	int odist = N/2+1;
 	int stride = 1;
 
+    fftw_import_wisdom_from_filename(&wisdom_path[0]);
+
 	fftw_plan plan = fftw_plan_many_dft_r2c(
 					rank,
 					length,
@@ -93,6 +99,7 @@ void rFFT_Block(int n, int N, DataTypeIn* in, DataTypeOut* out)
 					odist,
 					FFTW_ESTIMATE);
 
+    fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
 }
