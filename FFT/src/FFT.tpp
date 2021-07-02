@@ -1,6 +1,25 @@
-#include <string>
+void execute(fftw_plan plan)
+{
+	fftw_execute(plan);
+}
+
+void destroy_plan(fftw_plan plan)
+{
+	fftw_destroy_plan(plan);
+}
+
+void import_wisdom(std::string path)
+{
+    fftw_import_wisdom_from_filename(&path[0]);
+}
+
+void export_wisdom(std::string path)
+{
+    fftw_export_wisdom_to_filename(&path[0]);
+}
+
 template<class DataType>
-void FFT(int n, DataType* in, DataType* out)
+fftw_plan FFT_plan(int n, DataType* in, DataType* out)
 {
 	fftw_plan plan;
 	plan = fftw_plan_dft_1d(
@@ -9,12 +28,11 @@ void FFT(int n, DataType* in, DataType* out)
 					reinterpret_cast<fftw_complex*>(out), 
 					FFTW_FORWARD, 
 					FFTW_ESTIMATE);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
+	return plan;
 }
 
 template<class DataType>
-void FFT_Block(int n, int N, DataType* in, DataType* out)
+fftw_plan FFT_Block_plan(int n, int N, DataType* in, DataType* out)
 {
 
 	int rank = 1;
@@ -22,8 +40,6 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
 	int howmany = n/N;
 	int dist = N;
 	int stride = 1;
-
-    fftw_import_wisdom_from_filename(&wisdom_path[0]);
 
 	fftw_plan plan = fftw_plan_many_dft(
 					rank,
@@ -39,14 +55,11 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
 					dist,
 					1,
 					FFTW_EXHAUSTIVE);
-
-    fftw_export_wisdom_to_filename(&wisdom_path[0]);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
+	return plan;
 }
 
 template<class DataType>
-void iFFT(int n, DataType* in, DataType* out)
+fftw_plan iFFT_plan(int n, DataType* in, DataType* out)
 {
 	fftw_plan plan;
 	plan = fftw_plan_dft_1d(
@@ -55,12 +68,11 @@ void iFFT(int n, DataType* in, DataType* out)
 					reinterpret_cast<fftw_complex*>(out), 
 					FFTW_BACKWARD, 
 					FFTW_ESTIMATE);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
+	return plan;
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void rFFT(int n, DataTypeIn* in, DataTypeOut* out)
+fftw_plan rFFT_plan(int n, DataTypeIn* in, DataTypeOut* out)
 {
 	fftw_plan plan;
 	plan = fftw_plan_dft_r2c_1d(
@@ -68,12 +80,11 @@ void rFFT(int n, DataTypeIn* in, DataTypeOut* out)
 					in, 
 					reinterpret_cast<fftw_complex*>(out), 
 					FFTW_ESTIMATE);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
+	return plan;
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void rFFT_Block(int n, int N, DataTypeIn* in, DataTypeOut* out)
+fftw_plan rFFT_Block_plan(int n, int N, DataTypeIn* in, DataTypeOut* out)
 {
 
 	int rank = 1;
@@ -82,8 +93,6 @@ void rFFT_Block(int n, int N, DataTypeIn* in, DataTypeOut* out)
 	int idist = N;
 	int odist = N/2+1;
 	int stride = 1;
-
-    fftw_import_wisdom_from_filename(&wisdom_path[0]);
 
 	fftw_plan plan = fftw_plan_many_dft_r2c(
 					rank,
@@ -98,14 +107,11 @@ void rFFT_Block(int n, int N, DataTypeIn* in, DataTypeOut* out)
 					stride,
 					odist,
 					FFTW_ESTIMATE);
-
-    fftw_export_wisdom_to_filename(&wisdom_path[0]);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
+	return plan;
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void irFFT(int n, DataTypeIn* in, DataTypeOut* out)
+fftw_plan irFFT_plan(int n, DataTypeIn* in, DataTypeOut* out)
 {
 	fftw_plan plan;
 	plan = fftw_plan_dft_c2r_1d(
@@ -113,8 +119,7 @@ void irFFT(int n, DataTypeIn* in, DataTypeOut* out)
 					reinterpret_cast<fftw_complex*>(in), 
 					out, 
 					FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
+	return plan;
 }
 
 

@@ -19,6 +19,7 @@ np_complex autocorrelation_py(Datatype py_in)
 	// Creates the output buffer
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(n/2+1));
 
+	import_wisdom(wisdom_path);
 	autocorrelation(n, ptr_py_in, result);
 
 	// Wraps the output to pass it to python
@@ -53,7 +54,9 @@ np_complex autocorrelation_py(Datatype py_in, int N)
 	// Creates the output buffer
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(N/2+1));
 
+	import_wisdom(wisdom_path);
 	autocorrelation_Block(n, N, ptr_py_in, result);
+	export_wisdom(wisdom_path);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
@@ -96,6 +99,7 @@ np_complex xcorrelation_py(Datatype py_in1, Datatype py_in2)
 	// Creates the output buffer
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(n/2+1));
 
+	import_wisdom(wisdom_path);
 	xcorrelation(n, ptr_py_in1, ptr_py_in2,result);
 
 	// Wraps the output to pass it to python
@@ -138,7 +142,9 @@ np_complex xcorrelation_py(Datatype py_in1, Datatype py_in2, int N)
 	// Creates the output buffer
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(N/2+1));
 
+	import_wisdom(wisdom_path);
 	xcorrelation_Block(n, N, ptr_py_in1, ptr_py_in2, result);
+	export_wisdom(wisdom_path);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
@@ -180,6 +186,7 @@ np_complex complete_correlation_py(Datatype py_in1, Datatype py_in2)
 	// Creates the output buffer
 	dbl_complex* result = (dbl_complex*) fftw_malloc(3*sizeof(dbl_complex)*(n/2+1));
 
+	import_wisdom(wisdom_path);
 	complete_correlation(n, ptr_py_in1, ptr_py_in2, result);
 
 	// Wraps the output to pass it to python
@@ -222,7 +229,9 @@ np_complex complete_correlation_py(Datatype py_in1, Datatype py_in2, int N)
 	// Creates the output buffer
 	dbl_complex* result = (dbl_complex*) fftw_malloc(3*sizeof(dbl_complex)*(N/2+1));
 
+	import_wisdom(wisdom_path);
 	complete_correlation_Block(n, N, ptr_py_in1, ptr_py_in2, result);
+	export_wisdom(wisdom_path);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );

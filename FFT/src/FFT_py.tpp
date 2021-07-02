@@ -13,7 +13,10 @@ DataType FFT_py(DataType py_in)
 	dbl_complex* ptr_py_in = (dbl_complex*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*n);
 
-	FFT(n, ptr_py_in, result);
+	import_wisdom(wisdom_path);
+	fftw_plan plan = FFT_plan(n, ptr_py_in, result);
+	execute(plan);
+	destroy_plan(plan);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<dbl_complex, py::array::c_style> 
@@ -47,7 +50,11 @@ DataType FFT_py(DataType py_in,int N)
 	dbl_complex* ptr_py_in = (dbl_complex*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*N*howmany);
 
-	FFT_Block(n, N, ptr_py_in, result);
+	import_wisdom(wisdom_path);
+	fftw_plan plan = FFT_Block_plan(n, N, ptr_py_in, result);
+	execute(plan);
+	export_wisdom(wisdom_path);
+	destroy_plan(plan);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<dbl_complex, py::array::c_style> 
@@ -74,7 +81,10 @@ DataType iFFT_py(DataType py_in)
 	dbl_complex* ptr_py_in = (dbl_complex*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*n);
 
-	iFFT(n, ptr_py_in, result);
+	import_wisdom(wisdom_path);
+	fftw_plan plan = iFFT_plan(n, ptr_py_in, result);
+	execute(plan);
+	destroy_plan(plan);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<dbl_complex, py::array::c_style> 
@@ -102,7 +112,10 @@ np_complex rFFT_py(DataType py_in)
 	double* ptr_py_in = (double*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(n/2+1));
 
-	rFFT(n, ptr_py_in, result);
+	import_wisdom(wisdom_path);
+	fftw_plan plan = rFFT_plan(n, ptr_py_in, result);
+	execute(plan);
+	destroy_plan(plan);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<dbl_complex, py::array::c_style> 
@@ -136,7 +149,11 @@ np_complex rFFT_py(DataType py_in,int N)
 	double* ptr_py_in = (double*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(N/2+1)*howmany);
 
-	rFFT_Block(n, N, ptr_py_in, result);
+	import_wisdom(wisdom_path);
+	fftw_plan plan = rFFT_Block_plan(n, N, ptr_py_in, result);
+	execute(plan);
+	export_wisdom(wisdom_path);
+	destroy_plan(plan);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<dbl_complex, py::array::c_style> 
@@ -163,7 +180,10 @@ np_double irFFT_py(DataType py_in)
 	dbl_complex* ptr_py_in = (dbl_complex*) buf_in.ptr;
 	double* result = (double*) fftw_malloc(sizeof(double)*2*(n-1));
 
-	irFFT(2*(n-1), ptr_py_in, result);
+	import_wisdom(wisdom_path);
+	fftw_plan plan = irFFT_plan(2*(n-1), ptr_py_in, result);
+	execute(plan);
+	destroy_plan(plan);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<double, py::array::c_style> 
