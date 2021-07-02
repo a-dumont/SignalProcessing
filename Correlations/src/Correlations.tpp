@@ -2,9 +2,7 @@ template <class DatatypeIn, class DatatypeOut>
 void autocorrelation(int n, DatatypeIn* in, DatatypeOut* out)
 {
 	// Compute the FFT
-	fftw_plan plan = rFFT_plan(n, in, out);
-	execute(plan);
-	destroy_plan(plan);
+	rFFT(n, in, out);
 
 	// Compute the correlation
 	for (int i=0; i<(n/2+1); i++)
@@ -21,13 +19,8 @@ void xcorrelation(int n, DatatypeIn* in1, DatatypeIn* in2, DatatypeOut* out)
 	DatatypeOut* temp_out = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*(n/2+1));
 	
 	// Compute both FFTs
-	fftw_plan plan1 = rFFT_plan(n, in1, out);
-	fftw_plan plan2 = rFFT_plan(n, in2, temp_out);
-
-	execute(plan1);
-	execute(plan2);
-	destroy_plan(plan1);
-	destroy_plan(plan2);
+	rFFT(n, in1, out);
+	rFFT(n, in2, temp_out);
 
 	// Compute the correlation
 	for (int i=0; i<(n/2+1); i++)
@@ -53,9 +46,7 @@ void autocorrelation_Block(int n, int N, DatatypeIn* in, DatatypeOut* out)
 	DatatypeOut* temp_out = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
 
 	// Compute and store the FFT
-	fftw_plan plan = rFFT_Block_plan(n, N, in, temp_out);
-	execute(plan);
-	destroy_plan(plan);
+	rFFT_Block(n, N, in, temp_out);
 
 	// Compute the correlation and reduce the blocks
 	for (int i=0; i<(h*(N/2+1)); i++)
@@ -88,13 +79,9 @@ void xcorrelation_Block(int n, int N, DatatypeIn* in1, DatatypeIn* in2, Datatype
 	DatatypeOut* temp_out2 = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
 	
 	// Compute the FFT of the first input and store in temp_out
-	fftw_plan plan1 = rFFT_Block_plan(n, N, in1, temp_out1);
-	fftw_plan plan2 = rFFT_Block_plan(n, N, in2, temp_out2);
-
-	execute(plan1);
-	execute(plan2);
-	destroy_plan(plan1);
-	destroy_plan(plan2);
+	rFFT_Block(n, N, in1, temp_out1);
+	rFFT_Block(n, N, in2, temp_out2);
+	
 	// Compute correlation and reduce the blocks
 	for (int i=0; i<(h*(N/2+1)); i++)
 	{
@@ -118,13 +105,8 @@ void complete_correlation(int n, DatatypeIn* in1, DatatypeIn* in2, DatatypeOut* 
 	int N = (n/2+1);
 
 	// Compute the FFT of the first input and store in temp_out
-	fftw_plan plan1 = rFFT_plan(n, in1, out);
-	fftw_plan plan2 = rFFT_plan(n, in2, (out+N));
-
-	execute(plan1);
-	execute(plan2);
-	destroy_plan(plan1);
-	destroy_plan(plan2);
+	rFFT(n, in1, out);
+	rFFT(n, in2, (out+N));
 	
 	// Compute correlations 
 	for (int i=0; i<N; i++)
@@ -152,13 +134,8 @@ void complete_correlation_Block(int n, int N, DatatypeIn* in1, DatatypeIn* in2, 
 	DatatypeOut* temp_out2 = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
 	
 	// Compute the FFT of the first input and store in temp_out
-	fftw_plan plan1 = rFFT_Block_plan(n, N, in1, temp_out1);
-	fftw_plan plan2 = rFFT_Block_plan(n, N, in2, temp_out2);
-
-	execute(plan1);
-	execute(plan2);
-	destroy_plan(plan1);
-	destroy_plan(plan2);
+	rFFT_Block(n, N, in1, temp_out1);
+	rFFT_Block(n, N, in2, temp_out2);
 	
 	// Compute correlation and reduce the blocks
 	for (int i=0; i<(h*k); i++)
