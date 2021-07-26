@@ -97,7 +97,7 @@ void rFFT_Block(int n, int N, DataTypeIn* in, DataTypeOut* out)
 					NULL,
 					stride,
 					odist,
-					FFTW_ESTIMATE);
+					FFTW_EXHAUSTIVE);
 
     fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftw_execute(plan);
