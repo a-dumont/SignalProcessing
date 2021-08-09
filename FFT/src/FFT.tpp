@@ -1,4 +1,3 @@
-#include <string>
 template<class DataType>
 void FFT(int n, DataType* in, DataType* out)
 {
