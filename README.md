@@ -20,7 +20,6 @@ foo@bar:~$ git clone https://github.com/a-dumont/SignalProcessing
 
 Go to the new SignalProcessing directory and run the installation commands:
 ```console
-foo@bar:~$ cd Thermal_Conductivity
 foo@bar:~$ bash build.sh
 foo@bar:~$ python setup.py install
 ```
