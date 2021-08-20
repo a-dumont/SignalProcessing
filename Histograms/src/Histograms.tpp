@@ -65,3 +65,100 @@ void Histogram_Density(Datatype* hist,Datatype* edges, Datatype* data, int n, in
 
 	}
 }
+
+template <class Datatype>
+void Histogram_2D(long* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
+{	
+	for(int i=0;i<(nbins*nbins);i++)
+	{
+		hist[i] = 0;
+	}
+	Datatype xstep = xedges[1]-xedges[0];
+	Datatype ystep = yedges[1]-yedges[0];
+	Datatype xmin = xedges[0];
+	Datatype ymin = yedges[0];
+	Datatype xmax = xedges[nbins];
+	Datatype ymax = yedges[nbins];
+	for(int i=0;i<n;i++)
+	{
+		if(xmin <= xdata[i] && xdata[i] < xmax)
+		{	
+			if(ymin <= ydata[i] && ydata[i] < ymax)
+			{
+				int xbin = std::floor((xdata[i]-xmin)/xstep);
+				int ybin = std::floor((ydata[i]-ymin)/ystep);
+				hist[ybin+(nbins)*xbin] += 1;
+			}
+			else if( ydata[i] == ymax )
+			{
+				int xbin = std::floor((xdata[i]-xmin)/xstep);
+				int ybin = nbins-1;
+				hist[ybin+(nbins)*xbin] += 1;
+			}
+		}
+		else if (xdata[i] == xmax)
+		{
+			if(ymin <= ydata[i] && ydata[i] < ymax)
+			{
+				int xbin = nbins-1;
+				int ybin = std::floor((ydata[i]-ymin)/ystep);
+				hist[ybin+(nbins)*xbin] += 1;
+			}
+			else if( ydata[i] == ymax )
+			{
+				int xbin = nbins-1;
+				int ybin = nbins-1;
+				hist[ybin+(nbins)*xbin] += 1;
+			}
+		}
+	}
+}
+
+template <class Datatype>
+void Histogram_2D_Density(double* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
+{	
+	for(int i=0;i<(nbins*nbins);i++)
+	{
+		hist[i] = 0;
+	}
+	Datatype xstep = xedges[1]-xedges[0];
+	Datatype ystep = yedges[1]-yedges[0];
+	Datatype xmin = xedges[0];
+	Datatype ymin = yedges[0];
+	Datatype xmax = xedges[nbins];
+	Datatype ymax = yedges[nbins];
+	Datatype norm = 1/(xstep*ystep)/n;
+	for(int i=0;i<n;i++)
+	{
+		if(xmin <= xdata[i] && xdata[i] < xmax)
+		{	
+			if(ymin <= ydata[i] && ydata[i] < ymax)
+			{
+				int xbin = std::floor((xdata[i]-xmin)/xstep);
+				int ybin = std::floor((ydata[i]-ymin)/ystep);
+				hist[ybin+(nbins)*xbin] += norm;
+			}
+			else if( ydata[i] == ymax )
+			{
+				int xbin = std::floor((xdata[i]-xmin)/xstep);
+				int ybin = nbins-1;
+				hist[ybin+(nbins)*xbin] += norm;
+			}
+		}
+		else if (xdata[i] == xmax)
+		{
+			if(ymin <= ydata[i] && ydata[i] < ymax)
+			{
+				int xbin = nbins-1;
+				int ybin = std::floor((ydata[i]-ymin)/ystep);
+				hist[ybin+(nbins)*xbin] += norm;
+			}
+			else if( ydata[i] == ymax )
+			{
+				int xbin = nbins-1;
+				int ybin = nbins-1;
+				hist[ybin+(nbins)*xbin] += norm;
+			}
+		}
+	}
+}
