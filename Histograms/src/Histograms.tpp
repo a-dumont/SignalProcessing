@@ -16,18 +16,52 @@ Datatype* GetEdges(Datatype* data, int n, int nbins)
 }
 
 template <class Datatype>
-void Histogram(int* hist,Datatype* edges, Datatype* data, int n, int nbins)
+void Histogram(long* hist,Datatype* edges, Datatype* data, int n, int nbins)
 {	
 	for(int i=0;i<nbins;i++)
 	{
 		hist[i] = 0;
 	}
 	Datatype step = edges[1]-edges[0];
-	Datatype min = edges[0];	
+	Datatype min = edges[0];
+	Datatype max = edges[nbins];	
 	for(int i=0;i<n;i++)
 	{
-		int bin = std::floor((data[i]-min)/step);
-		hist[bin] += 1;
+		if(min <= data[i] && data[i] < max)
+		{
+			int bin = std::floor((data[i]-min)/step);
+			hist[bin] += 1;
+		}
+		else if (data[i] == max)
+		{
+			hist[nbins-1] += 1;
+		}
+
 	}
 }
 
+template <class Datatype>
+void Histogram_Density(Datatype* hist,Datatype* edges, Datatype* data, int n, int nbins)
+{	
+	for(int i=0;i<nbins;i++)
+	{
+		hist[i] = 0;
+	}
+	Datatype step = edges[1]-edges[0];
+	Datatype min = edges[0];
+	Datatype max = edges[nbins];
+	Datatype norm = 1/step/n;
+	for(int i=0;i<n;i++)
+	{
+		if(min <= data[i] && data[i] < max)
+		{
+			int bin = std::floor((data[i]-min)/step);
+			hist[bin] += norm;
+		}
+		else if (data[i] == max)
+		{
+			hist[nbins-1] += norm;
+		}
+
+	}
+}
