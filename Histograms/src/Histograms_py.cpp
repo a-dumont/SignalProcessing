@@ -9,6 +9,7 @@ void init_histograms(py::module &m)
 	m.def("histogram2d",&Histogram_2D_py<np_double>, "x"_a,"y"_a,"bins"_a);
 	m.def("histogram2d",&Histogram_2D_py<np_double,np_double>, "x"_a,"y"_a,"bins"_a);
 	m.def("histogram2d",&Histogram_2D_Density_py<np_double>,"x"_a,"y"_a,"bins"_a,"density"_a);
+	m.def("histogram2d",&Histogram_2D_Density_py<np_double,np_double>,"x"_a,"y"_a,"bins"_a,"density"_a);
 }
 
 PYBIND11_MODULE(libhistograms, m)

@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <functional>
 template <class Datatype, class Datatype2>
 std::tuple<np_int,np_double> Histogram_py(Datatype py_in, int nbins)
@@ -374,4 +375,68 @@ np_int Histogram_2D_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_dou
 	return hist_py; 
 }
 
+template <class Datatype, class Datatype2>
+np_double Histogram_2D_Density_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_double>  bins, bool density)
+{	
+	if (density == false)
+	{
+		np_int out = Histogram_2D_py<Datatype,Datatype2>(py_x,py_y,bins);
+		long* hist_old = (long*) out.request().ptr;
+		int nbins = std::get<0>(bins).request().size-1;
+		double* hist = (double*) malloc(sizeof(double)*nbins*nbins);
+		for(int i=0;i<nbins*nbins;i++)
+		{
+			hist[i] = (double)hist_old[i];
+		}
+		py::capsule free_when_done1( hist, free );
+		np_double hist_py = np_double(
+						{nbins,nbins},
+						{nbins*sizeof(double),sizeof(double)},
+						hist,
+						free_when_done1);
+		return hist_py;
+	}
+	else if(density == true)
+	{
+		py::buffer_info buf_x = py_x.request();
+		py::buffer_info buf_y = py_y.request();
+
+		if (buf_x.ndim != 1 || buf_y.ndim != 1)
+		{
+			throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+		}	
+
+		else if (buf_x.size != buf_y.size)
+		{
+			throw std::runtime_error("U dumbdumb inputs must have same length.");
+		}	
+
+		int nbins = std::get<0>(bins).request().size-1;
+		int n = buf_x.size;
+		int N = nbins*nbins;
+
+		double* xdata = (double*) buf_x.ptr;
+		double* ydata = (double*) buf_y.ptr;
+		double* xedges = (double*) std::get<0>(bins).request().ptr;
+		double* yedges = (double*) std::get<1>(bins).request().ptr;
+
+		double* hist = (double*) malloc(sizeof(double)*N);
+
+		Histogram_2D_Density(hist, xedges, yedges, xdata, ydata, n, nbins);
+
+		py::capsule free_when_done1( hist, free );
+
+		np_double hist_py = np_double(
+						{nbins,nbins},
+						{nbins*sizeof(double),sizeof(double)},
+						hist,
+						free_when_done1);
+
+		return hist_py; 
+	}
+	else
+	{
+		throw std::runtime_error("U dumbdumb density must be bool.");
+	}
+}
 
