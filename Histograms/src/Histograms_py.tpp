@@ -440,3 +440,34 @@ np_double Histogram_2D_Density_py(Datatype py_x, Datatype py_y, std::tuple<np_do
 	}
 }
 
+template <class Datatype, class Datatype2>
+int Find_First_In_Bin_py(Datatype py_data, Datatype2 py_edges)
+{
+	double* data = (double*) py_data.request().ptr;
+	double* edges = (double*) py_edges.request().ptr;
+
+	return Find_First_In_Bin(data,edges,py_data.request().size);
+}
+
+template <class Datatype, class Datatype2>
+int Find_First_In_Bin_2D_py(Datatype py_xdata, Datatype py_ydata, Datatype2 py_xedges, Datatype2 py_yedges)
+{
+	double* xdata = (double*) py_xdata.request().ptr;
+	double* xedges = (double*) py_xedges.request().ptr;
+	double* ydata = (double*) py_ydata.request().ptr;
+	double* yedges = (double*) py_yedges.request().ptr;
+
+	int nx = py_xdata.request().size;
+	int ny = py_ydata.request().size;
+	int n = 0;
+	if(nx <= ny)
+	{
+		n += nx;
+	}
+	else
+	{
+		n += ny;
+	}
+
+	return Find_First_In_Bin_2D(xdata,ydata,xedges,yedges,n);
+}

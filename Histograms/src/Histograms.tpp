@@ -1,3 +1,4 @@
+#include <stdexcept>
 template <class Datatype>
 Datatype* GetEdges(Datatype* data, int n, int nbins)
 {
@@ -161,4 +162,30 @@ void Histogram_2D_Density(double* hist, Datatype* xedges, Datatype* yedges, Data
 			}
 		}
 	}
+}
+
+template <class Datatype, class Datatype2>
+int Find_First_In_Bin(Datatype* data, Datatype2* edges, int n)
+{
+	for(int i=0;i<n;i++)
+	{
+		if(data[i]>=edges[0] && data[i] <= edges[1])
+		{
+			return i;
+		}
+	}
+	throw std::runtime_error("No value in range.");
+}
+
+template <class Datatype, class Datatype2>
+int Find_First_In_Bin_2D(Datatype* xdata, Datatype* ydata, Datatype2* xedges, Datatype2* yedges, int n)
+{
+	for(int i=0;i<n;i++)
+	{
+		if(xdata[i]>=xedges[0] && xdata[i] <= xedges[1] && ydata[i] >= yedges[0] && ydata[i] <= yedges[1])
+		{
+			return i;
+		}
+	}
+	throw std::runtime_error("No value in range.");
 }
