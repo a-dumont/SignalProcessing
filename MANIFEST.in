@@ -4,3 +4,5 @@ include SignalProcessing/correlations/libcorrelations.so
 include SignalProcessing/correlations/libcorrelations.pyd
 include SignalProcessing/math/libmath.so
 include SignalProcessing/math/libmath.pyd
+include SignalProcessing/histograms/libhistograms.so
+include SignalProcessing/histograms/libhistograms.pyd

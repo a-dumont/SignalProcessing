@@ -47,34 +47,7 @@ COMPILE  	= 	$(CXX) $(CPP_STD) $(OPTIMIZATION) $(POSITION_INDEP) $(WARNINGS) \
 ASSEMBLY 	= 	$(CXX) $(CPP_STD) $(OPTIMIZATION) $(POSITION_INDEP) $(WARNINGS) \
 				-S -o $@ $< $(INCLUDES) $(DEPS_FLAG) $(MINGW_COMPATIBLE)
 
-LINK_BENCHMARK_CUSTOM = $(OMP) 
-
-LINK_BENCHMARK = \
-	-L$(LIBS)/benchmark/build/src -lbenchmark -lpthread -lshlwapi \
-	$(LINK_BENCHMARK_CUSTOM)
-
-LINKING_BENCHMARK_OBJ = $(EXTERNAL_OBJ) \
-
-LINKING_BENCHMARK = \
-	$(CXX) $< \
-	$(LINKING_BENCHMARK_OBJ)\
-	-O3 -march=native \
-	-static \
-	$(LINK_BENCHMARK)\
-	$(DEPS_FLAG) $(MINGW_COMPATIBLE) \
-	-o $@ \
-	
-INCLUDES_BENCHMARK = \
-	-I $(LIBS)/benchmark/include \
-	$(INCLUDES)
-	
-COMPILE_BENCHMARK = \
-	$(CXX) $(CPP_STD) $< -O3 -march=native \
-	$(INCLUDES_BENCHMARK) \
-	$(DEPS_FLAG) $(MINGW_COMPATIBLE) \
-	-c -o $@
-
-python_debug_library : $(TARGET_PYLIB)
+python_library : $(TARGET_PYLIB)
 
 compile_objects : $(OBJ)
 
@@ -83,18 +56,6 @@ assembly : $(ASS)
 all : $(TARGET_PYLIB) $(TARGET_STATIC) $(OBJ) $(ASS)
 
 static_library : $(TARGET_STATIC)
-
-benchmark : benchmark.exe
-
-benchmark.exe : benchmark.o
-	@ echo " "
-	@ echo "---------Compile $@ ---------"
-	$(LINKING_BENCHMARK)
-
-benchmark.o : benchmark.cpp
-	@ echo " "
-	@ echo "---------Compile $@ from $< ---------"
-	$(COMPILE_BENCHMARK)	
 
 $(TARGET_PYLIB): $(OBJ_PY)
 	@ echo " $(OBJ_PY) "
@@ -121,4 +82,4 @@ $(ODIR)/%.s : $(SDIR)/%.cpp
 clean:
 	@rm -f $(TARGET_PYLIB) $(TARGET_STATIC) $(OBJ)  $(OBJ_PY) $(ASS) $(DEPS)
 	 	 
-.PHONY: all , clean , python_debug_library , compile_objects , static_library , assembly , benchmark
+.PHONY: all , clean , python_library , compile_objects , static_library , assembly
