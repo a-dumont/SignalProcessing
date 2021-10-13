@@ -471,3 +471,104 @@ int Find_First_In_Bin_2D_py(Datatype py_xdata, Datatype py_ydata, Datatype2 py_x
 
 	return Find_First_In_Bin_2D(xdata,ydata,xedges,yedges,n);
 }
+
+template <class Datatype>
+std::tuple<np_uint32,np_double,np_double> Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, int nbins)
+{
+	py::buffer_info buf_x = py_x.request();
+	py::buffer_info buf_y = py_y.request();
+
+	if (buf_x.ndim != 1 || buf_y.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+	}	
+
+	else if (buf_x.size != buf_y.size)
+	{
+		throw std::runtime_error("U dumbdumb inputs must have same length.");
+	}	
+
+	int n = buf_x.size;
+	int N = (nbins*nbins)*(nbins*nbins+1);
+
+	double* xdata = (double*) buf_x.ptr;
+	double* ydata = (double*) buf_y.ptr;
+	double* xedges = GetEdges(xdata, n, nbins);
+	double* yedges = GetEdges(ydata, n, nbins);
+
+	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*N);
+
+	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
+
+	py::capsule free_when_done1( hist, free );
+	py::capsule free_when_done2( xedges, free );
+	py::capsule free_when_done3( yedges, free );
+
+	np_uint32 hist_py = np_uint32(
+					{(nbins*nbins+1),nbins,nbins},
+					{(nbins*nbins)*sizeof(uint32_t),nbins*sizeof(uint32_t),sizeof(uint32_t)},
+					hist,
+					free_when_done1);
+
+	Datatype xedges_py = np_double(
+					{nbins+1},
+					{sizeof(double)},
+					xedges,
+					free_when_done2);	
+
+	Datatype yedges_py = np_double(
+					{nbins+1},
+					{sizeof(double)},
+					yedges,
+					free_when_done3);	
+
+	std::tuple<np_uint32,np_double,np_double> result = std::make_tuple(hist_py, xedges_py, yedges_py);
+
+	return result; 
+}
+
+template <class Datatype, class Datatype2>
+np_uint32 Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_double> bins)
+{	
+	np_double py_xedges = std::get<0>(bins);
+	np_double py_yedges = std::get<1>(bins);
+	py::buffer_info buf_x = py_x.request();
+	py::buffer_info buf_y = py_y.request();
+	py::buffer_info buf_xedges = py_xedges.request();
+	py::buffer_info buf_yedges = py_yedges.request();
+
+	if (buf_x.ndim != 1 || buf_y.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+	}	
+
+	else if (buf_x.size != buf_y.size)
+	{
+		throw std::runtime_error("U dumbdumb inputs must have same length.");
+	}	
+
+	int n = buf_x.size;
+
+	double* xedges = (double*) buf_xedges.ptr;
+	double* yedges = (double*) buf_yedges.ptr;
+	int nbins = buf_yedges.size-1;
+	int N = (nbins*nbins)*(nbins*nbins+1);
+
+	double* xdata = (double*) buf_x.ptr;
+	double* ydata = (double*) buf_y.ptr;
+
+	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*N);
+
+	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
+
+	py::capsule free_when_done1( hist, free );
+
+	np_uint32 hist_py = np_uint32(
+					{(nbins*nbins+1),nbins,nbins},
+					{(nbins*nbins)*sizeof(uint32_t),nbins*sizeof(uint32_t),sizeof(uint32_t)},
+					hist,
+					free_when_done1);
+
+	return hist_py; 
+}
+

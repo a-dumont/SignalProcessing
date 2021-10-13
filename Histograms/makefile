@@ -18,7 +18,7 @@ EXTERNAL_OBJ =
 EXTERNAL_INCLUDES = 
 CXX = $(OS:Windows_NT=x86_64-w64-mingw32-)g++
 OPTIMIZATION = -O3 -march=native
-CPP_STD = -std=c++14
+CPP_STD = -std=c++17
 WARNINGS = -Wall
 MINGW_COMPATIBLE = $(OS:Windows_NT=-DMS_WIN64 -D_hypot=hypot)
 DEPS_FLAG = -MMD -MP

@@ -1,4 +1,3 @@
-#include <stdexcept>
 template <class Datatype>
 Datatype* GetEdges(Datatype* data, int n, int nbins)
 {
@@ -23,21 +22,17 @@ void Histogram(long* hist,Datatype* edges, Datatype* data, int n, int nbins)
 	{
 		hist[i] = 0;
 	}
-	Datatype step = edges[1]-edges[0];
+	Datatype step_inv = 1/(edges[1]-edges[0]);
 	Datatype min = edges[0];
 	Datatype max = edges[nbins];	
 	for(int i=0;i<n;i++)
 	{
-		if(min <= data[i] && data[i] < max)
+		if((data[i]-max)*(data[i]-min) <= 0)
 		{
-			int bin = std::floor((data[i]-min)/step);
+			int bin = (int)((data[i]-min)*step_inv);
+			bin = std::clamp(bin,0,nbins);
 			hist[bin] += 1;
 		}
-		else if (data[i] == max)
-		{
-			hist[nbins-1] += 1;
-		}
-
 	}
 }
 
@@ -48,121 +43,76 @@ void Histogram_Density(Datatype* hist,Datatype* edges, Datatype* data, int n, in
 	{
 		hist[i] = 0;
 	}
-	Datatype step = edges[1]-edges[0];
+	Datatype step_inv = 1/(edges[1]-edges[0]);
+	Datatype norm = step_inv/n;
 	Datatype min = edges[0];
-	Datatype max = edges[nbins];
-	Datatype norm = 1/step/n;
+	Datatype max = edges[nbins];	
 	for(int i=0;i<n;i++)
 	{
-		if(min <= data[i] && data[i] < max)
+		if((data[i]-max)*(data[i]-min) <= 0)
 		{
-			int bin = std::floor((data[i]-min)/step);
+			int bin = (int)((data[i]-min)*step_inv);
+			bin = std::clamp(bin,0,nbins);
 			hist[bin] += norm;
 		}
-		else if (data[i] == max)
-		{
-			hist[nbins-1] += norm;
-		}
-
 	}
 }
 
 template <class Datatype>
 void Histogram_2D(long* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
 {	
+	#pragma omp for
 	for(int i=0;i<(nbins*nbins);i++)
 	{
 		hist[i] = 0;
 	}
-	Datatype xstep = xedges[1]-xedges[0];
-	Datatype ystep = yedges[1]-yedges[0];
+	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
+	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
 	Datatype xmin = xedges[0];
 	Datatype ymin = yedges[0];
 	Datatype xmax = xedges[nbins];
 	Datatype ymax = yedges[nbins];
 	for(int i=0;i<n;i++)
 	{
-		if(xmin <= xdata[i] && xdata[i] < xmax)
+		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
 		{	
-			if(ymin <= ydata[i] && ydata[i] < ymax)
-			{
-				int xbin = std::floor((xdata[i]-xmin)/xstep);
-				int ybin = std::floor((ydata[i]-ymin)/ystep);
-				hist[ybin+(nbins)*xbin] += 1;
-			}
-			else if( ydata[i] == ymax )
-			{
-				int xbin = std::floor((xdata[i]-xmin)/xstep);
-				int ybin = nbins-1;
-				hist[ybin+(nbins)*xbin] += 1;
-			}
-		}
-		else if (xdata[i] == xmax)
-		{
-			if(ymin <= ydata[i] && ydata[i] < ymax)
-			{
-				int xbin = nbins-1;
-				int ybin = std::floor((ydata[i]-ymin)/ystep);
-				hist[ybin+(nbins)*xbin] += 1;
-			}
-			else if( ydata[i] == ymax )
-			{
-				int xbin = nbins-1;
-				int ybin = nbins-1;
-				hist[ybin+(nbins)*xbin] += 1;
-			}
+				int xbin = (int)((xdata[i]-xmin)*xstep_inv);
+				int ybin = (int)((ydata[i]-ymin)*ystep_inv);
+				xbin = std::clamp(xbin,0,nbins-1);
+				ybin = std::clamp(ybin,0,nbins-1);
+				hist[ybin+nbins*xbin] += 1;
 		}
 	}
 }
 
 template <class Datatype>
 void Histogram_2D_Density(double* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
-{	
+{
+	#pragma omp for	
 	for(int i=0;i<(nbins*nbins);i++)
 	{
 		hist[i] = 0;
 	}
-	Datatype xstep = xedges[1]-xedges[0];
-	Datatype ystep = yedges[1]-yedges[0];
+	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
+	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
 	Datatype xmin = xedges[0];
 	Datatype ymin = yedges[0];
 	Datatype xmax = xedges[nbins];
 	Datatype ymax = yedges[nbins];
-	Datatype norm = 1/(xstep*ystep)/n;
+	Datatype norm = xstep_inv*ystep_inv/n;
 	for(int i=0;i<n;i++)
 	{
-		if(xmin <= xdata[i] && xdata[i] < xmax)
+		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
 		{	
-			if(ymin <= ydata[i] && ydata[i] < ymax)
-			{
-				int xbin = std::floor((xdata[i]-xmin)/xstep);
-				int ybin = std::floor((ydata[i]-ymin)/ystep);
-				hist[ybin+(nbins)*xbin] += norm;
-			}
-			else if( ydata[i] == ymax )
-			{
-				int xbin = std::floor((xdata[i]-xmin)/xstep);
-				int ybin = nbins-1;
-				hist[ybin+(nbins)*xbin] += norm;
-			}
-		}
-		else if (xdata[i] == xmax)
-		{
-			if(ymin <= ydata[i] && ydata[i] < ymax)
-			{
-				int xbin = nbins-1;
-				int ybin = std::floor((ydata[i]-ymin)/ystep);
-				hist[ybin+(nbins)*xbin] += norm;
-			}
-			else if( ydata[i] == ymax )
-			{
-				int xbin = nbins-1;
-				int ybin = nbins-1;
-				hist[ybin+(nbins)*xbin] += norm;
-			}
+				int xbin = (int)((xdata[i]-xmin)*xstep_inv);
+				int ybin = (int)((ydata[i]-ymin)*ystep_inv);
+				xbin = std::clamp(xbin,0,nbins-1);
+				ybin = std::clamp(ybin,0,nbins-1);
+				hist[ybin+nbins*xbin] += norm;
 		}
 	}
 }
+
 
 template <class Datatype, class Datatype2>
 int Find_First_In_Bin(Datatype* data, Datatype2* edges, int n)
@@ -188,4 +138,48 @@ int Find_First_In_Bin_2D(Datatype* xdata, Datatype* ydata, Datatype2* xedges, Da
 		}
 	}
 	throw std::runtime_error("No value in range.");
+}
+
+template<class Datatype>
+void Histogram_And_Displacement_2D(uint32_t* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
+{	
+	#pragma omp for
+	for(int i=0;i<((nbins*nbins)*(nbins*nbins+1));i++)
+	{
+		hist[i] = 0;
+	}
+	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
+	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
+	Datatype xmin = xedges[0];
+	Datatype ymin = yedges[0];
+	Datatype xmax = xedges[nbins];
+	Datatype ymax = yedges[nbins];
+
+	#pragma omp parallel for
+	for(int i=0;i<(n-1);i++)
+	{
+		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
+		{	
+			int xbin = (int)((xdata[i]-xmin)*xstep_inv);
+			int ybin = (int)((ydata[i]-ymin)*ystep_inv);
+			int xbin2 = (int)((xdata[i+1]-xmin)*xstep_inv);
+			int ybin2 = (int)((ydata[i+1]-ymin)*ystep_inv);
+			xbin = std::clamp(xbin,0,nbins-1);
+			ybin = std::clamp(ybin,0,nbins-1);
+			xbin2 = std::clamp(xbin2,0,nbins-1);
+			ybin2 = std::clamp(ybin2,0,nbins-1);
+			#pragma omp atomic
+			hist[ybin+nbins*xbin] += 1;
+			#pragma omp atomic
+			hist[nbins*nbins+ybin*nbins*nbins*nbins+xbin*nbins*nbins+nbins*xbin2+ybin2] += 1;
+		}
+	}
+	if( (xdata[n]-xmax)*(xdata[n]-xmin)*(ydata[n]-ymax)*(ydata[n]-ymin) >= 0 )
+	{	
+		int xbin = (int)((xdata[n]-xmin)*xstep_inv);
+		int ybin = (int)((ydata[n]-ymin)*ystep_inv);
+		xbin = std::clamp(xbin,0,nbins-1);
+		ybin = std::clamp(ybin,0,nbins-1);
+		hist[ybin+nbins*xbin] += 1;
+	}
 }
