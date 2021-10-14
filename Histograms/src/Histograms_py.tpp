@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <tuple>
 template <class Datatype, class Datatype2>
 std::tuple<np_int,np_double> Histogram_py(Datatype py_in, int nbins)
 {
@@ -502,7 +504,7 @@ int Find_First_In_Bin_2D_py(Datatype py_xdata, Datatype py_ydata, Datatype2 py_x
 }
 
 template <class Datatype>
-std::tuple<np_uint32,np_double,np_double> Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, int nbins)
+std::tuple<np_uint64,np_double,np_double> Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, int nbins)
 {
 	py::buffer_info buf_x = py_x.request();
 	py::buffer_info buf_y = py_y.request();
@@ -525,7 +527,7 @@ std::tuple<np_uint32,np_double,np_double> Histogram_And_Displacement_2D_py(Datat
 	double* xedges = GetEdges(xdata, n, nbins);
 	double* yedges = GetEdges(ydata, n, nbins);
 
-	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*N);
+	uint64_t* hist = (uint64_t*) malloc(sizeof(uint64_t)*N);
 	for(int i=0;i<N;i++)
 	{
 		hist[i] = 0;
@@ -537,9 +539,9 @@ std::tuple<np_uint32,np_double,np_double> Histogram_And_Displacement_2D_py(Datat
 	py::capsule free_when_done2( xedges, free );
 	py::capsule free_when_done3( yedges, free );
 
-	np_uint32 hist_py = np_uint32(
+	np_uint64 hist_py = np_uint64(
 					{(nbins*nbins+1),nbins,nbins},
-					{(nbins*nbins)*sizeof(uint32_t),nbins*sizeof(uint32_t),sizeof(uint32_t)},
+					{(nbins*nbins)*sizeof(uint64_t),nbins*sizeof(uint64_t),sizeof(uint64_t)},
 					hist,
 					free_when_done1);
 
@@ -555,13 +557,13 @@ std::tuple<np_uint32,np_double,np_double> Histogram_And_Displacement_2D_py(Datat
 					yedges,
 					free_when_done3);	
 
-	std::tuple<np_uint32,np_double,np_double> result = std::make_tuple(hist_py, xedges_py, yedges_py);
+	std::tuple<np_uint64,np_double,np_double> result = std::make_tuple(hist_py, xedges_py, yedges_py);
 
 	return result; 
 }
 
 template <class Datatype, class Datatype2>
-np_uint32 Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_double> bins)
+np_uint64 Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_double> bins)
 {	
 	np_double py_xedges = std::get<0>(bins);
 	np_double py_yedges = std::get<1>(bins);
@@ -590,18 +592,215 @@ np_uint32 Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, std::tu
 	double* xdata = (double*) buf_x.ptr;
 	double* ydata = (double*) buf_y.ptr;
 
-	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*N);
+	uint64_t* hist = (uint64_t*) malloc(sizeof(uint64_t)*N);
 
 	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
 	py::capsule free_when_done1( hist, free );
 
-	np_uint32 hist_py = np_uint32(
+	np_uint64 hist_py = np_uint64(
 					{(nbins*nbins+1),nbins,nbins},
-					{(nbins*nbins)*sizeof(uint32_t),nbins*sizeof(uint32_t),sizeof(uint32_t)},
+					{(nbins*nbins)*sizeof(uint64_t),nbins*sizeof(uint64_t),sizeof(uint64_t)},
 					hist,
 					free_when_done1);
 
 	return hist_py; 
 }
 
+template<class Datatype>
+class cHistogram2D_py: public cHistogram2D<double>
+{
+	private:
+		static int check(Datatype xdata_py, Datatype ydata_py)
+		{
+			py::buffer_info buf_x = xdata_py.request();
+			py::buffer_info buf_y = ydata_py.request();	
+			if (buf_x.ndim != 1 || buf_y.ndim != 1)
+			{
+				throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+			}	
+			else if (buf_x.size != buf_y.size)
+			{
+				throw std::runtime_error("U dumbdumb inputs must have same length.");
+			}
+			return buf_x.size;
+		}	
+	public:
+		cHistogram2D_py(Datatype xdata_py, Datatype ydata_py, int Nbins):
+				cHistogram2D(
+								(double*)xdata_py.request().ptr,
+								(double*)ydata_py.request().ptr,
+								Nbins,check(xdata_py,ydata_py))
+		{
+		}
+		void accumulate(Datatype xdata_py, Datatype ydata_py)
+		{
+			n = check(xdata_py,ydata_py);
+			double* xdata = (double*)xdata_py.request().ptr;
+			double* ydata = (double*)ydata_py.request().ptr;
+			Histogram_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		np_int getHistogram()
+		{
+			py::capsule free_when_done1( hist, free );
+
+			np_int hist_py = np_int(
+							{nbins,nbins},
+							{nbins*sizeof(long),sizeof(long)},
+							hist,
+							free_when_done1);
+			return hist_py;
+		}
+		std::tuple<Datatype,Datatype> getEdges()
+		{
+			py::capsule free_when_done2( xedges, free );
+			py::capsule free_when_done3( yedges, free );
+
+			Datatype xedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							xedges,
+							free_when_done2);	
+
+			Datatype yedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							yedges,
+							free_when_done3);
+			return std::make_tuple(xedges_py,yedges_py);
+		}
+
+};
+
+template<class Datatype>
+class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
+{
+	private:
+		static int check(Datatype xdata_py, Datatype ydata_py)
+		{
+			py::buffer_info buf_x = xdata_py.request();
+			py::buffer_info buf_y = ydata_py.request();	
+			if (buf_x.ndim != 1 || buf_y.ndim != 1)
+			{
+				throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+			}	
+			else if (buf_x.size != buf_y.size)
+			{
+				throw std::runtime_error("U dumbdumb inputs must have same length.");
+			}
+			return buf_x.size;
+		}	
+	public:
+		cHistogram_2D_Density_py(Datatype xdata_py, Datatype ydata_py, int Nbins):
+				cHistogram_2D_Density(
+								(double*)xdata_py.request().ptr,
+								(double*)ydata_py.request().ptr,
+								Nbins,check(xdata_py,ydata_py))
+		{
+		}
+		void accumulate(Datatype xdata_py, Datatype ydata_py)
+		{
+			n = check(xdata_py,ydata_py);
+			double* xdata = (double*)xdata_py.request().ptr;
+			double* ydata = (double*)ydata_py.request().ptr;
+			Histogram_2D_Density(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		Datatype getHistogram()
+		{
+			py::capsule free_when_done1( hist, free );
+
+			Datatype hist_py = np_double(
+							{nbins,nbins},
+							{nbins*sizeof(double),sizeof(double)},
+							hist,
+							free_when_done1);
+			return hist_py;
+		}
+		std::tuple<Datatype,Datatype> getEdges()
+		{
+			py::capsule free_when_done2( xedges, free );
+			py::capsule free_when_done3( yedges, free );
+
+			Datatype xedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							xedges,
+							free_when_done2);	
+
+			Datatype yedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							yedges,
+							free_when_done3);
+			return std::make_tuple(xedges_py,yedges_py);
+		}
+
+};
+
+template<class Datatype>
+class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<double>
+{
+	private:
+		static int check(Datatype xdata_py, Datatype ydata_py)
+		{
+			py::buffer_info buf_x = xdata_py.request();
+			py::buffer_info buf_y = ydata_py.request();	
+			if (buf_x.ndim != 1 || buf_y.ndim != 1)
+			{
+				throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+			}	
+			else if (buf_x.size != buf_y.size)
+			{
+				throw std::runtime_error("U dumbdumb inputs must have same length.");
+			}
+			return buf_x.size;
+		}	
+	public:
+		cHistogram_And_Displacement_2D_py(Datatype xdata_py, Datatype ydata_py, int Nbins):
+				cHistogram_And_Displacement_2D(
+								(double*)xdata_py.request().ptr,
+								(double*)ydata_py.request().ptr,
+								Nbins,check(xdata_py,ydata_py))
+		{
+		}
+		void accumulate(Datatype xdata_py, Datatype ydata_py)
+		{
+			n = check(xdata_py,ydata_py);
+			double* xdata = (double*)xdata_py.request().ptr;
+			double* ydata = (double*)ydata_py.request().ptr;
+			Histogram_And_Displacement_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		np_uint64 getHistogram()
+		{
+			py::capsule free_when_done1( hist, free );
+
+			np_uint64 hist_py = np_uint64(
+							{(nbins*nbins+1),nbins,nbins},
+							{(nbins*nbins)*sizeof(uint64_t),nbins*sizeof(uint64_t),sizeof(uint64_t)},
+							hist,
+							free_when_done1);
+			return hist_py;
+		}
+		std::tuple<Datatype,Datatype> getEdges()
+		{
+			py::capsule free_when_done2( xedges, free );
+			py::capsule free_when_done3( yedges, free );
+
+			Datatype xedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							xedges,
+							free_when_done2);	
+
+			Datatype yedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							yedges,
+							free_when_done3);
+			return std::make_tuple(xedges_py,yedges_py);
+		}
+
+};

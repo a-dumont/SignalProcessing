@@ -1,3 +1,4 @@
+#include <tuple>
 template <class Datatype>
 Datatype* GetEdges(Datatype* data, int n, int nbins)
 {
@@ -127,7 +128,7 @@ int Find_First_In_Bin_2D(Datatype* xdata, Datatype* ydata, Datatype2* xedges, Da
 }
 
 template<class Datatype>
-void Histogram_And_Displacement_2D(uint32_t* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
+void Histogram_And_Displacement_2D(uint64_t* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
 {	
 	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
 	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
@@ -164,3 +165,102 @@ void Histogram_And_Displacement_2D(uint32_t* hist, Datatype* xedges, Datatype* y
 		hist[ybin+nbins*xbin] += 1;
 	}
 }
+
+template<class Datatype>
+class cHistogram2D 
+{
+	protected:
+		long* hist;
+		Datatype* xedges;
+		Datatype* yedges;
+		int nbins;
+		int n;
+		int count;
+	public:
+		cHistogram2D(Datatype* xdata, Datatype* ydata, int Nbins, int N)
+		{
+			nbins = Nbins;
+			hist = (long*) malloc(sizeof(long)*nbins*nbins);
+			n = N;
+			for(int i=0;i<nbins*nbins;i++){hist[i] = 0;}
+			xedges = GetEdges(xdata, n, nbins);
+			yedges = GetEdges(ydata, n, nbins);
+			Histogram_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count = 1;
+		}
+		void accumulate(Datatype* xdata, Datatype* ydata)
+		{
+			Histogram_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		long* getHistogram(){return hist;}
+		int getCount(){return count;}
+		std::tuple<Datatype*,Datatype*> getEdges(){return std::make_tuple(xedges,yedges);}
+		int getNbins(){return nbins;}
+};
+
+template<class Datatype>
+class cHistogram_2D_Density 
+{
+	protected:
+		double* hist;
+		Datatype* xedges;
+		Datatype* yedges;
+		int nbins;
+		int n;
+		int count;
+	public:
+		cHistogram_2D_Density(Datatype* xdata, Datatype* ydata, int Nbins, int N)
+		{
+			nbins = Nbins;
+			n = N;
+			hist = (double*) malloc(sizeof(double)*nbins*nbins);
+			for(int i=0;i<nbins*nbins;i++){hist[i] = 0;}
+			xedges = GetEdges(xdata, n, nbins);
+			yedges = GetEdges(ydata, n, nbins);
+			Histogram_2D_Density(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count = 1;
+		}
+		void accumulate(Datatype* xdata, Datatype* ydata)
+		{
+			Histogram_2D_Density(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		double* getHistogram(){return hist;}
+		int getCount(){return count;}
+		std::tuple<Datatype*,Datatype*> getEdges(){return std::make_tuple(xedges,yedges);}
+		int getNbins(){return nbins;}
+};
+
+template<class Datatype>
+class cHistogram_And_Displacement_2D 
+{
+	protected:
+		uint64_t* hist;
+		Datatype* xedges;
+		Datatype* yedges;
+		int nbins;
+		int n;
+		int count;
+	public:
+		cHistogram_And_Displacement_2D(Datatype* xdata, Datatype* ydata, int Nbins, int N)
+		{
+			nbins = Nbins;
+			n = N;
+			hist = (uint64_t*) malloc(sizeof(uint64_t)*(nbins*nbins*(nbins*nbins+1)));
+			for(int i=0;i<(nbins*nbins*(nbins*nbins+1));i++){hist[i] = 0;}
+			xedges = GetEdges(xdata, n, nbins);
+			yedges = GetEdges(ydata, n, nbins);
+			Histogram_And_Displacement_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count = 1;
+		}
+		void accumulate(Datatype* xdata, Datatype* ydata)
+		{
+			Histogram_And_Displacement_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		uint64_t* getHistogram(){return hist;}
+		int getCount(){return count;}
+		std::tuple<Datatype*,Datatype*> getEdges(){return std::make_tuple(xedges,yedges);}
+		int getNbins(){return nbins;}
+};
