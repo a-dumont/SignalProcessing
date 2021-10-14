@@ -1,5 +1,3 @@
-#include <cstdio>
-#include <functional>
 template <class Datatype, class Datatype2>
 std::tuple<np_int,np_double> Histogram_py(Datatype py_in, int nbins)
 {
@@ -13,8 +11,12 @@ std::tuple<np_int,np_double> Histogram_py(Datatype py_in, int nbins)
 	int n = buf_in.size;
 
 	double* data = (double*) buf_in.ptr;
-	long* hist = (long*) malloc(sizeof(long)*nbins);
+	long* hist = (long*) malloc(sizeof(long)*nbins);	
 	double* edges = GetEdges(data, n, nbins);
+	for(int i=0;i<nbins;i++)
+	{
+		hist[i] = 0;
+	}
 
 	Histogram(hist, edges, data, n, nbins);
 
@@ -77,6 +79,10 @@ std::tuple<np_double,np_double> Histogram_Density_py(Datatype py_in, int nbins, 
 		double* data = (double*) buf_in.ptr;
 		double* hist = (double*) malloc(sizeof(double)*nbins);
 		double* edges = GetEdges(data, n, nbins);
+		for(int i=0;i<nbins;i++)
+		{
+			hist[i] = 0;
+		}
 
 		Histogram_Density(hist, edges, data, n, nbins);
 
@@ -122,6 +128,10 @@ np_int Histogram_py(Datatype py_in, Datatype edges_py)
 	double* data = (double*) buf_in.ptr;
 	long* hist = (long*) malloc(sizeof(long)*nbins);
 	double* edges = (double*) buf_edges.ptr;
+	for(int i=0;i<nbins;i++)
+	{
+		hist[i] = 0;
+	}
 
 	Histogram(hist, edges, data, n, nbins);
 
@@ -176,7 +186,10 @@ np_double Histogram_Density_py(Datatype py_in, Datatype edges_py, bool density)
 		double* data = (double*) buf_in.ptr;
 		double* hist = (double*) malloc(sizeof(double)*nbins);
 		double* edges = (double*) buf_edges.ptr;
-
+		for(int i=0;i<nbins;i++)
+		{
+			hist[i] = 0;
+		}
 
 		Histogram_Density(hist, edges, data, n, nbins);
 
@@ -221,6 +234,10 @@ std::tuple<np_int,np_double,np_double> Histogram_2D_py(Datatype py_x, Datatype p
 	double* yedges = GetEdges(ydata, n, nbins);
 
 	long* hist = (long*) malloc(sizeof(long)*N);
+	for(int i=0;i<N;i++)
+	{
+		hist[i] = 0;
+	}
 
 	Histogram_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -295,6 +312,10 @@ std::tuple<np_double,np_double,np_double> Histogram_2D_Density_py(Datatype py_x,
 		double* yedges = GetEdges(ydata, n, nbins);
 
 		double* hist = (double*) malloc(sizeof(double)*N);
+		for(int i=0;i<N;i++)
+		{
+			hist[i] = 0;
+		}
 
 		Histogram_2D_Density(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -361,6 +382,10 @@ np_int Histogram_2D_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_dou
 	double* ydata = (double*) buf_y.ptr;
 
 	long* hist = (long*) malloc(sizeof(long)*N);
+	for(int i=0;i<N;i++)
+	{
+		hist[i] = 0;
+	}
 
 	Histogram_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -421,6 +446,10 @@ np_double Histogram_2D_Density_py(Datatype py_x, Datatype py_y, std::tuple<np_do
 		double* yedges = (double*) std::get<1>(bins).request().ptr;
 
 		double* hist = (double*) malloc(sizeof(double)*N);
+		for(int i=0;i<N;i++)
+		{
+			hist[i] = 0;
+		}
 
 		Histogram_2D_Density(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -497,6 +526,10 @@ std::tuple<np_uint32,np_double,np_double> Histogram_And_Displacement_2D_py(Datat
 	double* yedges = GetEdges(ydata, n, nbins);
 
 	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*N);
+	for(int i=0;i<N;i++)
+	{
+		hist[i] = 0;
+	}
 
 	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 

@@ -18,10 +18,6 @@ Datatype* GetEdges(Datatype* data, int n, int nbins)
 template <class Datatype>
 void Histogram(long* hist,Datatype* edges, Datatype* data, int n, int nbins)
 {	
-	for(int i=0;i<nbins;i++)
-	{
-		hist[i] = 0;
-	}
 	Datatype step_inv = 1/(edges[1]-edges[0]);
 	Datatype min = edges[0];
 	Datatype max = edges[nbins];	
@@ -30,7 +26,7 @@ void Histogram(long* hist,Datatype* edges, Datatype* data, int n, int nbins)
 		if((data[i]-max)*(data[i]-min) <= 0)
 		{
 			int bin = (int)((data[i]-min)*step_inv);
-			bin = std::clamp(bin,0,nbins);
+			bin = std::clamp(bin,0,nbins-1);
 			hist[bin] += 1;
 		}
 	}
@@ -52,7 +48,7 @@ void Histogram_Density(Datatype* hist,Datatype* edges, Datatype* data, int n, in
 		if((data[i]-max)*(data[i]-min) <= 0)
 		{
 			int bin = (int)((data[i]-min)*step_inv);
-			bin = std::clamp(bin,0,nbins);
+			bin = std::clamp(bin,0,nbins-1);
 			hist[bin] += norm;
 		}
 	}
@@ -61,11 +57,6 @@ void Histogram_Density(Datatype* hist,Datatype* edges, Datatype* data, int n, in
 template <class Datatype>
 void Histogram_2D(long* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
 {	
-	#pragma omp for
-	for(int i=0;i<(nbins*nbins);i++)
-	{
-		hist[i] = 0;
-	}
 	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
 	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
 	Datatype xmin = xedges[0];
@@ -88,11 +79,6 @@ void Histogram_2D(long* hist, Datatype* xedges, Datatype* yedges, Datatype* xdat
 template <class Datatype>
 void Histogram_2D_Density(double* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
 {
-	#pragma omp for	
-	for(int i=0;i<(nbins*nbins);i++)
-	{
-		hist[i] = 0;
-	}
 	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
 	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
 	Datatype xmin = xedges[0];
@@ -143,11 +129,6 @@ int Find_First_In_Bin_2D(Datatype* xdata, Datatype* ydata, Datatype2* xedges, Da
 template<class Datatype>
 void Histogram_And_Displacement_2D(uint32_t* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins)
 {	
-	#pragma omp for
-	for(int i=0;i<((nbins*nbins)*(nbins*nbins+1));i++)
-	{
-		hist[i] = 0;
-	}
 	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
 	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
 	Datatype xmin = xedges[0];
