@@ -667,7 +667,7 @@ class cHistogram2D_py: public cHistogram2D<double>
 			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
 			py::capsule free_when_done2( xedges2, free );
 			py::capsule free_when_done3( yedges2, free );
-			for(int i=0;i<(nbins=1);i++)
+			for(int i=0;i<(nbins+1);i++)
 			{
 				xedges2[i] = xedges[i];
 				yedges2[i] = yedges[i];
@@ -747,7 +747,7 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
 			py::capsule free_when_done2( xedges2, free );
 			py::capsule free_when_done3( yedges2, free );
-			for(int i=0;i<(nbins=1);i++)
+			for(int i=0;i<(nbins+1);i++)
 			{
 				xedges2[i] = xedges[i];
 				yedges2[i] = yedges[i];
@@ -826,7 +826,7 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
 			py::capsule free_when_done2( xedges2, free );
 			py::capsule free_when_done3( yedges2, free );
-			for(int i=0;i<(nbins=1);i++)
+			for(int i=0;i<(nbins+1);i++)
 			{
 				xedges2[i] = xedges[i];
 				yedges2[i] = yedges[i];
