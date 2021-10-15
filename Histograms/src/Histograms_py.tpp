@@ -593,6 +593,10 @@ np_uint64 Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, std::tu
 	double* ydata = (double*) buf_y.ptr;
 
 	uint64_t* hist = (uint64_t*) malloc(sizeof(uint64_t)*N);
+	for(int i=0;i<N;i++)
+		{
+			hist[i] = 0;
+		}
 
 	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -643,30 +647,43 @@ class cHistogram2D_py: public cHistogram2D<double>
 		}
 		np_int getHistogram()
 		{
-			py::capsule free_when_done1( hist, free );
+			long* hist2 = (long*)malloc(sizeof(long)*nbins*nbins);
+			for(int i=0;i<(nbins*nbins);i++)
+			{
+				hist2[i] = hist[i];
+			}
+			py::capsule free_when_done1( hist2, free );
 
 			np_int hist_py = np_int(
 							{nbins,nbins},
 							{nbins*sizeof(long),sizeof(long)},
-							hist,
+							hist2,
 							free_when_done1);
 			return hist_py;
 		}
 		std::tuple<Datatype,Datatype> getEdges()
 		{
-			py::capsule free_when_done2( xedges, free );
-			py::capsule free_when_done3( yedges, free );
+			double* xedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
+			for(int i=0;i<(nbins=1);i++)
+			{
+				xedges2[i] = xedges[i];
+				yedges2[i] = yedges[i];
+			}
+
 
 			Datatype xedges_py = np_double(
 							{nbins+1},
 							{sizeof(double)},
-							xedges,
+							xedges2,
 							free_when_done2);	
 
 			Datatype yedges_py = np_double(
 							{nbins+1},
 							{sizeof(double)},
-							yedges,
+							yedges2,
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
@@ -709,30 +726,44 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 		}
 		Datatype getHistogram()
 		{
-			py::capsule free_when_done1( hist, free );
+			double* hist2 = (double*)malloc(sizeof(double)*nbins*nbins);
+			for(int i=0;i<(nbins*nbins);i++)
+			{
+				hist2[i] = hist[i];
+			}
+
+			py::capsule free_when_done1( hist2, free );
 
 			Datatype hist_py = np_double(
 							{nbins,nbins},
 							{nbins*sizeof(double),sizeof(double)},
-							hist,
+							hist2,
 							free_when_done1);
 			return hist_py;
 		}
 		std::tuple<Datatype,Datatype> getEdges()
 		{
-			py::capsule free_when_done2( xedges, free );
-			py::capsule free_when_done3( yedges, free );
+			double* xedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
+			for(int i=0;i<(nbins=1);i++)
+			{
+				xedges2[i] = xedges[i];
+				yedges2[i] = yedges[i];
+			}
+
 
 			Datatype xedges_py = np_double(
 							{nbins+1},
 							{sizeof(double)},
-							xedges,
+							xedges2,
 							free_when_done2);	
 
 			Datatype yedges_py = np_double(
 							{nbins+1},
 							{sizeof(double)},
-							yedges,
+							yedges2,
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
@@ -775,30 +806,43 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 		}
 		np_uint64 getHistogram()
 		{
-			py::capsule free_when_done1( hist, free );
+			uint64_t* hist2 = (uint64_t*)malloc(sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
+			for(int i=0;i<(nbins*nbins);i++)
+			{
+				hist2[i] = hist[i];
+			}
+			py::capsule free_when_done1( hist2, free );
 
 			np_uint64 hist_py = np_uint64(
 							{(nbins*nbins+1),nbins,nbins},
 							{(nbins*nbins)*sizeof(uint64_t),nbins*sizeof(uint64_t),sizeof(uint64_t)},
-							hist,
+							hist2,
 							free_when_done1);
 			return hist_py;
 		}
 		std::tuple<Datatype,Datatype> getEdges()
 		{
-			py::capsule free_when_done2( xedges, free );
-			py::capsule free_when_done3( yedges, free );
+			double* xedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
+			for(int i=0;i<(nbins=1);i++)
+			{
+				xedges2[i] = xedges[i];
+				yedges2[i] = yedges[i];
+			}
+
 
 			Datatype xedges_py = np_double(
 							{nbins+1},
 							{sizeof(double)},
-							xedges,
+							xedges2,
 							free_when_done2);	
 
 			Datatype yedges_py = np_double(
 							{nbins+1},
 							{sizeof(double)},
-							yedges,
+							yedges2,
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
