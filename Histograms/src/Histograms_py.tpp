@@ -807,7 +807,7 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 		np_uint64 getHistogram()
 		{
 			uint64_t* hist2 = (uint64_t*)malloc(sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
-			for(int i=0;i<(nbins*nbins);i++)
+			for(int i=0;i<(nbins*nbins*(nbins*nbins+1));i++)
 			{
 				hist2[i] = hist[i];
 			}
