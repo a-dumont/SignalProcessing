@@ -14,11 +14,8 @@ std::tuple<np_int,np_double> Histogram_py(Datatype py_in, int nbins)
 
 	double* data = (double*) buf_in.ptr;
 	long* hist = (long*) malloc(sizeof(long)*nbins);	
+	hist = (long*) std::memset(hist,0,sizeof(long)*nbins);
 	double* edges = GetEdges(data, n, nbins);
-	for(int i=0;i<nbins;i++)
-	{
-		hist[i] = 0;
-	}
 
 	Histogram(hist, edges, data, n, nbins);
 
@@ -80,11 +77,9 @@ std::tuple<np_double,np_double> Histogram_Density_py(Datatype py_in, int nbins, 
 
 		double* data = (double*) buf_in.ptr;
 		double* hist = (double*) malloc(sizeof(double)*nbins);
+		hist = (double*) std::memset(hist,0,sizeof(double)*nbins);
+
 		double* edges = GetEdges(data, n, nbins);
-		for(int i=0;i<nbins;i++)
-		{
-			hist[i] = 0;
-		}
 
 		Histogram_Density(hist, edges, data, n, nbins);
 
@@ -129,11 +124,8 @@ np_int Histogram_py(Datatype py_in, Datatype edges_py)
 
 	double* data = (double*) buf_in.ptr;
 	long* hist = (long*) malloc(sizeof(long)*nbins);
+	hist = (long*) std::memset(hist,0,sizeof(long)*nbins);
 	double* edges = (double*) buf_edges.ptr;
-	for(int i=0;i<nbins;i++)
-	{
-		hist[i] = 0;
-	}
 
 	Histogram(hist, edges, data, n, nbins);
 
@@ -187,11 +179,9 @@ np_double Histogram_Density_py(Datatype py_in, Datatype edges_py, bool density)
 
 		double* data = (double*) buf_in.ptr;
 		double* hist = (double*) malloc(sizeof(double)*nbins);
+		hist = (double*) std::memset(hist,0,sizeof(double)*nbins);
+
 		double* edges = (double*) buf_edges.ptr;
-		for(int i=0;i<nbins;i++)
-		{
-			hist[i] = 0;
-		}
 
 		Histogram_Density(hist, edges, data, n, nbins);
 
@@ -236,10 +226,7 @@ std::tuple<np_int,np_double,np_double> Histogram_2D_py(Datatype py_x, Datatype p
 	double* yedges = GetEdges(ydata, n, nbins);
 
 	long* hist = (long*) malloc(sizeof(long)*N);
-	for(int i=0;i<N;i++)
-	{
-		hist[i] = 0;
-	}
+	hist = (long*) std::memset(hist,0,sizeof(long)*N);
 
 	Histogram_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -314,10 +301,7 @@ std::tuple<np_double,np_double,np_double> Histogram_2D_Density_py(Datatype py_x,
 		double* yedges = GetEdges(ydata, n, nbins);
 
 		double* hist = (double*) malloc(sizeof(double)*N);
-		for(int i=0;i<N;i++)
-		{
-			hist[i] = 0;
-		}
+		hist = (double*) std::memset(hist,0,sizeof(double)*N);
 
 		Histogram_2D_Density(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -384,10 +368,7 @@ np_int Histogram_2D_py(Datatype py_x, Datatype py_y, std::tuple<np_double,np_dou
 	double* ydata = (double*) buf_y.ptr;
 
 	long* hist = (long*) malloc(sizeof(long)*N);
-	for(int i=0;i<N;i++)
-	{
-		hist[i] = 0;
-	}
+	hist = (long*) std::memset(hist,0,sizeof(long)*N);
 
 	Histogram_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -448,10 +429,7 @@ np_double Histogram_2D_Density_py(Datatype py_x, Datatype py_y, std::tuple<np_do
 		double* yedges = (double*) std::get<1>(bins).request().ptr;
 
 		double* hist = (double*) malloc(sizeof(double)*N);
-		for(int i=0;i<N;i++)
-		{
-			hist[i] = 0;
-		}
+		hist = (double*) std::memset(hist,0,sizeof(double)*N);
 
 		Histogram_2D_Density(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -528,11 +506,8 @@ std::tuple<np_uint64,np_double,np_double> Histogram_And_Displacement_2D_py(Datat
 	double* yedges = GetEdges(ydata, n, nbins);
 
 	uint64_t* hist = (uint64_t*) malloc(sizeof(uint64_t)*N);
-	for(int i=0;i<N;i++)
-	{
-		hist[i] = 0;
-	}
-
+	hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*N);
+	
 	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
 	py::capsule free_when_done1( hist, free );
@@ -593,10 +568,7 @@ np_uint64 Histogram_And_Displacement_2D_py(Datatype py_x, Datatype py_y, std::tu
 	double* ydata = (double*) buf_y.ptr;
 
 	uint64_t* hist = (uint64_t*) malloc(sizeof(uint64_t)*N);
-	for(int i=0;i<N;i++)
-		{
-			hist[i] = 0;
-		}
+	hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*N);
 
 	Histogram_And_Displacement_2D(hist, xedges, yedges, xdata, ydata, n, nbins);
 
@@ -648,10 +620,7 @@ class cHistogram2D_py: public cHistogram2D<double>
 		np_int getHistogram()
 		{
 			long* hist2 = (long*)malloc(sizeof(long)*nbins*nbins);
-			for(int i=0;i<(nbins*nbins);i++)
-			{
-				hist2[i] = hist[i];
-			}
+			hist2 = (long*) std::memcpy(hist2,hist,sizeof(long)*nbins*nbins);
 			py::capsule free_when_done1( hist2, free );
 
 			np_int hist_py = np_int(
@@ -667,12 +636,8 @@ class cHistogram2D_py: public cHistogram2D<double>
 			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
 			py::capsule free_when_done2( xedges2, free );
 			py::capsule free_when_done3( yedges2, free );
-			for(int i=0;i<(nbins+1);i++)
-			{
-				xedges2[i] = xedges[i];
-				yedges2[i] = yedges[i];
-			}
-
+			xedges2 = (double*) std::memcpy(xedges2,xedges,sizeof(double)*(nbins+1));
+			yedges2 = (double*) std::memcpy(yedges2,yedges,sizeof(double)*(nbins+1));
 
 			Datatype xedges_py = np_double(
 							{nbins+1},
@@ -687,7 +652,6 @@ class cHistogram2D_py: public cHistogram2D<double>
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
-
 };
 
 template<class Datatype>
@@ -727,10 +691,7 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 		Datatype getHistogram()
 		{
 			double* hist2 = (double*)malloc(sizeof(double)*nbins*nbins);
-			for(int i=0;i<(nbins*nbins);i++)
-			{
-				hist2[i] = hist[i];
-			}
+			hist2 = (double*) std::memcpy(hist2,hist,sizeof(double)*nbins*nbins);
 
 			py::capsule free_when_done1( hist2, free );
 
@@ -747,12 +708,8 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
 			py::capsule free_when_done2( xedges2, free );
 			py::capsule free_when_done3( yedges2, free );
-			for(int i=0;i<(nbins+1);i++)
-			{
-				xedges2[i] = xedges[i];
-				yedges2[i] = yedges[i];
-			}
-
+			xedges2 = (double*) std::memcpy(xedges2,xedges,sizeof(double)*(nbins+1));
+			yedges2 = (double*) std::memcpy(yedges2,yedges,sizeof(double)*(nbins+1));
 
 			Datatype xedges_py = np_double(
 							{nbins+1},
@@ -767,7 +724,6 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
-
 };
 
 template<class Datatype>
@@ -807,10 +763,7 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 		np_uint64 getHistogram()
 		{
 			uint64_t* hist2 = (uint64_t*)malloc(sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
-			for(int i=0;i<(nbins*nbins*(nbins*nbins+1));i++)
-			{
-				hist2[i] = hist[i];
-			}
+			hist2 = (uint64_t*) std::memcpy(hist2,hist,sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
 			py::capsule free_when_done1( hist2, free );
 
 			np_uint64 hist_py = np_uint64(
@@ -826,12 +779,8 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
 			py::capsule free_when_done2( xedges2, free );
 			py::capsule free_when_done3( yedges2, free );
-			for(int i=0;i<(nbins+1);i++)
-			{
-				xedges2[i] = xedges[i];
-				yedges2[i] = yedges[i];
-			}
-
+			xedges2 = (double*) std::memcpy(xedges2,xedges,sizeof(double)*(nbins+1));
+			yedges2 = (double*) std::memcpy(yedges2,yedges,sizeof(double)*(nbins+1));
 
 			Datatype xedges_py = np_double(
 							{nbins+1},
@@ -846,5 +795,4 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
-
 };

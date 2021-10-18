@@ -181,8 +181,8 @@ class cHistogram2D
 		{
 			nbins = Nbins;
 			hist = (long*) malloc(sizeof(long)*nbins*nbins);
+			hist = (long*) std::memset(hist,0,sizeof(long)*nbins*nbins);
 			n = N;
-			for(int i=0;i<nbins*nbins;i++){hist[i] = 0;}
 			xedges = GetEdges(xdata, n, nbins);
 			yedges = GetEdges(ydata, n, nbins);
 			Histogram_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
@@ -215,7 +215,7 @@ class cHistogram_2D_Density
 			nbins = Nbins;
 			n = N;
 			hist = (double*) malloc(sizeof(double)*nbins*nbins);
-			for(int i=0;i<nbins*nbins;i++){hist[i] = 0;}
+			hist = (double*) std::memset(hist,0,sizeof(double)*nbins*nbins);
 			xedges = GetEdges(xdata, n, nbins);
 			yedges = GetEdges(ydata, n, nbins);
 			Histogram_2D_Density(hist,xedges,yedges,xdata,ydata,n,nbins);
@@ -248,7 +248,7 @@ class cHistogram_And_Displacement_2D
 			nbins = Nbins;
 			n = N;
 			hist = (uint64_t*) malloc(sizeof(uint64_t)*(nbins*nbins*(nbins*nbins+1)));
-			for(int i=0;i<(nbins*nbins*(nbins*nbins+1));i++){hist[i] = 0;}
+			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
 			xedges = GetEdges(xdata, n, nbins);
 			yedges = GetEdges(ydata, n, nbins);
 			Histogram_And_Displacement_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
