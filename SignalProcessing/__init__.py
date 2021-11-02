@@ -1,6 +1,7 @@
 """
 This is a test docstring
 """
-import SignalProcessing.fft
-import SignalProcessing.correlations
-import SignalProcessing.math
+import SignalProcessing.fft as fft
+import SignalProcessing.correlations as correlations
+import SignalProcessing.math as math
+import SignalProcessing.histograms as histograms
