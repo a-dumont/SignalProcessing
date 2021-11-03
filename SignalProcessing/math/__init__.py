@@ -8,3 +8,4 @@ from .libmath import *
 
 del s
 del os
+del libmath

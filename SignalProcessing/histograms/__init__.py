@@ -8,3 +8,4 @@ from .libhistograms import *
 
 del s
 del os
+del libhistograms

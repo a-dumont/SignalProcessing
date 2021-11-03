@@ -8,3 +8,4 @@ from .libcorrelations import *
 
 del s
 del os
+del libcorrelations

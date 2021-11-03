@@ -8,3 +8,4 @@ from .libfft import *
 
 del s
 del os
+del libfft
