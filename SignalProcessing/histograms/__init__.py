@@ -5,3 +5,6 @@ if os.name == "nt" and s not in os.environ["PATH"]:
   os.environ["PATH"] = s+";"+os.environ["PATH"]
 
 from .libhistograms import *
+
+del s
+del os
