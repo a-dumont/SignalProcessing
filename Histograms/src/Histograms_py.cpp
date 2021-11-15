@@ -20,21 +20,28 @@ void init_histograms(py::module &m)
 			.def("getEdges",&cHistogram2D_py<np_double>::getEdges)
 			.def("accumulate",&cHistogram2D_py<np_double>::accumulate)
 			.def("getCount",&cHistogram2D_py<np_double>::getCount)
-			.def("getNbins",&cHistogram2D_py<np_double>::getNbins);
+			.def("getNbins",&cHistogram2D_py<np_double>::getNbins)
+			.def("setEdges",&cHistogram2D_py<np_double>::setEdges)
+			.def("resetHistogram",&cHistogram2D_py<np_double>::resetHistogram);
 	py::class_<cHistogram_2D_Density_py<np_double>>(m,"HistogramDensity2D")
 			.def(py::init<np_double,np_double,int>())
 			.def("getHistogram",&cHistogram_2D_Density_py<np_double>::getHistogram)
 			.def("getEdges",&cHistogram_2D_Density_py<np_double>::getEdges)
 			.def("accumulate",&cHistogram_2D_Density_py<np_double>::accumulate)
 			.def("getCount",&cHistogram_2D_Density_py<np_double>::getCount)
-			.def("getNbins",&cHistogram_2D_Density_py<np_double>::getNbins);
+			.def("getNbins",&cHistogram_2D_Density_py<np_double>::getNbins)	
+			.def("setEdges",&cHistogram_2D_Density_py<np_double>::setEdges)
+			.def("resetHistogram",&cHistogram_2D_Density_py<np_double>::resetHistogram);
+
 	py::class_<cHistogram_And_Displacement_2D_py<np_double>>(m,"HistogramAndDisplacement2D")
 			.def(py::init<np_double,np_double,int>())
 			.def("getHistogram",&cHistogram_And_Displacement_2D_py<np_double>::getHistogram)
 			.def("getEdges",&cHistogram_And_Displacement_2D_py<np_double>::getEdges)
 			.def("accumulate",&cHistogram_And_Displacement_2D_py<np_double>::accumulate)
 			.def("getCount",&cHistogram_And_Displacement_2D_py<np_double>::getCount)
-			.def("getNbins",&cHistogram_And_Displacement_2D_py<np_double>::getNbins);
+			.def("getNbins",&cHistogram_And_Displacement_2D_py<np_double>::getNbins)
+			.def("setEdges",&cHistogram_And_Displacement_2D_py<np_double>::setEdges)
+			.def("resetHistogram",&cHistogram_And_Displacement_2D_py<np_double>::resetHistogram);
 }
 
 PYBIND11_MODULE(libhistograms, m)

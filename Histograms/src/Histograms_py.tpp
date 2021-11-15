@@ -652,13 +652,10 @@ class cHistogram2D_py: public cHistogram2D<double>
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
-		void resetCount()
-		{
-			count = 0;
-		}
 		void resetHistogram()
 		{
-			hist = std::memset(hist,0,sizeof(long)*nbins*nbins);
+			hist = (long*) std::memset(hist,0,sizeof(long)*nbins*nbins);
+			count = 0;
 		}
 		void setEdges(np_double xe, np_double ye)
 		{
@@ -737,13 +734,10 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
-		void resetCount()
-		{
-			count = 0;
-		}
 		void resetHistogram()
 		{
-			hist = std::memset(hist,0,sizeof(double)*nbins*nbins);
+			hist = (double*) std::memset(hist,0,sizeof(double)*nbins*nbins);
+			count = 0;
 		}
 		void setEdges(np_double xe, np_double ye)
 		{
@@ -821,13 +815,10 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 							free_when_done3);
 			return std::make_tuple(xedges_py,yedges_py);
 		}
-		void resetCount()
-		{
-			count = 0;
-		}
 		void resetHistogram()
 		{
-			hist = std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
+			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(nbins*nbins+1));
+			count = 0;
 		}
 		void setEdges(np_double xe, np_double ye)
 		{
