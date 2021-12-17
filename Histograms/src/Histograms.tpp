@@ -167,6 +167,46 @@ void Histogram_And_Displacement_2D(uint64_t* hist, Datatype* xedges, Datatype* y
 }
 
 template<class Datatype>
+void Histogram_And_Displacement_2D_steps(uint64_t* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins,int steps)
+{	
+	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
+	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
+	Datatype xmin = xedges[0];
+	Datatype ymin = yedges[0];
+	Datatype xmax = xedges[nbins];
+	Datatype ymax = yedges[nbins];
+
+	#pragma omp parallel for
+	for(int i=0;i<(n-steps);i++)
+	{
+		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
+		{	
+			int xbin = std::clamp((int)((xdata[i]-xmin)*xstep_inv),0,nbins-1);
+			int ybin = std::clamp((int)((ydata[i]-ymin)*ystep_inv),0,nbins-1);
+			#pragma omp atomic
+			hist[ybin+nbins*xbin] += 1;
+
+			for(int j=1;j<steps+1;j++)
+			{
+				int xbin2 = std::clamp((int)((xdata[i+j]-xmin)*xstep_inv),0,nbins-1);
+				int ybin2 = std::clamp((int)((ydata[i+j]-ymin)*ystep_inv),0,nbins-1);
+				#pragma omp atomic
+				hist[nbins*nbins+(ybin*nbins*nbins*nbins+xbin*nbins*nbins)+nbins*xbin2+ybin2+(j-1)*nbins*nbins*nbins*nbins] += 1;
+			}
+		}
+	}
+	if( (xdata[n]-xmax)*(xdata[n]-xmin)*(ydata[n]-ymax)*(ydata[n]-ymin) >= 0 )
+	{	
+		int xbin = (int)((xdata[n]-xmin)*xstep_inv);
+		int ybin = (int)((ydata[n]-ymin)*ystep_inv);
+		xbin = std::clamp(xbin,0,nbins-1);
+		ybin = std::clamp(ybin,0,nbins-1);
+		hist[ybin+nbins*xbin] += 1;
+	}
+}
+
+
+template<class Datatype>
 class cHistogram2D 
 {
 	protected:
@@ -203,7 +243,7 @@ template<class Datatype>
 class cHistogram_2D_Density 
 {
 	protected:
-		double* hist;
+		double* hist;  
 		Datatype* xedges;
 		Datatype* yedges;
 		int nbins;
@@ -257,6 +297,41 @@ class cHistogram_And_Displacement_2D
 		void accumulate(Datatype* xdata, Datatype* ydata)
 		{
 			Histogram_And_Displacement_2D(hist,xedges,yedges,xdata,ydata,n,nbins);
+			count += 1;
+		}
+		uint64_t* getHistogram(){return hist;}
+		int getCount(){return count;}
+		std::tuple<Datatype*,Datatype*> getEdges(){return std::make_tuple(xedges,yedges);}
+		int getNbins(){return nbins;}
+};
+
+template<class Datatype>
+class cHistogram_And_Displacement_2D_steps 
+{
+	protected:
+		uint64_t* hist;
+		Datatype* xedges;
+		Datatype* yedges;
+		int nbins;
+		int n;
+		int count;
+		int steps;
+	public:
+		cHistogram_And_Displacement_2D_steps(Datatype* xdata, Datatype* ydata, int Nbins, int N, int Steps)
+		{
+			nbins = Nbins;
+			n = N;
+			steps = Steps;
+			hist = (uint64_t*) malloc(sizeof(uint64_t)*(nbins*nbins*(steps*nbins*nbins+1)));
+			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			xedges = GetEdges(xdata, n, nbins);
+			yedges = GetEdges(ydata, n, nbins);
+			Histogram_And_Displacement_2D_steps(hist,xedges,yedges,xdata,ydata,n,nbins,steps);
+			count = 1;
+		}
+		void accumulate(Datatype* xdata, Datatype* ydata)
+		{
+			Histogram_And_Displacement_2D_steps(hist,xedges,yedges,xdata,ydata,n,nbins,steps);
 			count += 1;
 		}
 		uint64_t* getHistogram(){return hist;}

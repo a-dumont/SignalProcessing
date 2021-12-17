@@ -59,3 +59,73 @@ DataType gradient_py(DataType py_in1, DataType2 dt)
 	);
 }
 
+template<class DataType>
+DataType rolling_average_py(DataType py_in, int size)
+{
+	py::buffer_info buf_x = py_in.request();
+
+	if (buf_x.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_x.size;
+
+	double* in = (double*) buf_x.ptr;
+	double* out = (double*) malloc(sizeof(double)*(n-size+1));
+	rolling_average(n, in, out, size);
+
+	py::capsule free_when_done( out, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{n-size+1},
+		{sizeof(double)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+DataType finite_difference_coefficients_py(int M, int N)
+{
+	double* coeff = finite_difference_coefficients(M,N);
+	N = 2*N;
+	int n = N+1;
+	py::capsule free_when_done( coeff, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{(N+1)},
+		{sizeof(double)},
+		coeff+(M*n*n+N*n),
+		free_when_done	
+	);
+}
+
+template<class DataType, class DataType2>
+DataType nth_order_gradient_py(DataType py_in, DataType2 dt,int M, int N)
+{
+	py::buffer_info buf_x = py_in.request();
+
+	if (buf_x.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_x.size;
+
+	double* x = (double*) buf_x.ptr;
+	double* out = (double*) malloc(sizeof(double)*(n-2*N));
+	std::memset(out,0,sizeof(double)*(n-2*N));
+
+	nth_order_gradient(n, x, dt, out, M, N);
+
+	py::capsule free_when_done( out, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{n-N-N},
+		{sizeof(double)},
+		out,
+		free_when_done	
+	);
+}
+

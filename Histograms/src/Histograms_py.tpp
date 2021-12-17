@@ -826,3 +826,84 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 			yedges = (double*)ye.request().ptr;
 		}
 };
+
+template<class Datatype>
+class cHistogram_And_Displacement_2D_steps_py: public cHistogram_And_Displacement_2D_steps<double>
+{
+	private:
+		static int check(Datatype xdata_py, Datatype ydata_py)
+		{
+			py::buffer_info buf_x = xdata_py.request();
+			py::buffer_info buf_y = ydata_py.request();	
+			if (buf_x.ndim != 1 || buf_y.ndim != 1)
+			{
+				throw std::runtime_error("U dumbdumb inputs dimension must be 1.");
+			}	
+			else if (buf_x.size != buf_y.size)
+			{
+				throw std::runtime_error("U dumbdumb inputs must have same length.");
+			}
+			return buf_x.size;
+		}	
+	public:
+		cHistogram_And_Displacement_2D_steps_py(Datatype xdata_py, Datatype ydata_py, int Nbins, int steps):
+				cHistogram_And_Displacement_2D_steps(
+								(double*)xdata_py.request().ptr,
+								(double*)ydata_py.request().ptr,
+								Nbins,check(xdata_py,ydata_py),steps)
+		{
+		}
+		void accumulate(Datatype xdata_py, Datatype ydata_py)
+		{
+			n = check(xdata_py,ydata_py);
+			double* xdata = (double*)xdata_py.request().ptr;
+			double* ydata = (double*)ydata_py.request().ptr;
+			Histogram_And_Displacement_2D_steps(hist,xedges,yedges,xdata,ydata,n,nbins,steps);
+			count += 1;
+		}
+		np_uint64 getHistogram()
+		{
+			uint64_t* hist2 = (uint64_t*)malloc(sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			hist2 = (uint64_t*) std::memcpy(hist2,hist,sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			py::capsule free_when_done1( hist2, free );
+
+			np_uint64 hist_py = np_uint64(
+							{(steps*nbins*nbins+1),nbins,nbins},
+							{(nbins*nbins)*sizeof(uint64_t),nbins*sizeof(uint64_t),sizeof(uint64_t)},
+							hist2,
+							free_when_done1);
+			return hist_py;
+		}
+		std::tuple<Datatype,Datatype> getEdges()
+		{
+			double* xedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			double* yedges2 = (double*)malloc(sizeof(double)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
+			xedges2 = (double*) std::memcpy(xedges2,xedges,sizeof(double)*(nbins+1));
+			yedges2 = (double*) std::memcpy(yedges2,yedges,sizeof(double)*(nbins+1));
+
+			Datatype xedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							xedges2,
+							free_when_done2);	
+
+			Datatype yedges_py = np_double(
+							{nbins+1},
+							{sizeof(double)},
+							yedges2,
+							free_when_done3);
+			return std::make_tuple(xedges_py,yedges_py);
+		}
+		void resetHistogram()
+		{
+			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			count = 0;
+		}
+		void setEdges(np_double xe, np_double ye)
+		{
+			xedges = (double*)xe.request().ptr;
+			yedges = (double*)ye.request().ptr;
+		}
+};

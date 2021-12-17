@@ -22,3 +22,96 @@ void gradient(int n, DataType* x, DataType2 dt, DataType* out)
 			out[i] = h*(x[i+1]-x[i-1]);
 	}
 }
+
+template<class DataType>
+double* finite_difference_coefficients(DataType M, int N)
+{
+	double* alpha = (double*) malloc((2*N+1)*sizeof(double));
+	N = 2*N;
+	double* coeff = (double*) malloc((M+1)*(N+1)*(N+1)*sizeof(double));
+	std::memset(coeff,0,(M+1)*(N+1)*(N+1)*sizeof(double));
+	alpha[0] = 0;
+	alpha[1] = 1;
+	double a; double b; double c;
+	for(int i=2;i<(N+1);i++)
+	{
+		if(alpha[i-1] > 0)
+		{
+			alpha[i] = -alpha[i-1];
+		}
+		else
+		{
+			alpha[i] = -1*alpha[i-1]+1;
+		}
+	}
+	coeff[0] = 1;
+	a = 1;
+	for(int n=1;n<(N+1);n++)
+	{
+		b = 1;
+		for(int v=0;v<n;v++)
+		{
+			c = alpha[n]-alpha[v];
+			b = b*c;
+			for(int m=0;m<(std::min(M,n)+1);m++)
+			{
+				if (m != 0)
+				{
+					coeff[m*(N+1)*(N+1)+n*(N+1)+v] = (alpha[n]*coeff[m*(N+1)*(N+1)+(n-1)*(N+1)+v]-m*coeff[(m-1)*(N+1)*(N+1)+(n-1)*(N+1)+v])/c;
+				}
+				else
+				{
+					coeff[m*(N+1)*(N+1)+n*(N+1)+v] = (alpha[n]*coeff[m*(N+1)*(N+1)+(n-1)*(N+1)+v])/c;
+				}
+			}
+		}
+		for(int m=0;m<(std::min(M,n)+1);m++)
+		{
+			if (m != 0)
+			{
+				coeff[m*(N+1)*(N+1)+n*(N+1)+n] = a/b*(m*coeff[(m-1)*(N+1)*(N+1)+(n-1)*(N+1)+(n-1)]-alpha[n-1]*coeff[(m)*(N+1)*(N+1)+(n-1)*(N+1)+(n-1)]);
+			}
+			else
+			{
+				coeff[m*(N+1)*(N+1)+n*(N+1)+n] = -a/b*(alpha[n-1]*coeff[(m)*(N+1)*(N+1)+(n-1)*(N+1)+(n-1)]);
+			}
+		}
+		a = b;
+	}
+	free(alpha);
+	return coeff;
+}
+
+template<class DataType>
+void nth_order_gradient(int n, DataType* x, DataType dt, DataType* out,int M, int N)
+{
+	double* coeff = finite_difference_coefficients(M,N)+(M*(2*N+1)*(2*N+1)+2*N*(2*N+1));
+	double norm = 1/dt;
+	int k;
+	for(int i=N;i<(n-N);i++)
+	{
+		out[i-N] = coeff[0]*x[i];
+		k = 1;
+		for(int j=0;j<N;j++)
+		{
+			out[i-N] += coeff[k]*x[i+j+1]+coeff[k+1]*x[i-(j+1)];
+			k += 2;
+		}
+		for(int l=0;l<M;l++){out[i-N] *= norm;}
+	}	
+}
+
+template<class DataType>
+void rolling_average(int n, DataType* in, DataType* out, int size)
+{	
+	std::memset(out,0,(n-size)*sizeof(DataType));
+	DataType norm = 1.0/size;
+	for(int i=0;i<(n-size+1);i++)
+	{	
+		for(int j=0;j<size;j++)
+		{
+				out[i] += in[i+j];
+		}
+		out[i] *= norm;
+	}
+}
