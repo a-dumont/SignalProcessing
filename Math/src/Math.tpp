@@ -115,3 +115,39 @@ void rolling_average(int n, DataType* in, DataType* out, int size)
 		out[i] *= norm;
 	}
 }
+
+template<class DataType>
+void histogram_vectorial_average(int nbins, DataType* hist, DataType* out, int row, int col)
+{
+	for(int i=0;i<nbins;i++)
+	{
+		for(int j=0;j<nbins;j++)
+		{
+			out[0] += hist[i*nbins+j]*(i-row);
+			out[1] += hist[i*nbins+j]*(j-col);
+		}
+	}
+}
+
+template<class DataType> 
+void inverse_probability2D(int nbins, DataType* in, DataType* out,DataType* P)
+{
+		# pragma omp parallel for
+		for(int i=0;i<(nbins*nbins);i++)
+		{
+			double temp = 0;
+			for(int j=0;j<(nbins*nbins);j++)
+			{	
+				temp += in[j*(nbins*nbins)+i]*P[j];
+				out[i*(nbins*nbins)+j] = in[j*(nbins*nbins)+i]*P[j];
+			}
+			if(temp != 0.0)
+			{
+				# pragma omp parallel for
+				for(int j=0;j<(nbins*nbins);j++)
+				{	
+					out[i*(nbins*nbins)+j] *= 1/temp;
+				}
+			}
+		}
+}

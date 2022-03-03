@@ -129,3 +129,63 @@ DataType nth_order_gradient_py(DataType py_in, DataType2 dt,int M, int N)
 	);
 }
 
+template<class DataType>
+DataType histogram_vectorial_average_py(DataType py_in, int row, int col)
+{
+	py::buffer_info buf_hist = py_in.request();
+	if(buf_hist.ndim != 2)
+	{
+		throw std::runtime_error("U dumbdumb histogram must be 2D.");
+	}
+	if(py_in.shape(0) != py_in.shape(1))
+	{
+		throw std::runtime_error("U dumbdumb histogram must be square.");
+	}
+	int nbins = py_in.shape(0);
+	double* out = (double*) malloc(2*sizeof(double));
+	out[0] = 0;
+	out[1] = 0;
+	double* hist = (double*) buf_hist.ptr;
+	histogram_vectorial_average(nbins,hist,out,row,col);
+
+	py::capsule free_when_done( out, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{2},
+		{sizeof(double)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+DataType inverse_probability2D_py(DataType py_in1, DataType py_in2)
+{
+	py::buffer_info buf_gamma = py_in1.request();
+	py::buffer_info buf_density = py_in2.request();
+	if(buf_density.ndim != 2)
+	{
+		throw std::runtime_error("U dumbdumb histogram must be 2D.");
+	}
+	if(buf_gamma.size != buf_density.size*buf_density.size)
+	{
+		throw std::runtime_error("U dumbdumb dimensions mismatch");
+	}
+	if(py_in2.shape(0) != py_in2.shape(1))
+	{
+		throw std::runtime_error("U dumbdumb histogram must be square.");
+	}
+	int nbins = py_in2.shape(0);
+	double* out = (double*) malloc(nbins*nbins*nbins*nbins*sizeof(double));
+	double* ptr_gamma = (double*) buf_gamma.ptr;
+	double* ptr_density = (double*) buf_density.ptr;
+	inverse_probability2D(nbins,ptr_gamma,out,ptr_density);
+	py::capsule free_when_done( out, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{(nbins*nbins),nbins,nbins},
+		{(nbins*nbins)*sizeof(double),nbins*sizeof(double),sizeof(double)},
+		out,
+		free_when_done	
+	);
+}

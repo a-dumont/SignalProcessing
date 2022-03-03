@@ -5,7 +5,7 @@ with open("README.md","r") as fh:
 
 setuptools.setup(
     name="SignalProcessing",
-    version="1.6.0",
+    version="1.7.0",
     author="Alexandre Dumont",
     author_email="Alexandre.Dumont3@usherbrooke.ca",
     long_description=long_description,
