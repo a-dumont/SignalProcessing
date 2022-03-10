@@ -858,17 +858,17 @@ class cHistogram_And_Displacement_2D_steps_py: public cHistogram_And_Displacemen
 			n = check(xdata_py,ydata_py);
 			double* xdata = (double*)xdata_py.request().ptr;
 			double* ydata = (double*)ydata_py.request().ptr;
-			Histogram_And_Displacement_2D_steps(hist,xedges,yedges,xdata,ydata,n,nbins,steps);
+			Histogram_And_Displacement_2D_steps(hist,hist_before,xedges,yedges,xdata,ydata,n,nbins,steps);
 			count += 1;
 		}
 		np_uint64 getHistogram()
 		{
-			uint64_t* hist2 = (uint64_t*)malloc(sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
-			hist2 = (uint64_t*) std::memcpy(hist2,hist,sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			uint64_t* hist2 = (uint64_t*)malloc(sizeof(uint64_t)*nbins*nbins*(2*steps*nbins*nbins+1));
+			hist2 = (uint64_t*) std::memcpy(hist2,hist,sizeof(uint64_t)*nbins*nbins*(2*steps*nbins*nbins+1));
 			py::capsule free_when_done1( hist2, free );
 
 			np_uint64 hist_py = np_uint64(
-							{(steps*nbins*nbins+1),nbins,nbins},
+							{(2*steps*nbins*nbins+1),nbins,nbins},
 							{(nbins*nbins)*sizeof(uint64_t),nbins*sizeof(uint64_t),sizeof(uint64_t)},
 							hist2,
 							free_when_done1);
@@ -898,7 +898,7 @@ class cHistogram_And_Displacement_2D_steps_py: public cHistogram_And_Displacemen
 		}
 		void resetHistogram()
 		{
-			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(2*steps*nbins*nbins+1));
 			count = 0;
 		}
 		void setEdges(np_double xe, np_double ye)

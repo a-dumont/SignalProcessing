@@ -140,7 +140,7 @@ void Histogram_And_Displacement_2D(uint64_t* hist, Datatype* xedges, Datatype* y
 	#pragma omp parallel for
 	for(int i=0;i<(n-1);i++)
 	{
-		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
+		if( ((xdata[i]-xmax)*(xdata[i]-xmin) <= 0) && ((ydata[i]-ymax)*(ydata[i]-ymin) <= 0) )
 		{	
 			int xbin = (int)((xdata[i]-xmin)*xstep_inv);
 			int ybin = (int)((ydata[i]-ymin)*ystep_inv);
@@ -156,7 +156,7 @@ void Histogram_And_Displacement_2D(uint64_t* hist, Datatype* xedges, Datatype* y
 			hist[nbins*nbins+ybin*nbins*nbins*nbins+xbin*nbins*nbins+nbins*xbin2+ybin2] += 1;
 		}
 	}
-	if( (xdata[n]-xmax)*(xdata[n]-xmin)*(ydata[n]-ymax)*(ydata[n]-ymin) >= 0 )
+	if( ((xdata[n]-xmax)*(xdata[n]-xmin) <= 0) && ((ydata[n]-ymax)*(ydata[n]-ymin) <= 0) )
 	{	
 		int xbin = (int)((xdata[n]-xmin)*xstep_inv);
 		int ybin = (int)((ydata[n]-ymin)*ystep_inv);
@@ -167,7 +167,7 @@ void Histogram_And_Displacement_2D(uint64_t* hist, Datatype* xedges, Datatype* y
 }
 
 template<class Datatype>
-void Histogram_And_Displacement_2D_steps(uint64_t* hist, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins,int steps)
+void Histogram_And_Displacement_2D_steps(uint64_t* hist_after, uint64_t* hist_before, Datatype* xedges, Datatype* yedges, Datatype* xdata, Datatype* ydata, int n, int nbins,int steps)
 {	
 	Datatype xstep_inv = 1/(xedges[1]-xedges[0]);
 	Datatype ystep_inv = 1/(yedges[1]-yedges[0]);
@@ -177,31 +177,27 @@ void Histogram_And_Displacement_2D_steps(uint64_t* hist, Datatype* xedges, Datat
 	Datatype ymax = yedges[nbins];
 
 	#pragma omp parallel for
-	for(int i=0;i<(n-steps);i++)
+	for(int i=steps;i<(n-steps);i++)
 	{
-		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
+		if( ((xdata[i]-xmax)*(xdata[i]-xmin) <= 0) && ((ydata[i]-ymax)*(ydata[i]-ymin) <= 0) )
 		{	
 			int xbin = std::clamp((int)((xdata[i]-xmin)*xstep_inv),0,nbins-1);
 			int ybin = std::clamp((int)((ydata[i]-ymin)*ystep_inv),0,nbins-1);
 			#pragma omp atomic
-			hist[ybin+nbins*xbin] += 1;
+			hist_after[ybin+nbins*xbin] += 1;
 
 			for(int j=1;j<steps+1;j++)
 			{
 				int xbin2 = std::clamp((int)((xdata[i+j]-xmin)*xstep_inv),0,nbins-1);
 				int ybin2 = std::clamp((int)((ydata[i+j]-ymin)*ystep_inv),0,nbins-1);
+				int xbin3 = std::clamp((int)((xdata[i-j]-xmin)*xstep_inv),0,nbins-1);
+				int ybin3 = std::clamp((int)((ydata[i-j]-ymin)*ystep_inv),0,nbins-1);
 				#pragma omp atomic
-				hist[nbins*nbins+(ybin*nbins*nbins*nbins+xbin*nbins*nbins)+nbins*xbin2+ybin2+(j-1)*nbins*nbins*nbins*nbins] += 1;
+				hist_after[nbins*nbins+(ybin*nbins*nbins*nbins+xbin*nbins*nbins)+nbins*xbin2+ybin2+(j-1)*nbins*nbins*nbins*nbins] += 1;
+				#pragma omp atomic
+				hist_before[(ybin*nbins*nbins*nbins+xbin*nbins*nbins)+nbins*xbin3+ybin3+(j-1)*nbins*nbins*nbins*nbins] += 1;
 			}
 		}
-	}
-	if( (xdata[n]-xmax)*(xdata[n]-xmin)*(ydata[n]-ymax)*(ydata[n]-ymin) >= 0 )
-	{	
-		int xbin = (int)((xdata[n]-xmin)*xstep_inv);
-		int ybin = (int)((ydata[n]-ymin)*ystep_inv);
-		xbin = std::clamp(xbin,0,nbins-1);
-		ybin = std::clamp(ybin,0,nbins-1);
-		hist[ybin+nbins*xbin] += 1;
 	}
 }
 
@@ -310,6 +306,7 @@ class cHistogram_And_Displacement_2D_steps
 {
 	protected:
 		uint64_t* hist;
+		uint64_t* hist_before;
 		Datatype* xedges;
 		Datatype* yedges;
 		int nbins;
@@ -322,16 +319,17 @@ class cHistogram_And_Displacement_2D_steps
 			nbins = Nbins;
 			n = N;
 			steps = Steps;
-			hist = (uint64_t*) malloc(sizeof(uint64_t)*(nbins*nbins*(steps*nbins*nbins+1)));
-			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(steps*nbins*nbins+1));
+			hist = (uint64_t*) malloc(sizeof(uint64_t)*(nbins*nbins*(2*steps*nbins*nbins+1)));
+			hist = (uint64_t*) std::memset(hist,0,sizeof(uint64_t)*nbins*nbins*(2*steps*nbins*nbins+1));
+			hist_before = hist+((nbins*nbins)*(steps*nbins*nbins+1));
 			xedges = GetEdges(xdata, n, nbins);
 			yedges = GetEdges(ydata, n, nbins);
-			Histogram_And_Displacement_2D_steps(hist,xedges,yedges,xdata,ydata,n,nbins,steps);
+			Histogram_And_Displacement_2D_steps(hist,hist_before,xedges,yedges,xdata,ydata,n,nbins,steps);
 			count = 1;
 		}
 		void accumulate(Datatype* xdata, Datatype* ydata)
 		{
-			Histogram_And_Displacement_2D_steps(hist,xedges,yedges,xdata,ydata,n,nbins,steps);
+			Histogram_And_Displacement_2D_steps(hist,hist_before,xedges,yedges,xdata,ydata,n,nbins,steps);
 			count += 1;
 		}
 		uint64_t* getHistogram(){return hist;}
