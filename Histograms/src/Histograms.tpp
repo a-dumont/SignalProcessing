@@ -66,7 +66,7 @@ void Histogram_2D(long* hist, Datatype* xedges, Datatype* yedges, Datatype* xdat
 	Datatype ymax = yedges[nbins];
 	for(int i=0;i<n;i++)
 	{
-		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
+		if( ((xdata[i]-xmax)*(xdata[i]-xmin) <= 0) && ((ydata[i]-ymax)*(ydata[i]-ymin) <= 0) )
 		{	
 				int xbin = (int)((xdata[i]-xmin)*xstep_inv);
 				int ybin = (int)((ydata[i]-ymin)*ystep_inv);
@@ -89,7 +89,7 @@ void Histogram_2D_Density(double* hist, Datatype* xedges, Datatype* yedges, Data
 	Datatype norm = xstep_inv*ystep_inv/n;
 	for(int i=0;i<n;i++)
 	{
-		if( (xdata[i]-xmax)*(xdata[i]-xmin)*(ydata[i]-ymax)*(ydata[i]-ymin) >= 0 )
+		if( ((xdata[i]-xmax)*(xdata[i]-xmin) <= 0) && ((ydata[i]-ymax)*(ydata[i]-ymin) <= 0) )
 		{	
 				int xbin = (int)((xdata[i]-xmin)*xstep_inv);
 				int ybin = (int)((ydata[i]-ymin)*ystep_inv);
