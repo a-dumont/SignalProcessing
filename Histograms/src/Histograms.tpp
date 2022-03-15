@@ -367,7 +367,7 @@ void histogram_nth_order_derivative(int nbins, DataType* data_after, DataType* d
 					for(int s=0;s<m;s++)
 					{
 						in[m+1+s] = data_after[s*size+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l];
-						in[m-1-s] = data_after[s*size+j*nbins*nbins*nbins+i*nbins*nbins+k*nbins+l];
+						in[m-1-s] = data_before[s*size+k*nbins*nbins*nbins+l*nbins*nbins+i*nbins+j];
 					}
 					nth_order_gradient<DataType>((2*m)+1,in,dt,out+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l,n,m);
 				}
