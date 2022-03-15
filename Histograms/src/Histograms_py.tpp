@@ -1,5 +1,4 @@
-#include <cstdio>
-#include <tuple>
+#include <stdexcept>
 template <class Datatype, class Datatype2>
 std::tuple<np_int,np_double> Histogram_py(Datatype py_in, int nbins)
 {
@@ -907,3 +906,67 @@ class cHistogram_And_Displacement_2D_steps_py: public cHistogram_And_Displacemen
 			yedges = (double*)ye.request().ptr;
 		}
 };
+
+template<class DataType>
+DataType histogram_vectorial_average_py(DataType py_in, int row, int col)
+{
+	py::buffer_info buf_hist = py_in.request();
+	if(buf_hist.ndim != 2)
+	{
+		throw std::runtime_error("U dumbdumb histogram must be 2D.");
+	}
+	if(py_in.shape(0) != py_in.shape(1))
+	{
+		throw std::runtime_error("U dumbdumb histogram must be square.");
+	}
+	int nbins = py_in.shape(0);
+	double* out = (double*) malloc(2*sizeof(double));
+	out[0] = 0;
+	out[1] = 0;
+	double* hist = (double*) buf_hist.ptr;
+	histogram_vectorial_average(nbins,hist,out,row,col);
+
+	py::capsule free_when_done( out, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{2},
+		{sizeof(double)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType,class DataType2>
+DataType histogram_nth_order_derivative_py(DataType data_after_py, DataType data_before_py, DataType2 dt, int n, int m)
+{
+	if(data_after_py.ndim() != 5 || data_before_py.ndim() != 5)
+	{
+		throw std::runtime_error("U dumbdumb ndim must be 5.");
+	}
+	if(data_after_py.shape(0) != m || data_before_py.shape(0) != m)
+	{
+		throw std::runtime_error("U dumbdumb must have atleast m nbins**4 arrays to compute.");
+	}
+	if(data_after_py.shape(1)*data_after_py.shape(2)*data_after_py.shape(3)*data_after_py.shape(4) != data_after_py.shape(4)*data_after_py.shape(4)*data_after_py.shape(4)*data_after_py.shape(4))
+	{
+		throw std::runtime_error("U dumbdumb dimensions 1-4 must have same shape.");
+	}
+	if(data_before_py.shape(1)*data_before_py.shape(2)*data_before_py.shape(3)*data_before_py.shape(4) != data_before_py.shape(4)*data_before_py.shape(4)*data_before_py.shape(4)*data_before_py.shape(4))
+	{
+		throw std::runtime_error("U dumbdumb dimensions 1-4 must have same shape.");
+	}
+	int nbins = data_after_py.shape(4);
+	int size = nbins*nbins*nbins*nbins;
+	double* out = (double*) malloc(sizeof(double)*size);
+	double* data_after = (double*) data_after_py.request().ptr;
+	double* data_before = (double*) data_before_py.request().ptr;
+	histogram_nth_order_derivative(nbins,data_after,data_before,dt,n,m,out);
+	py::capsule free_when_done( out, free );
+	return py::array_t<double, py::array::c_style> 
+	(
+		{nbins,nbins,nbins,nbins},
+		{nbins*nbins*nbins*sizeof(double),nbins*nbins*sizeof(double),nbins*sizeof(double),sizeof(double)},
+		out,
+		free_when_done	
+	);
+}

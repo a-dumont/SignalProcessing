@@ -1,4 +1,3 @@
-#include <tuple>
 template <class Datatype>
 Datatype* GetEdges(Datatype* data, int n, int nbins)
 {
@@ -337,3 +336,42 @@ class cHistogram_And_Displacement_2D_steps
 		std::tuple<Datatype*,Datatype*> getEdges(){return std::make_tuple(xedges,yedges);}
 		int getNbins(){return nbins;}
 };
+
+template<class DataType>
+void histogram_vectorial_average(int nbins, DataType* hist, DataType* out, int row, int col)
+{
+	for(int i=0;i<nbins;i++)
+	{
+		for(int j=0;j<nbins;j++)
+		{
+			out[0] += hist[i*nbins+j]*(i-row);
+			out[1] += hist[i*nbins+j]*(j-col);
+		}
+	}
+}
+
+template<class DataType>
+void histogram_nth_order_derivative(int nbins, DataType* data_after, DataType* data_before, DataType dt, int n, int m, DataType* out)
+{
+	int size = nbins*nbins*nbins*nbins;
+	DataType in[2*m+1];
+	in[m] = 0;
+	for(int i=0;i<nbins;i++)
+	{
+		for(int j=0;j<nbins;j++)
+		{
+			for(int k=0;k<nbins;k++)
+			{
+				for(int l=0;l<nbins;l++)
+				{
+					for(int s=0;s<m;s++)
+					{
+						in[m+1+s] = data_after[s*size+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l];
+						in[m-1-s] = data_after[s*size+j*nbins*nbins*nbins+i*nbins*nbins+k*nbins+l];
+					}
+					nth_order_gradient<DataType>((2*m)+1,in,dt,out+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l,n,m);
+				}
+			}
+		}
+	}
+}
