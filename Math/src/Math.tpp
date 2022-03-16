@@ -26,7 +26,7 @@ void gradient(int n, DataType* x, DataType2 dt, DataType* out)
 template<class DataType>
 double* finite_difference_coefficients(DataType M, int N)
 {
-	double* alpha = (double*) malloc((2*N+1)*sizeof(double));
+	double alpha[2*N+1];//double* alpha = (double*) malloc((2*N+1)*sizeof(double));
 	N = 2*N;
 	double* coeff = (double*) malloc((M+1)*(N+1)*(N+1)*sizeof(double));
 	std::memset(coeff,0,(M+1)*(N+1)*(N+1)*sizeof(double));
@@ -78,7 +78,7 @@ double* finite_difference_coefficients(DataType M, int N)
 		}
 		a = b;
 	}
-	free(alpha);
+	//free(alpha);
 	return coeff;
 }
 
@@ -98,7 +98,8 @@ void nth_order_gradient(int n, DataType* x, DataType dt, DataType* out,int M, in
 			k += 2;
 		}
 		for(int l=0;l<M;l++){out[i-N] *= norm;}
-	}	
+	}
+	free(coeff);
 }
 
 template<class DataType>
