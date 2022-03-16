@@ -99,7 +99,7 @@ void nth_order_gradient(int n, DataType* x, DataType dt, DataType* out,int M, in
 		}
 		for(int l=0;l<M;l++){out[i-N] *= norm;}
 	}
-	free(coeff);
+	free(coeff-(M*(2*N+1)*(2*N+1)+2*N*(2*N+1)));
 }
 
 template<class DataType>
