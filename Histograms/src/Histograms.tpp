@@ -354,7 +354,7 @@ template<class DataType>
 void histogram_nth_order_derivative(int nbins, DataType* data_after, DataType* data_before, DataType dt, int n, int m, DataType* out)
 {
 	int size = nbins*nbins*nbins*nbins;
-	DataType* in = (DataType*) malloc(sizeof(DataType)*(2*m+1));//in[2*m+1];
+	DataType in[2*m+1];
 	in[m] = 0;
 	for(int i=0;i<nbins;i++)
 	{
@@ -374,5 +374,4 @@ void histogram_nth_order_derivative(int nbins, DataType* data_after, DataType* d
 			}
 		}
 	}
-	free(in);
 }
