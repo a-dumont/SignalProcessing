@@ -152,7 +152,7 @@ void Histogram_And_Displacement_2D(uint64_t* hist, Datatype* xedges, Datatype* y
 			#pragma omp atomic
 			hist[ybin+nbins*xbin] += 1;
 			#pragma omp atomic
-			hist[nbins*nbins+ybin*nbins*nbins*nbins+xbin*nbins*nbins+nbins*xbin2+ybin2] += 1;
+			hist[nbins*nbins+xbin*nbins*nbins*nbins+ybin*nbins*nbins+nbins*xbin2+ybin2] += 1;
 		}
 	}
 	if( ((xdata[n]-xmax)*(xdata[n]-xmin) <= 0) && ((ydata[n]-ymax)*(ydata[n]-ymin) <= 0) )
@@ -192,9 +192,9 @@ void Histogram_And_Displacement_2D_steps(uint64_t* hist_after, uint64_t* hist_be
 				int xbin3 = std::clamp((int)((xdata[i-j]-xmin)*xstep_inv),0,nbins-1);
 				int ybin3 = std::clamp((int)((ydata[i-j]-ymin)*ystep_inv),0,nbins-1);
 				#pragma omp atomic
-				hist_after[nbins*nbins+(ybin*nbins*nbins*nbins+xbin*nbins*nbins)+nbins*xbin2+ybin2+(j-1)*nbins*nbins*nbins*nbins] += 1;
+				hist_after[nbins*nbins+(xbin*nbins*nbins*nbins+ybin*nbins*nbins)+nbins*xbin2+ybin2+(j-1)*nbins*nbins*nbins*nbins] += 1;
 				#pragma omp atomic
-				hist_before[(ybin*nbins*nbins*nbins+xbin*nbins*nbins)+nbins*xbin3+ybin3+(j-1)*nbins*nbins*nbins*nbins] += 1;
+				hist_before[(xbin*nbins*nbins*nbins+ybin*nbins*nbins)+nbins*xbin3+ybin3+(j-1)*nbins*nbins*nbins*nbins] += 1;
 			}
 		}
 	}
