@@ -130,38 +130,38 @@ DataType nth_order_gradient_py(DataType py_in, DataType2 dt,int M, int N)
 }
 
 template<class DataType>
-np_int continous_max_py(py::array_t<DataType,py::array::c_style> py_in)
+np_int continuous_max_py(py::array_t<DataType,py::array::c_style> py_in)
 {
 	if (py_in.request().ndim != 1)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	int* out = (int*) malloc(py_in.request().size*sizeof(int));
-	continuous_max(out,py_in.request().ptr,py_in.request().size);
+	long int* out = (long int*) malloc(py_in.request().size*sizeof(long int));
+	continuous_max(out,(DataType*) py_in.request().ptr,py_in.request().size);
 	py::capsule free_when_done( out, free );
-	return py::array_t<int, py::array::c_style> 
+	return py::array_t<long int, py::array::c_style> 
 	(
 		{py_in.request().size},
-		{sizeof(int)},
+		{sizeof(long int)},
 		out,
 		free_when_done	
 		);
 }
 
 template<class DataType>
-np_int continous_min_py(py::array_t<DataType,py::array::c_style> py_in)
+np_int continuous_min_py(py::array_t<DataType,py::array::c_style> py_in)
 {
 	if (py_in.request().ndim != 1)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	int* out = (int*) malloc(py_in.request().size*sizeof(int));
-	continuous_min(out,py_in.request().ptr,py_in.request().size);
+	long int* out = (long int*) malloc(py_in.request().size*sizeof(long int));
+	continuous_min(out,(DataType*) py_in.request().ptr,py_in.request().size);
 	py::capsule free_when_done( out, free );
-	return py::array_t<int, py::array::c_style> 
+	return py::array_t<long int, py::array::c_style> 
 	(
 		{py_in.request().size},
-		{sizeof(int)},
+		{sizeof(long int)},
 		out,
 		free_when_done	
 		);
