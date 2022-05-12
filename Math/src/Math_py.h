@@ -10,6 +10,7 @@ using namespace pybind11::literals;
 #include "Math.h"
 
 typedef py::array_t<double,py::array::c_style> np_double;
+typedef py::array_t<int,py::array::c_style> np_int;
 typedef py::array_t<std::complex<double>,py::array::c_style> np_complex;
 typedef std::complex<double> dbl_complex; 
 
