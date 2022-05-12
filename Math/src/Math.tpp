@@ -117,3 +117,36 @@ void rolling_average(int n, DataType* in, DataType* out, int size)
 	}
 }
 
+template<class DataType>
+void continous_max(int* out, DataType* in, int n)
+{
+	out[0] = in[0];
+	for(int i=1;i<n;i++)
+	{
+		if(in[i] > out[i-1])
+		{
+			out[i] = in[i];
+		}
+		else 
+		{
+			out[i] = out[i-1];	
+		}
+	}
+}
+
+template<class DataType>
+void continous_min(int* out, DataType* in, int n)
+{
+	out[0] = in[0];
+	for(int i=1;i<n;i++)
+	{
+		if(in[i] < out[i-1])
+		{
+			out[i] = in[i];
+		}
+		else 
+		{
+			out[i] = out[i-1];	
+		}
+	}
+}
