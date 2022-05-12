@@ -121,11 +121,13 @@ template<class DataType>
 void continuous_max(long int* out, DataType* in, int n)
 {
 	out[0] = 0;
+	long int max = in[0];
 	for(long int i=1;i<n;i++)
 	{
-		if(in[i] > in[out[i-1]])
+		if(in[i] > max)
 		{
 			out[i] = i;
+			max = in[i];
 		}
 		else 
 		{
@@ -138,11 +140,13 @@ template<class DataType>
 void continuous_min(long int* out, DataType* in, int n)
 {
 	out[0] = 0;
+	long int min = in[0];
 	for(long int i=1;i<n;i++)
 	{
-		if(in[i] < in[out[i-1]])
+		if(in[i] < min)
 		{
 			out[i] = i;
+			min = in[i];
 		}
 		else 
 		{
