@@ -170,35 +170,35 @@ np_int continuous_min_py(py::array_t<DataType,py::array::c_style> py_in)
 template<class DataType>
 DataType sum_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	return sum<DataType>((DataType*) buf1.ptr,buf1.size);
 }
 
 template<class DataType>
 DataType mean_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	return mean((DataType*) buf1.ptr,buf1.size);
 }
 
 template<class DataType>
 DataType variance_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	return variance((DataType*) buf1.ptr,buf1.size);
 }
 
 template<class DataType>
 DataType poisson_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	return poisson((DataType*) buf1.ptr,buf1.size);
 }
 
 template<class DataType, class DataType2>
-DataType product_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
 	if ((buf1.ndim != 1) | (buf2.ndim != 1))
 	{
@@ -229,9 +229,9 @@ DataType product_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<
 }
 
 template<class DataType, class DataType2>
-DataType sum_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
 	if ((buf1.ndim != 1) | (buf2.ndim != 1))
 	{
@@ -262,9 +262,9 @@ DataType sum_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<Data
 }
 
 template<class DataType, class DataType2>
-DataType difference_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
 	if ((buf1.ndim != 1) | (buf2.ndim != 1))
 	{
@@ -295,9 +295,9 @@ DataType difference_py(py::array_t<DataType,py::array::c_style> py_in1,py::array
 }
 
 template<class DataType, class DataType2>
-DataType division_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
 {
-	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
 	if ((buf1.ndim != 1) | (buf2.ndim != 1))
 	{
