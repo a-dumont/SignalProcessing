@@ -210,7 +210,7 @@ py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::arr
 	}
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	product((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
-	ndim = py_in1.ndim();
+	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
 	for(int i=0;i<ndim;i++)
@@ -243,7 +243,7 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 	}
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	sum((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
-	ndim = py_in1.ndim();
+	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
 	for(int i=0;i<ndim;i++)
@@ -276,7 +276,7 @@ py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::
 	}
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	difference((DataType*) buf1.ptr,(DataType*) buf2.ptr,out,buf1.size);
-	ndim = py_in1.ndim();
+	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
 	for(int i=0;i<ndim;i++)
@@ -309,7 +309,7 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 	}
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	division((DataType*) buf1.ptr,(DataType*) buf2.ptr,out,buf1.size);
-	ndim = py_in1.ndim();
+	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
 	for(int i=0;i<ndim;i++)
