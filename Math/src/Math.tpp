@@ -200,7 +200,7 @@ double poisson(DataType* in, int n)
 	return poisson;
 }
 
-template<class DataType>
+template<class DataType, class DataType2>
 void product(DataType* in1, DataType* in2, DataType2* out, int n)
 {
 	#pragma omp parallel for
