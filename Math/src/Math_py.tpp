@@ -200,7 +200,7 @@ py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::arr
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
-	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	if (buf1.ndim ! buf2.ndim )
 	{
 		throw std::runtime_error("U dumbdumb dimension must be same.");
 	}	
@@ -233,7 +233,7 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
-	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	if (buf1.ndim ! buf2.ndim )
 	{
 		throw std::runtime_error("U dumbdumb dimension must be same.");
 	}	
@@ -266,7 +266,7 @@ py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
-	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	if (buf1.ndim ! buf2.ndim )
 	{
 		throw std::runtime_error("U dumbdumb dimension must be same.");
 	}	
@@ -299,7 +299,7 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
-	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	if (buf1.ndim ! buf2.ndim )
 	{
 		throw std::runtime_error("U dumbdumb dimension must be same.");
 	}	
