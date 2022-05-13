@@ -203,8 +203,8 @@ double poisson(DataType* in, int n)
 template<class DataType>
 void product(DataType* in1, DataType* in2, DataType* out, int n)
 {
-	
-	for(int i=0<i<n;i++)
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
 	{
 		out[i] = in1[i]*in2[i];
 	}
@@ -213,8 +213,8 @@ void product(DataType* in1, DataType* in2, DataType* out, int n)
 template<class DataType, class DataType2>
 void sum(DataType* in1, DataType* in2, DataType* out, int n)
 {
-	
-	for(int i=0<i<n;i++)
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
 	{
 		out[i] = in1[i]+in2[i];
 	}
@@ -223,8 +223,8 @@ void sum(DataType* in1, DataType* in2, DataType* out, int n)
 template<class DataType, class DataType2>
 void difference(DataType* in1, DataType* in2, DataType* out, int n)
 {
-	
-	for(int i=0<i<n;i++)
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
 	{
 		out[i] = in1[i]-in2[i];
 	}
@@ -233,8 +233,8 @@ void difference(DataType* in1, DataType* in2, DataType* out, int n)
 template<class DataType, class DataType2>
 void division(DataType* in1, DataType* in2, DataType* out, int n)
 {
-	
-	for(int i=0<i<n;i++)
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
 	{
 		out[i] = in1[i]/in2[i];
 	}
