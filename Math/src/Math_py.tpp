@@ -216,7 +216,7 @@ py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::arr
 	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
@@ -249,7 +249,7 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
@@ -282,7 +282,7 @@ py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::
 	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
@@ -315,7 +315,7 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 	for(int i=1;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
