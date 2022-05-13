@@ -216,7 +216,7 @@ py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::arr
 	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
@@ -249,7 +249,7 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
@@ -282,7 +282,7 @@ py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::
 	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
@@ -310,12 +310,12 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	division((DataType*) buf1.ptr,(DataType*) buf2.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
-	std::vector<int> shape = {py_in1.shape(0)};
-	std::vector<int> strides = {(int) py_in1.strides(0)/sizeof(DataType)};
+	std::vector<int> shape;
+	std::vector<int> strides;
 	for(int i=1;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
-		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+		strides.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
