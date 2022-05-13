@@ -18,18 +18,18 @@ void init_module(py::module &m)
 	m.def("mean",&mean_py<dbl_complex>,"in"_a);
 	m.def("variance",&variance_py<double>,"in"_a);
 	m.def("poisson",&poisson_py<double>,"in"_a);
-	m.def("product",&product_py<int,int>,"in1"_a,"in2"_1);
-	m.def("product",&product_py<double,double>,"in1"_a,"in2"_1);
-	m.def("product",&product_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_1);
-	m.def("sum",&sum_py<int,int>,"in1"_a,"in2"_1);
-	m.def("sum",&sum_py<double,double>,"in1"_a,"in2"_1);
-	m.def("sum",&sum_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_1);
-	m.def("difference",&difference_py<int,int>,"in1"_a,"in2"_1);
-	m.def("difference",&difference_py<double,double>,"in1"_a,"in2"_1);
-	m.def("difference",&difference_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_1);
-	m.def("division",&division_py<int,int>,"in1"_a,"in2"_1);
-	m.def("division",&division_py<double,double>,"in1"_a,"in2"_1);
-	m.def("division",&division_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_1);
+	m.def("product",&product_py<int,int>,"in1"_a,"in2"_a);
+	m.def("product",&product_py<double,double>,"in1"_a,"in2"_a);
+	m.def("product",&product_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
+	m.def("sum",&sum_py<int,int>,"in1"_a,"in2"_a);
+	m.def("sum",&sum_py<double,double>,"in1"_a,"in2"_a);
+	m.def("sum",&sum_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
+	m.def("difference",&difference_py<int,int>,"in1"_a,"in2"_a);
+	m.def("difference",&difference_py<double,double>,"in1"_a,"in2"_a);
+	m.def("difference",&difference_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
+	m.def("division",&division_py<int,int>,"in1"_a,"in2"_a);
+	m.def("division",&division_py<double,double>,"in1"_a,"in2"_a);
+	m.def("division",&division_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
 }
 
 PYBIND11_MODULE(libmath, m)
