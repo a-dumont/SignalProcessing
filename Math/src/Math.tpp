@@ -165,13 +165,13 @@ DataType sum(DataType* in, int n)
 template<class DataType>
 double mean(DataType* in, int n)
 {
-	double mean = 0;
+	double _mean = 0;
 	double N = (double) 1/n;
 	for(int i=0;i<n;i++)
 	{
-		mean += in[i]*N;
+		_mean += in[i]*N;
 	}
-	return mean;
+	return _mean;
 }
 
 template<class DataType>
@@ -182,7 +182,7 @@ double variance(DataType* in, int n)
 	double _mean = mean(in,n);
 	for(int i=0;i<n;i++)
 	{
-		var += (in[i]-mean)*(in[i]-mean)*N;
+		var += (in[i]-_mean)*(in[i]-_mean)*N;
 	}
 	return var;
 }
@@ -195,7 +195,7 @@ double poisson(DataType* in, int n)
 	double _mean = mean(in,n);
 	for(int i=0;i<n;i++)
 	{
-		var += (in[i]-mean)*(in[i]-mean)*(in[i]-mean)*N;
+		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean)*N;
 	}
 	return poisson;
 }
