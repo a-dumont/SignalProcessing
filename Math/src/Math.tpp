@@ -150,3 +150,92 @@ void continuous_min(long int* out, DataType* in, int n)
 		}
 	}
 }
+
+template<class DataType>
+DataType sum(DataType* in, int n)
+{
+	DataType sum = 0;
+	for(int i=0;i<n;i++)
+	{
+		sum += in[i];
+	}
+	return sum;
+}
+
+template<class DataType>
+double mean(DataType* in, int n)
+{
+	double mean = 0;
+	double N = (double) 1/n;
+	for(int i=0;i<n;i++)
+	{
+		mean += in[i]*N;
+	}
+	return mean;
+}
+
+template<class DataType>
+double variance(DataType* in, int n)
+{
+	double var = 0;
+	double N = 1/n;
+	double _mean = mean(in,n);
+	for(int i=0;i<n;i++)
+	{
+		var += (in[i]-mean)*(in[i]-mean)*N;
+	}
+	return var;
+}
+
+template<class DataType>
+double poisson(DataType* in, int n)
+{
+	double poisson = 0;
+	double N = 1/n;
+	double _mean = mean(in,n);
+	for(int i=0;i<n;i++)
+	{
+		var += (in[i]-mean)*(in[i]-mean)*(in[i]-mean)*N;
+	}
+	return poisson;
+}
+
+template<class DataType>
+void product(DataType* in1, DataType* in2, DataType* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0<i<n;i++)
+	{
+		out[i] = in1[i]*in2[i];
+	}
+}
+
+template<class DataType, class DataType2>
+void sum(DataType* in1, DataType* in2, DataType* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0<i<n;i++)
+	{
+		out[i] = in1[i]+in2[i];
+	}
+}
+
+template<class DataType, class DataType2>
+void difference(DataType* in1, DataType* in2, DataType* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0<i<n;i++)
+	{
+		out[i] = in1[i]-in2[i];
+	}
+}
+
+template<class DataType, class DataType2>
+void division(DataType* in1, DataType* in2, DataType* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0<i<n;i++)
+	{
+		out[i] = in1[i]/in2[i];
+	}
+}

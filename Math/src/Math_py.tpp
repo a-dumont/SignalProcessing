@@ -166,3 +166,163 @@ np_int continuous_min_py(py::array_t<DataType,py::array::c_style> py_in)
 		free_when_done	
 		);
 	}
+	
+template<class DataType>
+DataType sum_py(py::array_t<DataType,py::array::c_style> py_in1)
+{
+	py::buffer_info buf1 = py_in.request();
+	return sum<DataType>(buf1.ptr,buf1.size);
+}
+
+template<class DataType>
+DataType mean_py(py::array_t<DataType,py::array::c_style> py_in1)
+{
+	py::buffer_info buf1 = py_in.request();
+	return mean(buf1.ptr,buf1.size);
+}
+
+template<class DataType>
+DataType variance_py(py::array_t<DataType,py::array::c_style> py_in1)
+{
+	py::buffer_info buf1 = py_in.request();
+	return variance(buf1.ptr,buf1.size);
+}
+
+template<class DataType>
+DataType poisson_py(py::array_t<DataType,py::array::c_style> py_in1)
+{
+	py::buffer_info buf1 = py_in.request();
+	return poisson(buf1.ptr,buf1.size);
+}
+
+template<class DataType, class DataType2>
+DataType product_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType,py::array::c_style> py_in2)
+{
+	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf2 = py_in2.request();
+	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	{
+		throw std::runtime_error("U dumbdumb dimension must be same.");
+	}	
+	if (buf1.size != buf2.size)
+	{
+		throw std::runtime_error("U dumbdumb size must be same.");
+	}
+	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
+	product(buf1.ptr,buf2.ptr,out,buf1.size);
+	ndim = py_in1.ndim();
+	std::vector<int> shape;
+	std::vector<int> strides;
+	for(int i=0;i<ndim;i++)
+	{
+		shape.push_back(py_in1.shape(i));
+		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+	}
+	py::capsule free_when_done( out, free );
+	return py::array_t<long int, py::array::c_style> 
+	(
+		shape,
+		strides,
+		out,
+		free_when_done	
+		);
+}
+
+template<class DataType, class DataType2>
+DataType sum_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType,py::array::c_style> py_in2)
+{
+	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf2 = py_in2.request();
+	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	{
+		throw std::runtime_error("U dumbdumb dimension must be same.");
+	}	
+	if (buf1.size != buf2.size)
+	{
+		throw std::runtime_error("U dumbdumb size must be same.");
+	}
+	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
+	sum(buf1.ptr,buf2.ptr,out,buf1.size);
+	ndim = py_in1.ndim();
+	std::vector<int> shape;
+	std::vector<int> strides;
+	for(int i=0;i<ndim;i++)
+	{
+		shape.push_back(py_in1.shape(i));
+		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+	}
+	py::capsule free_when_done( out, free );
+	return py::array_t<long int, py::array::c_style> 
+	(
+		shape,
+		strides,
+		out,
+		free_when_done	
+		);
+}
+
+template<class DataType, class DataType2>
+DataType difference_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType,py::array::c_style> py_in2)
+{
+	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf2 = py_in2.request();
+	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	{
+		throw std::runtime_error("U dumbdumb dimension must be same.");
+	}	
+	if (buf1.size != buf2.size)
+	{
+		throw std::runtime_error("U dumbdumb size must be same.");
+	}
+	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
+	difference(buf1.ptr,buf2.ptr,out,buf1.size);
+	ndim = py_in1.ndim();
+	std::vector<int> shape;
+	std::vector<int> strides;
+	for(int i=0;i<ndim;i++)
+	{
+		shape.push_back(py_in1.shape(i));
+		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+	}
+	py::capsule free_when_done( out, free );
+	return py::array_t<long int, py::array::c_style> 
+	(
+		shape,
+		strides,
+		out,
+		free_when_done	
+		);
+}
+
+template<class DataType, class DataType2>
+DataType division_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType,py::array::c_style> py_in2)
+{
+	py::buffer_info buf1 = py_in.request();
+	py::buffer_info buf2 = py_in2.request();
+	if ((buf1.ndim != 1) | (buf2.ndim != 1))
+	{
+		throw std::runtime_error("U dumbdumb dimension must be same.");
+	}	
+	if (buf1.size != buf2.size)
+	{
+		throw std::runtime_error("U dumbdumb size must be same.");
+	}
+	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
+	division(buf1.ptr,buf2.ptr,out,buf1.size);
+	ndim = py_in1.ndim();
+	std::vector<int> shape;
+	std::vector<int> strides;
+	for(int i=0;i<ndim;i++)
+	{
+		shape.push_back(py_in1.shape(i));
+		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
+	}
+	py::capsule free_when_done( out, free );
+	return py::array_t<long int, py::array::c_style> 
+	(
+		shape,
+		strides,
+		out,
+		free_when_done	
+		);
+}
