@@ -311,7 +311,7 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 	division((DataType*) buf1.ptr,(DataType*) buf2.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
 	std::vector<int> shape = {py_in1.shape(0)};
-	std::vector<int> strides = {(int) py_in.strides(0)/sizeof(DataType)};
+	std::vector<int> strides = {(int) py_in1.strides(0)/sizeof(DataType)};
 	for(int i=1;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
