@@ -219,7 +219,7 @@ DataType product_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<
 		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
-	return py::array_t<long int, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		shape,
 		strides,
@@ -252,7 +252,7 @@ DataType sum_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<Data
 		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
-	return py::array_t<long int, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		shape,
 		strides,
@@ -285,7 +285,7 @@ DataType difference_py(py::array_t<DataType,py::array::c_style> py_in1,py::array
 		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
-	return py::array_t<long int, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		shape,
 		strides,
@@ -318,7 +318,7 @@ DataType division_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t
 		shape.push_back((int) py_in1.strides(i)/sizeof(DataType));
 	}
 	py::capsule free_when_done( out, free );
-	return py::array_t<long int, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		shape,
 		strides,

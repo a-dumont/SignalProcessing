@@ -163,13 +163,13 @@ DataType sum(DataType* in, int n)
 }
 
 template<class DataType>
-double mean(DataType* in, int n)
+DataType mean(DataType* in, int n)
 {
-	double _mean = 0;
+	DataType _mean = 0;
 	double N = (double) 1/n;
 	for(int i=0;i<n;i++)
 	{
-		_mean += in[i]*N;
+		_mean += (DataType) in[i]*N;
 	}
 	return _mean;
 }
