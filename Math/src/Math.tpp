@@ -155,7 +155,7 @@ template<class DataType>
 DataType sum(DataType* in, int n)
 {
 	DataType _sum = (DataType) 0;
-	#pragma omp parallel for default(shared) num_threads(4) reduction(+:_sum)
+	#pragma omp parallel for default(shared) reduction(+:_sum)
 	for (int i = 0; i < n; i++)
 	{
     	_sum += in[i];
@@ -166,11 +166,12 @@ DataType sum(DataType* in, int n)
 template<class DataType>
 DataType mean(DataType* in, int n)
 {
-	DataType _mean = 0;
-	double N = (double) 1/n;
-	for(int i=0;i<n;i++)
+	DataType _mean = (DataType) 0;
+	DataType N = (DataType) 1/n;
+	#pragma omp parallel for default(shared) reduction(+:_mean)
+	for (int i = 0; i < n; i++)
 	{
-		_mean += (DataType) in[i]*N;
+    	_mean += in[i]*N;
 	}
 	return _mean;
 }
@@ -181,6 +182,7 @@ double variance(DataType* in, int n)
 	double var = 0;
 	double N = 1/n;
 	double _mean = mean(in,n);
+	#pragma omp parallel for default(shared) reduction(+:var)
 	for(int i=0;i<n;i++)
 	{
 		var += (in[i]-_mean)*(in[i]-_mean)*N;
@@ -194,6 +196,7 @@ double poisson(DataType* in, int n)
 	double poisson = 0;
 	double N = 1/n;
 	double _mean = mean(in,n);
+	#pragma omp parallel for default(shared) reduction(+:poisson)
 	for(int i=0;i<n;i++)
 	{
 		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean)*N;
