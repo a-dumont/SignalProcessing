@@ -273,8 +273,8 @@ void division(DataType* in1, DataType* in2, DataType2* out, int n)
 	}
 }
 
-template<class DataType, class DataType2>
-void product_single(DataType in1, DataType2* in2, DataType* out, int n)
+template<class DataType, class DataType2, class DataType3>
+void product_single(DataType in1, DataType2* in2, DataType3* out, int n)
 {
 	#pragma omp parallel for
 	for(int i=0;i<n;i++)
@@ -283,8 +283,8 @@ void product_single(DataType in1, DataType2* in2, DataType* out, int n)
 	}
 }
 
-template<class DataType, class DataType2>
-void sum_single(DataType in1, DataType2* in2, DataType* out, int n)
+template<class DataType, class DataType2, class DataType3>
+void sum_single(DataType in1, DataType2* in2, DataType3* out, int n)
 {
 	#pragma omp parallel for
 	for(int i=0;i<n;i++)
@@ -294,7 +294,7 @@ void sum_single(DataType in1, DataType2* in2, DataType* out, int n)
 }
 
 template<class DataType, class DataType2>
-void difference_single(DataType in1, DataType2* in2, DataType* out, int n)
+void difference_single(DataType in1, DataType2* in2, DataType3* out, int n)
 {
 	#pragma omp parallel for
 	for(int i=0;i<n;i++)
@@ -304,7 +304,7 @@ void difference_single(DataType in1, DataType2* in2, DataType* out, int n)
 }
 
 template<class DataType, class DataType2>
-void division_single(DataType in1, DataType2* in2, DataType* out, int n)
+void division_single(DataType in1, DataType2* in2, DataType3* out, int n)
 {
 	#pragma omp parallel for
 	for(int i=0;i<n;i++)
