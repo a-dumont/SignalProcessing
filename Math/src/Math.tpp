@@ -154,13 +154,13 @@ void continuous_min(long int* out, DataType* in, int n)
 template<class DataType>
 DataType sum(DataType* in, int n)
 {
-	DataType sum = 0;
+	//DataType sum = 0;
 	/*
 	for(int i=0;i<n;i++)
 	{
 		sum += in[i];
 	}*/
-	return std::accumulate(in,in+n,sum);
+	return std::accumulate(in,in+n,0);
 }
 
 template<class DataType>
