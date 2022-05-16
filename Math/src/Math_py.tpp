@@ -196,7 +196,7 @@ DataType poisson_py(py::array_t<DataType,py::array::c_style> py_in1)
 }
 
 template<class DataType, class DataType2>
-py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::array::c_style>& py_in1,py::array_t<DataType2,py::array::c_style>& py_in2)
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
@@ -229,7 +229,7 @@ py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::arr
 }
 
 template<class DataType, class DataType2>
-py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::c_style>& py_in1,py::array_t<DataType2,py::array::c_style>& py_in2)
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
@@ -262,7 +262,7 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 }
 
 template<class DataType, class DataType2>
-py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::array::c_style>& py_in1,py::array_t<DataType2,py::array::c_style>& py_in2)
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
@@ -295,7 +295,7 @@ py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::
 }
 
 template<class DataType, class DataType2>
-py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::array::c_style> py_in1,py::array_t<DataType2,py::array::c_style> py_in2)
+py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::array::c_style>& py_in1,py::array_t<DataType2,py::array::c_style>& py_in2)
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
