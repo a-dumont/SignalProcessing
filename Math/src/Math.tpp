@@ -155,10 +155,8 @@ template<class DataType>
 DataType sum(DataType* in, int n)
 {
 	DataType sum = 0;
-	#pragma omp parallel for
 	for(int i=0;i<n;i++)
 	{
-		#pragma omp atomic
 		sum += in[i];
 	}
 	return sum;
@@ -169,10 +167,8 @@ DataType mean(DataType* in, int n)
 {
 	DataType _mean = 0;
 	double N = (double) 1/n;
-	#pragma omp parallel for
 	for(int i=0;i<n;i++)
 	{
-		#pragma omp atomic
 		_mean += (DataType) in[i]*N;
 	}
 	return _mean;
@@ -184,10 +180,8 @@ double variance(DataType* in, int n)
 	double var = 0;
 	double N = 1/n;
 	double _mean = mean(in,n);
-	#pragma omp parallel for
 	for(int i=0;i<n;i++)
 	{
-		#pragma omp atomic
 		var += (in[i]-_mean)*(in[i]-_mean)*N;
 	}
 	return var;
@@ -199,10 +193,8 @@ double poisson(DataType* in, int n)
 	double poisson = 0;
 	double N = 1/n;
 	double _mean = mean(in,n);
-	#pragma omp parallel for
 	for(int i=0;i<n;i++)
 	{
-		#pragma omp atomic
 		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean)*N;
 	}
 	return poisson;
