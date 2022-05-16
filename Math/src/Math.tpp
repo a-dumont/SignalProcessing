@@ -158,7 +158,7 @@ DataType sum(DataType* in, int n)
 	#pragma omp parallel for shared(sum, in) reduction(+: sum)
 	for (int i = 0; i < n; i++)
 	{
-    	sum += in[i]
+    	sum += in[i];
 	}
 	return sum;
 }
