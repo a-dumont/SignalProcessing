@@ -202,7 +202,6 @@ DataType mean_complex(DataType* in, int n)
     	mean_r += std::real(in[i])*N;
 		mean_i += std::imag(in[i])*N;
 	}
-	DataType _mean = mean_r+1i*mean_i;
 	return DataType (mean_r,mean_i);
 }
 
