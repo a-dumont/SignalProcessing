@@ -160,7 +160,7 @@ DataType sum(DataType* in, int n)
 	{
 		sum += in[i];
 	}*/
-	return std::accumulate(in,in+n,0);
+	return std::accumulate(in,in+n,(DataType) 0);
 }
 
 template<class DataType>
