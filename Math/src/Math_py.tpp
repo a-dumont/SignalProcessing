@@ -308,11 +308,11 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 		throw std::runtime_error("U dumbdumb size must be same.");
 	}
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
-	division((DataType*) buf1.ptr,(DataType*) buf2.ptr,out,buf1.size);
+	division((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
-	for(int i=1;i<ndim;i++)
+	for(int i=0;i<ndim;i++)
 	{
 		shape.push_back(py_in1.shape(i));
 		strides.push_back((int) py_in1.strides(i));
@@ -325,4 +325,4 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 		out,
 		free_when_done	
 		);
-}
+	}
