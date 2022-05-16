@@ -155,7 +155,7 @@ template<class DataType>
 DataType sum(DataType* in, int n)
 {
 	DataType _sum = (DataType) 0;
-	#pragma omp parallel for shared(_sum, in) reduction(+: _sum)
+	#pragma omp parallel for default(shared) reduction(+:_sum)
 	for (int i = 0; i < n; i++)
 	{
     	_sum += in[i];
