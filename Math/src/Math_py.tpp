@@ -364,3 +364,10 @@ py::array_t<DataType,py::array::c_style> product_single_py(py::array_t<DataType,
 		free_when_done	
 		);
 }
+
+template<class DataType, class DataType2>
+py::array_t<DataType,py::array::c_style> product_single_py(DataType py_in1, py::array_t<DataType2,py::array::c_style> py_in2)
+{
+	py::array_t<DataType,py::array::c_style> res = product_single_py(py_in2,py_in1);
+	return py::array_t<DataType, py::array::c_style> 
+}
