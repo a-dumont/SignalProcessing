@@ -168,7 +168,7 @@ DataType sum_complex(DataType* in, int n)
 {
 	double sum_r = 0.0;
 	double sum_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:sum_r,sum_i)
+	#pragma omp parallel for default(shared) reduction(+:sum_r) reduction(+:sum_i)
 	for (int i = 0; i < n; i++)
 	{
     	sum_r += std::real(in[i]);
@@ -197,7 +197,7 @@ DataType mean_complex(DataType* in, int n)
 	double N = 1.0/n;
 	double mean_r = 0.0;
 	double mean_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:mean_r,mean_i)
+	#pragma omp parallel for default(shared) reduction(+:mean_r) reduction(+:mean_i)
 	for (int i = 0; i < n; i++)
 	{
     	mean_r += std::real(in[i])*N;
