@@ -123,9 +123,9 @@ void continuous_max(long int* out, DataType* in, int n)
 	out[0] = 0;
 	for(long int i=1;i<n;i++)
 	{
-		bool a = in[i]>in[out[i-1]];
+		long int a = (long int) in[i]>in[out[i-1]];
 		//long int b = in[i]<=in[out[i-1]];
-		out[i] = a*out[i]+(true-a)*out[i-1];
+		out[i] = a*out[i]+(1-a)*out[i-1];
 		/*
 		if(in[i] > in[out[i-1]])
 		{
