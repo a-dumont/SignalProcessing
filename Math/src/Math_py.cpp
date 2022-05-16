@@ -12,10 +12,10 @@ void init_module(py::module &m)
 	m.def("continuous_min",&continuous_min_py<double>,"in"_a);
 	m.def("sum",&sum_py<int>,"in"_a);
 	m.def("sum",&sum_py<double>,"in"_a);
-	m.def("sum",&sum_py<dbl_complex>,"in"_a);
+	//m.def("sum",&sum_py<dbl_complex>,"in"_a);
 	m.def("mean",&mean_py<int>,"in"_a);
 	m.def("mean",&mean_py<double>,"in"_a);
-	m.def("mean",&mean_py<dbl_complex>,"in"_a);
+	//m.def("mean",&mean_py<dbl_complex>,"in"_a);
 	m.def("variance",&variance_py<double>,"in"_a);
 	m.def("poisson",&poisson_py<double>,"in"_a);
 	m.def("product",&product_py<int,int>,"in1"_a,"in2"_a);
