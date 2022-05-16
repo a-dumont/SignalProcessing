@@ -155,10 +155,12 @@ template<class DataType>
 DataType sum(DataType* in, int n)
 {
 	DataType sum = 0;
+	std::accumulate(in,in+n,sum);
+	/*
 	for(int i=0;i<n;i++)
 	{
 		sum += in[i];
-	}
+	}*/
 	return sum;
 }
 
