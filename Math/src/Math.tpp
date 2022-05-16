@@ -293,7 +293,7 @@ void sum_single(DataType in1, DataType2* in2, DataType3* out, int n)
 	}
 }
 
-template<class DataType, class DataType2>
+template<class DataType, class DataType2, class DataType3>
 void difference_single(DataType in1, DataType2* in2, DataType3* out, int n)
 {
 	#pragma omp parallel for
@@ -303,7 +303,7 @@ void difference_single(DataType in1, DataType2* in2, DataType3* out, int n)
 	}
 }
 
-template<class DataType, class DataType2>
+template<class DataType, class DataType2, class DataType3>
 void division_single(DataType in1, DataType2* in2, DataType3* out, int n)
 {
 	#pragma omp parallel for
