@@ -174,7 +174,7 @@ DataType sum_complex(DataType* in, int n)
     	sum_r += std::real(in[i]);
 		sum_i += std::imag(in[i]);
 	}
-	DataType _sum = (sum_r,sum_i);
+	DataType _sum = sum_r+1i*sum_i;
 	return _sum;
 }
 
@@ -203,7 +203,7 @@ DataType mean_complex(DataType* in, int n)
     	mean_r += std::real(in[i])*N;
 		mean_i += std::imag(in[i])*N;
 	}
-	DataType _mean = (mean_r,mean_i);
+	DataType _mean = mean_r=1i*mean_i;
 	return _mean;
 }
 
