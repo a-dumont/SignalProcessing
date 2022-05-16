@@ -346,7 +346,7 @@ py::array_t<DataType,py::array::c_style> product_single_py(py::array_t<DataType,
 {
 	py::buffer_info buf1 = py_in1.request();
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
-	product_single(py_in2,(DataType*) buf1.ptr,out,buf1.size);
+	product_single(py_in2,(DataType*) &buf1.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
@@ -370,7 +370,7 @@ py::array_t<DataType,py::array::c_style> sum_single_py(py::array_t<DataType,py::
 {
 	py::buffer_info buf1 = py_in1.request();
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
-	sum_single(py_in2,(DataType*) buf1.ptr,out,buf1.size);
+	sum_single(py_in2,(DataType*) &buf1.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
@@ -394,7 +394,7 @@ py::array_t<DataType,py::array::c_style> difference_single_py(py::array_t<DataTy
 {
 	py::buffer_info buf1 = py_in1.request();
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
-	difference_single(py_in2,(DataType*) buf1.ptr,out,buf1.size);
+	difference_single(py_in2,(DataType*) &buf1.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;
@@ -418,7 +418,7 @@ py::array_t<DataType,py::array::c_style> division_single_py(py::array_t<DataType
 {
 	py::buffer_info buf1 = py_in1.request();
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
-	division_single(py_in2,(DataType*) buf1.ptr,out,buf1.size);
+	division_single(py_in2,(DataType*) &buf1.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
 	std::vector<int> shape;
 	std::vector<int> strides;

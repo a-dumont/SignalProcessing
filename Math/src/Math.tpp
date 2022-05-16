@@ -304,7 +304,7 @@ void difference_single(DataType in1, DataType2* in2, DataType* out, int n)
 }
 
 template<class DataType, class DataType2>
-void division_single(DataType in1, DataType*2 in2, DataType* out, int n)
+void division_single(DataType in1, DataType2* in2, DataType* out, int n)
 {
 	#pragma omp parallel for
 	for(int i=0;i<n;i++)
