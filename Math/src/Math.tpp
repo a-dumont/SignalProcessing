@@ -272,3 +272,43 @@ void division(DataType* in1, DataType* in2, DataType2* out, int n)
 		out[i] = in1[i]/in2[i];
 	}
 }
+
+template<class DataType, class DataType2>
+void product_single(DataType in1, DataType* in2, DataType2* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
+	{
+		out[i] = in1*in2[i];
+	}
+}
+
+template<class DataType, class DataType2>
+void sum_single(DataType in1, DataType* in2, DataType2* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
+	{
+		out[i] = in1+in2[i];
+	}
+}
+
+template<class DataType, class DataType2>
+void difference_single(DataType in1, DataType* in2, DataType2* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
+	{
+		out[i] = in1-in2[i];
+	}
+}
+
+template<class DataType, class DataType2>
+void division_single(DataType in1, DataType* in2, DataType2* out, int n)
+{
+	#pragma omp parallel for
+	for(int i=0;i<n;i++)
+	{
+		out[i] = in2/in1[i];
+	}
+}

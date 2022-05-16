@@ -21,6 +21,9 @@ void init_module(py::module &m)
 	m.def("product",&product_py<int,int>,"in1"_a,"in2"_a);
 	m.def("product",&product_py<double,double>,"in1"_a,"in2"_a);
 	m.def("product",&product_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
+	m.def("product",&product_single_py<int,int>,"in1"_a,"in2"_a);
+	m.def("product",&product_single_py<double,double>,"in1"_a,"in2"_a);
+	m.def("product",&product_single_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
 	m.def("sum",&sum_py<int,int>,"in1"_a,"in2"_a);
 	m.def("sum",&sum_py<double,double>,"in1"_a,"in2"_a);
 	m.def("sum",&sum_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
