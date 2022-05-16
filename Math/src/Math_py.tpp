@@ -233,7 +233,6 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 {
 	py::buffer_info buf1 = py_in1.request();
 	py::buffer_info buf2 = py_in2.request();
-	/*
 	if (buf1.ndim != buf2.ndim )
 	{
 		throw std::runtime_error("U dumbdumb dimension must be same.");
@@ -241,7 +240,7 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 	if (buf1.size != buf2.size)
 	{
 		throw std::runtime_error("U dumbdumb size must be same.");
-	}*/
+	}
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	sum((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
 	int ndim = py_in1.ndim();
