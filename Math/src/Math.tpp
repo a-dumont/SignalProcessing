@@ -157,11 +157,11 @@ DataType sum(DataType* in, int n)
 	#pragma omp parallel
 	{
 		int m = n-(int)(n/2);
-		int n = (int) n/2;
-		DataType sum = std::accumulate(in,in+n,(DataType) 0);
+		n = (int) n/2;
+		DataType _sum = std::accumulate(in,in+n,(DataType) 0);
 		DataType sum2 = std::accumulate(in+n,in+m,(DataType) 0);
 	}
-	return sum+sum2;
+	return _sum+sum2;
 }
 
 template<class DataType>
