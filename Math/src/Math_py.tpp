@@ -364,27 +364,3 @@ py::array_t<DataType,py::array::c_style> product_single_py(py::array_t<DataType,
 		free_when_done	
 		);
 }
-
-template<class DataType, class DataType2>
-py::array_t<DataType,py::array::c_style> product_single_py(DataType py_in1, py::array_t<DataType2,py::array::c_style> py_in2)
-{
-	py::buffer_info buf1 = py_in2.request();
-	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
-	product_single(py_in1,(DataType*) buf1.ptr,out,buf1.size);
-	int ndim = py_in1.ndim();
-	std::vector<int> shape;
-	std::vector<int> strides;
-	for(int i=0;i<ndim;i++)
-	{
-		shape.push_back(py_in2.shape(i));
-		strides.push_back((int) py_in1.strides(i));
-	}
-	py::capsule free_when_done( out, free );
-	return py::array_t<DataType, py::array::c_style> 
-	(
-		shape,
-		strides,
-		out,
-		free_when_done	
-		);
-	}
