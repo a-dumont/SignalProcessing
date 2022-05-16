@@ -154,14 +154,13 @@ void continuous_min(long int* out, DataType* in, int n)
 template<class DataType>
 DataType sum(DataType* in, int n)
 {
-	#pragma omp parallel
+	sum = 0;
+	#pragma omp parallel for shared(sum, in) reduction(+: sum)
+	for (int i = 0; i < n; i++)
 	{
-		int m = n-(int)(n/2);
-		n = (int) n/2;
-		DataType _sum = std::accumulate(in,in+n,(DataType) 0);
-		DataType sum2 = std::accumulate(in+n,in+m,(DataType) 0);
+    	sum += in[i]
 	}
-	return _sum+sum2;
+	return sum;
 }
 
 template<class DataType>
