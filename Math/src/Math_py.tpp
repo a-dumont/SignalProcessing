@@ -203,7 +203,7 @@ DataType variance_py(py::array_t<DataType,py::array::c_style> py_in1)
 }
 
 template<class DataType>
-DataType poisson_py(py::array_t<DataType,py::array::c_style> py_in1)
+DataType mode_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
 	return poisson((DataType*) buf1.ptr,buf1.size);
