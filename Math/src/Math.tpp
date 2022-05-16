@@ -174,7 +174,7 @@ DataType sum_complex(DataType* in, int n)
     	sum_r += std::real(in[i]);
 		sum_i += std::imag(in[i]);
 	}
-	return complex_dbl(sum_r,sum_i);
+	return complex_dbl (sum_r,sum_i);
 }
 
 template<class DataType>
@@ -196,13 +196,13 @@ DataType mean_complex(DataType* in, int n)
 	double N = 1.0/n;
 	double mean_r = 0.0;
 	double mean_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:mean_r,meam_i)
+	#pragma omp parallel for default(shared) reduction(+:mean_r,mean_i)
 	for (int i = 0; i < n; i++)
 	{
     	mean_r += std::real(in[i])*N;
 		mean_i += std::imag(in[i])*N;
 	}
-	return complex_dbl(mean_r,mean_i);
+	return complex_dbl (mean_r,mean_i);
 }
 
 template<class DataType>
