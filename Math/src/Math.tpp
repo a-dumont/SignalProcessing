@@ -214,7 +214,7 @@ double variance(DataType* in, int n)
 	#pragma omp parallel for default(shared) reduction(+:var)
 	for(int i=0;i<n;i++)
 	{
-		var += (in[i]*in[i]*N-_mean*_mean);
+		var += (in[i]-_mean)*(in[i]-_mean)*N;
 	}
 	return var;
 }
