@@ -30,6 +30,10 @@ void init_module(py::module &m)
 	m.def("division",&division_py<int,int>,"in1"_a,"in2"_a);
 	m.def("division",&division_py<double,double>,"in1"_a,"in2"_a);
 	m.def("division",&division_py<dbl_complex,dbl_complex>,"in1"_a,"in2"_a);
+	m.def("minimum",&min_py<int>,"in"_a);
+	m.def("minimum",&min_py<double>,"in"_a);
+	m.def("maximum",&max_py<int>,"in"_a);
+	m.def("maximum",&max_py<double>,"in"_a);
 }
 
 PYBIND11_MODULE(libmath, m)
