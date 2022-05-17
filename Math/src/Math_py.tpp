@@ -203,10 +203,10 @@ DataType variance_py(py::array_t<DataType,py::array::c_style> py_in1)
 }
 
 template<class DataType>
-DataType mode_py(py::array_t<DataType,py::array::c_style> py_in1)
+DataType skewness_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return mode((DataType*) buf1.ptr,buf1.size);
+	return skewness((DataType*) buf1.ptr,buf1.size);
 }
 
 template<class DataType, class DataType2>

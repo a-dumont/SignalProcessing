@@ -7,9 +7,11 @@ C++ methods wrapped with pybind11 for signal processing.
 - On windows the use of cygwin is recommended
 
 # Dependencies
-- fftw3
+- FFTW3
 - pybind11
+- OpenMP
 - mingw (To compile on or for Windows)
+- Tested only with g++
 
 ## Build from source
 Go to your build directory (Ex: Downloads) and git clone the repository:
@@ -23,3 +25,17 @@ Go to the new SignalProcessing directory and run the installation commands:
 foo@bar:~$ bash build.sh
 foo@bar:~$ python setup.py install
 ```
+
+# Contents so far
+- FFT
+	- Wrappers around FFTW3 to easily interface with python.
+- Correlations
+	- Uses FFT to compute correlation in the frequency domain.
+	- TODO add time correlations/convolutions.
+	- TODO wrap ifft to give a time result.
+- Histograms
+	- 1D or 2D Histograms.
+- Math
+	- General purpose arithmetic.
+	- Statistics, mean, variance, skewness.
+	- Numerical gradient.s

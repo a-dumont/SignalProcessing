@@ -220,7 +220,7 @@ double variance(DataType* in, int n)
 }
 
 template<class DataType>
-double mode(DataType* in, int n)
+double skewness(DataType* in, int n)
 {
 	double poisson = 0;
 	double N = 1.0/n;
