@@ -282,7 +282,7 @@ DataType max(DataType* in, int n)
 	{
 		_max = _max > in[i] ? _max : in[i];
 	}
-	return _max
+	return _max;
 }
 
 template<class DataType>
@@ -294,5 +294,5 @@ DataType min(DataType* in, int n)
 	{
 		_min = _min > in[i] ? _min : in[i];
 	}
-	return _min
+	return _min;
 }
