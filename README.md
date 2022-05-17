@@ -1,10 +1,10 @@
 # SignalProcessing
-C++ methods wrapped with pybind11 for signal processing.
+C++ methods wrapped with pybind11 for signal processing and whatever else I might need.
 
 # Installation
 ## Before installing
-- Make sure Python and pip are installed on your system
-- On windows the use of cygwin is recommended
+- Make sure Python and pip are installed on your system.
+- On windows it is possible to compile via mingw in wsl2 or cygwin.
 
 # Dependencies
 - FFTW3

@@ -68,6 +68,11 @@ DataType rolling_average_py(DataType py_in, int size)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
+	
+	if (buf_x.size < size)
+	{
+		throw std::runtime_error("U dumbdumb window must be smaller than array.");
+	}	
 
 	int n = buf_x.size;
 
