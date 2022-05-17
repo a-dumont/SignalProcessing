@@ -292,7 +292,7 @@ DataType min(DataType* in, int n)
 	#pragma omp parallel for default(shared) reduction(min:_min)
 	for(int i=1;i<n;i++)
 	{
-		_min = _min > in[i] ? _min : in[i];
+		_min = _min < in[i] ? _min : in[i];
 	}
 	return _min;
 }
