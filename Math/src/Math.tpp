@@ -288,7 +288,7 @@ DataType max(DataType* in, int n)
 template<class DataType>
 DataType min(DataType* in, int n)
 {
-	_max = in[0];
+	_min = in[0];
 	#pragma omp parallel for default(shared) reduction(min:_min)
 	for(int i=1,i<n;i++)
 	{
