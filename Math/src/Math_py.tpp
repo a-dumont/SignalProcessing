@@ -213,14 +213,16 @@ template<class DataType>
 DataType max_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return (DataType*) buf1.ptr[std::max_element((DataType*) buf1.ptr,((DataType*) buf1.ptr)+buf1.size)];
+	DataType* ptr = (DataType*) buf1.ptr;
+	return (DataType) *std::max_element(ptr,ptr+buf1.size);
 }
 
 template<class DataType>
 DataType min_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return (DataType*) buf1.ptr[std::min_element((DataType*) buf1.ptr,((DataType*) buf1.ptr)+buf1.size)];
+	DataType* ptr = (DataType*) buf1.ptr;
+	return (DataType) *std::max_element(ptr,ptr+buf1.size);
 }
 
 template<class DataType, class DataType2>
