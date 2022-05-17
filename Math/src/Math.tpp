@@ -272,3 +272,27 @@ void division(DataType* in1, DataType* in2, DataType2* out, int n)
 		out[i] = in1[i]/in2[i];
 	}
 }
+
+template<class DataType>
+DataType max(DataType* in, int n)
+{
+	_max = in[0];
+	#pragma omp parallel for default(shared) reduction(max:_max)
+	for(int i=1,i<n;i++)
+	{
+		_max = _max > in[i] ? _max : in[i];
+	}
+	return _max
+}
+
+template<class DataType>
+DataType min(DataType* in, int n)
+{
+	_max = in[0];
+	#pragma omp parallel for default(shared) reduction(min:_min)
+	for(int i=1,i<n;i++)
+	{
+		_min = _min > in[i] ? _min : in[i];
+	}
+	return _min
+}
