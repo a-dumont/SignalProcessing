@@ -276,7 +276,7 @@ void division(DataType* in1, DataType* in2, DataType2* out, int n)
 template<class DataType>
 DataType max(DataType* in, int n)
 {
-	_max = in[0];
+	DataType _max = in[0];
 	#pragma omp parallel for default(shared) reduction(max:_max)
 	for(int i=1;i<n;i++)
 	{
@@ -288,7 +288,7 @@ DataType max(DataType* in, int n)
 template<class DataType>
 DataType min(DataType* in, int n)
 {
-	_min = in[0];
+	DataType _min = in[0];
 	#pragma omp parallel for default(shared) reduction(min:_min)
 	for(int i=1;i<n;i++)
 	{
