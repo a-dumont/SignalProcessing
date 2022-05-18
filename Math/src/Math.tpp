@@ -187,7 +187,7 @@ DataType sum_pairwise(DataType* in, int N)
 		#pragma omp parallel for 
 		for (int i = 0; i < (n/2);i++)
 		{
-    		i[i] = in[2*i]+in[2*i+1];
+    		in[i] = in[2*i]+in[2*i+1];
 		}
 		return sum_pairwise<DataType>(in,n/2);
 	}
