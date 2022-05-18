@@ -170,7 +170,7 @@ DataType sum_pairwise(DataType* in, int N)
 	{
 		int n = N-(N%2);
 		DataType result = (N%2)*in[N];
-		DataType temp_out[n/2];
+		DataType temp_out = malloc(n*sizeof(DataType)/2);
 		py::print(N);
 		py::print(in[0]);
 		#pragma omp parallel for 
