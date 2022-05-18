@@ -183,9 +183,18 @@ template<class DataType>
 DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	int n = buf1.size;
+	int N = buf1.size;
 	DataType* ptr = (DataType*) buf1.ptr;
-	return sum_pairwise_initial<DataType>(ptr,n);
+	
+	int n = N-(N%2);
+	DataType remainder = (N%2)*in[N-1];
+	DataType temp_out[n/2];
+	#pragma omp parallel for 
+	for (int i = 0; i < (n/2);i++)
+	{
+    	temp_out[i] = in[2*i]+in[2*i+1];
+	}
+	return remainder + sum_pairwise<DataType>(temp_out,n/2);
 }
 
 template<class DataType>
