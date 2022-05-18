@@ -176,7 +176,7 @@ DataType sum_pairwise(DataType* in, int n)
     		temp_out[i] += in[i]+in[i+1];
 			i+=1;
 		}
-		result = sum_pairwise(&temp_out,(int) n/2);
+		result = sum_pairwise<DataType>(temp_out,(int) n/2);
 	}
 	else if (n == 2)
 	{
