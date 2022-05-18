@@ -181,8 +181,8 @@ DataType sum_pairwise(DataType* in, int N)
 	else if (n == 1)
 	{
 		result += in[0];
+		return result;
 	}
-	return result;
 }
 
 template<class DataType>
