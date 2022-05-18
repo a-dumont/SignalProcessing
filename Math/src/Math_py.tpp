@@ -184,7 +184,7 @@ DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
 	int N = buf1.size;
-	DataType* ptr = (DataType*) buf1.ptr;
+	DataType* in = (DataType*) buf1.ptr;
 	
 	int n = N-(N%2);
 	DataType remainder = (N%2)*in[N-1];
