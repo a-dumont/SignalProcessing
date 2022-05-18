@@ -189,7 +189,7 @@ DataType sum_pairwise(DataType* in, int N)
 		{
     		i[i] = in[2*i]+in[2*i+1];
 		}
-		return sum_pairwise<DataType>(temp_out,n/2);
+		return sum_pairwise<DataType>(in,n/2);
 	}
 	else if (N == 1)
 	{
