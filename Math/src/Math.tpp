@@ -169,11 +169,8 @@ DataType sum_pairwise(DataType* in, int N)
 	if(N > 1)
 	{
 		int n = N-(N%2);
-		in[0] += (N%2)*in[N];
+		in[0] += (N%2)*in[N-1];
 		DataType temp_out[n/2];
-		py::print(N);
-		py::print(n);
-		py::print(in[0]);
 		#pragma omp parallel for 
 		for (int i = 0; i < (n/2);i++)
 		{
