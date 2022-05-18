@@ -171,10 +171,10 @@ DataType sum_pairwise(DataType* in, int n)
 	{
 		DataType temp_out[(int) n/2];
 		#pragma omp parallel for 
-		for (int i = 0; i < n)
+		for (int i = 0; i < n;i++)
 		{
     		temp_out[i] += in[i]+in[i+1];
-			i+=2;
+			i+=1;
 		}
 		result = sum_pairwise(&temp_out,(int) n/2);
 	}
