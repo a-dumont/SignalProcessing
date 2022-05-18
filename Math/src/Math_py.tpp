@@ -194,7 +194,8 @@ DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1)
 	{
     	temp_out[i] = in[2*i]+in[2*i+1];
 	}
-	return remainder + sum_pairwise<DataType>(temp_out,n/2);
+	temp_out[0] += remainder;
+	return sum_pairwise<DataType>(temp_out,n/2);
 }
 
 template<class DataType>
