@@ -178,10 +178,11 @@ DataType sum_pairwise(DataType* in, int N)
 		}
 		return result + sum_pairwise<DataType>(temp_out,(int) n/2);
 	}
-	else
+	else if (N == 1)
 	{
 		return in[0];	
 	}
+	else throw std::runtime_error("Oops")
 }
 
 template<class DataType>
