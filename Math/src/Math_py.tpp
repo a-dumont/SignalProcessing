@@ -180,6 +180,17 @@ DataType sum_py(py::array_t<DataType,py::array::c_style>& py_in1)
 }
 
 template<class DataType>
+DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1)
+{
+	py::buffer_info buf1 = py_in1.request();
+	int n = buf1.size;
+	int N = n-(n%2);
+	DataType* ptr = (DataType*) buf1.ptr;
+	DataType rest = (n%2)*ptr[n];
+	return sum_pairwise<DataType>(ptr,N)+rest;
+}
+
+template<class DataType>
 DataType sum_complex_py(py::array_t<DataType,py::array::c_style>& py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();

@@ -164,6 +164,28 @@ DataType sum(DataType* in, int n)
 }
 
 template<class DataType>
+DataType sum_pairwise(DataType* in, int n)
+{
+	DataType result = 0;
+	if(n > 2)
+	{
+		DataType temp_out[(int) n/2];
+		#pragma omp parallel for 
+		for (int i = 0; i < N;)
+		{
+    		temp_out[i] += in[i]+in[i+1];
+			i+=2;
+		}
+		result = sum_pairwise(&temp_out,(int) n/2);
+	}
+	else if (n == 2)
+	{
+		result = in[0]+in[1];
+	}
+	return result;
+}
+
+template<class DataType>
 DataType sum_complex(DataType* in, int n)
 {
 	double sum_r = 0.0;
