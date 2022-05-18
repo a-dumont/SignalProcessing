@@ -178,59 +178,55 @@ DataType sum_complex(DataType* in, int n)
 }
 
 template<class DataType>
-DataType mean(DataType* in, int n)
+double mean(DataType* in, int n)
 {
-	DataType _mean = (DataType) 0;
-	double N = 1.0/n;
+	double _mean = 0.0;
 	#pragma omp parallel for default(shared) reduction(+:_mean)
 	for (int i = 0; i < n; i++)
 	{
-    	_mean += in[i]*N;
+    	_mean += in[i];
 	}
-	return _mean;
+	return _mean/n;
 }
 
 template<class DataType>
 DataType mean_complex(DataType* in, int n)
 {
-	double N = 1.0/n;
 	double mean_r = 0.0;
 	double mean_i = 0.0;
 	#pragma omp parallel for default(shared) reduction(+:mean_r) reduction(+:mean_i)
 	for (int i = 0; i < n; i++)
 	{
-    	mean_r += std::real(in[i])*N;
-		mean_i += std::imag(in[i])*N;
+    	mean_r += std::real(in[i]);
+		mean_i += std::imag(in[i]);
 	}
-	return DataType (mean_r,mean_i);
+	return DataType (mean_r/n,mean_i/n);
 }
 
 template<class DataType>
 double variance(DataType* in, int n)
 {
 	double var = 0;
-	double N =  1.0/n;
 	DataType _mean = mean(in,n);
 	#pragma omp parallel for default(shared) reduction(+:var)
 	for(int i=0;i<n;i++)
 	{
-		var += (in[i]-_mean)*(in[i]-_mean)*N;
+		var += (in[i]-_mean)*(in[i]-_mean);
 	}
-	return var;
+	return var/n;
 }
 
 template<class DataType>
 double skewness(DataType* in, int n)
 {
 	double poisson = 0;
-	double N = 1.0/n;
 	DataType _mean = mean(in,n);
 	#pragma omp parallel for default(shared) reduction(+:poisson)
 	for(int i=0;i<n;i++)
 	{
-		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean)*N;
+		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
 	}
-	return poisson;
+	return poisson/n;
 }
 
 template<class DataType, class DataType2>
