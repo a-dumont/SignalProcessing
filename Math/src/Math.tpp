@@ -173,9 +173,9 @@ DataType sum_pairwise(DataType* in, int N)
 		DataType temp_out[n/2];
 		py::print(N);
 		#pragma omp parallel for 
-		for (int i = 0; i < n;i+=2)
+		for (int i = 0; i < (n/2);i++)
 		{
-    		temp_out[i] = in[i]+in[i+1];
+    		temp_out[i] = in[2*i]+in[2*i+1];
 		}
 		for (int i = 0; i < N;i++)
 		{
