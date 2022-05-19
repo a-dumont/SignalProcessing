@@ -262,20 +262,6 @@ DataType sum_pairwise_complex(DataType* in, int n)
 }
 
 template<class DataType>
-DataType mean_complex(DataType* in, int n)
-{
-	double mean_r = 0.0;
-	double mean_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:mean_r) reduction(+:mean_i)
-	for (int i = 0; i < n; i++)
-	{
-    	mean_r += std::real(in[i]);
-		mean_i += std::imag(in[i]);
-	}
-	return DataType (mean_r/n,mean_i/n);
-}
-
-template<class DataType>
 double variance(DataType* in, int n)
 {
 	double var = 0;

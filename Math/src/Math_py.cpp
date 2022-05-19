@@ -13,7 +13,7 @@ void init_module(py::module &m)
 	m.def("Sum",&sum_pairwise_py<int>,"in"_a);
 	m.def("Sum",&sum_pairwise_py<long int>,"in"_a);
 	m.def("Sum",&sum_pairwise_py<double>,"in"_a);
-	m.def("sum",&sum_pairwise_complex_py<dbl_complex>,"in"_a);
+	m.def("Sum",&sum_pairwise_complex_py<dbl_complex>,"in"_a);
 	m.def("mean",&mean_py<int>,"in"_a);
 	m.def("mean",&mean_py<double>,"in"_a);
 	m.def("mean",&mean_complex_py<dbl_complex>,"in"_a);
