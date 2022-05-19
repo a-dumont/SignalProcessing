@@ -170,7 +170,7 @@ DataType sum_pairwise(DataType* in, int n, int N)
 	{
 		int m = (int) n/2;
 		DataType a;
-		DataType n;
+		DataType b;
 		#pragma omp parallel
 		{
 			a = sum_pairwise<DataType>(in, m, N);
