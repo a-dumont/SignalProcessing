@@ -185,7 +185,14 @@ DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1,int N)
 	py::buffer_info buf1 = py_in1.request();
 	int n = buf1.size;
 	DataType* in = (DataType*) buf1.ptr;
-	return sum_pairwise<DataType>(in,n,N);
+	DataType res;
+	#pragma omp parallel shared(res)
+    {
+		#define MAX_PARALLEL_RECURSIVE_LEVEL 4
+		#pragma omp single
+		res = sum_pairwise<DataType>(in,n,N);;
+	}
+	return res;
 }
 
 template<class DataType>

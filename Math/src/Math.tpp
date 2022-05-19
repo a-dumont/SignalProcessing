@@ -171,11 +171,11 @@ DataType sum_pairwise(DataType* in, int n, int N)
 		int m = (int) n/2;
 		DataType a;
 		DataType b;
-		//#pragma omp parallel
-		//{
-			a = sum_pairwise<DataType>(in, m, N);
-			b = sum_pairwise<DataType>(in+m,n-m,N);
-		//}
+		#pragma omp tasked shared(a)
+		a = sum_pairwise<DataType>(in, m, N);
+		#pragma omp tasked shared(a)
+		b = sum_pairwise<DataType>(in+m,n-m,N);
+		#pragma omp taskwait
 		return a+b;
 	}
 	else 
