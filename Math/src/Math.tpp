@@ -168,6 +168,7 @@ DataType sum_pairwise(DataType* in, long int n)
 		else 
 		{
 			long int N = n-n%128;
+			DataType remainder = 0;
 			long int m = N/128;
 			DataType res[8] = {};
 			DataType out = (DataType) 0;
@@ -185,15 +186,16 @@ DataType sum_pairwise(DataType* in, long int n)
 					res[6] += in[128*j+i+6]; 
 					res[7] += in[128*j+i+7]; 
 				}
-				out += std::accumulate(res,res+8,(DataType) 0.0);
+				out += std::accumulate(res,res+8,remainder);
 			}
-			return out+std::accumulate(in+N,in+n,(DataType) 0.0);
+			return out+std::accumulate(in+N,in+n,remainder);
 		}
 	}
 	else
 	{
 		long int N = n-n%128;
 		long int m = N/128;
+		DataType remainder = 0;
 		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
 		#pragma omp parallel for
 		for(long int j=0;j<m;j++)
@@ -210,9 +212,9 @@ DataType sum_pairwise(DataType* in, long int n)
 				res[6] += in[128*j+i+6]; 
 				res[7] += in[128*j+i+7]; 
 			}
-			out[j] = std::accumulate(res,res+8,(DataType) 0.0);
+			out[j] = std::accumulate(res,res+8,remainder);
 		}
-		DataType res = sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,(DataType) 0.0);
+		DataType res = sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,remainder);
 		free(out);
 		return res;
 	}
