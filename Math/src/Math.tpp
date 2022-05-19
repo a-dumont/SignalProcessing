@@ -192,21 +192,27 @@ DataType sum_pairwise(DataType* in, int n, int N)
 template<class DataType>
 DataType sum_pairwise2(DataType* in, int n)
 {
-	int N = n-n%128;
-	int m = n-N;
-	DataType res[8] = {0,0,0,0,0,0,0,0};
-	for(int i=0;i<N/8;i+=8)
+	if(n<8)
 	{
-		res[0] += in[i];
-		res[1] += in[i+1];
-		res[2] += in[i+2]; 
-		res[3] += in[i+3]; 
-		res[4] += in[i+4]; 
-		res[5] += in[i+5]; 
-		res[6] += in[i+6]; 
-		res[7] += in[i+7]; 
+		return std::accumulate(in,in+(n-1));
 	}
-	return std::accumulate(res,res+7,0)+std::accumulate(in+N,in+n,0);
+	else 
+	{
+		int N = n-n%128;
+		DataType res[8] = {0,0,0,0,0,0,0,0};
+		for(int i=0;i<N/8;i+=8)
+		{
+			res[0] += in[i];
+			res[1] += in[i+1];
+			res[2] += in[i+2]; 
+			res[3] += in[i+3]; 
+			res[4] += in[i+4]; 
+			res[5] += in[i+5]; 
+			res[6] += in[i+6]; 
+			res[7] += in[i+7]; 
+		}
+		return std::accumulate(res,res+7,0)+std::accumulate(in+N,in+(n-1),0);
+	}
 }
 
 template<class DataType>
