@@ -194,7 +194,12 @@ DataType sum_pairwise2(DataType* in, int n)
 {
 	if(n<8)
 	{
-		return std::accumulate(in,in+(n-1));
+		DataType res = 0;
+		for(int i=0;i<n;i++)
+		{
+			res += in[i];
+		}
+		return res;
 	}
 	else 
 	{
