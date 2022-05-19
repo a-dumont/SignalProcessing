@@ -166,7 +166,7 @@ DataType sum_pairwise(DataType* in, int n)
 	else 
 	{
 		int N = n-n%128;
-		DataType res[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+		DataType res[8] = {};
 		#pragma omp parallel for reduction(+:res[:8])
 		for(int i=0;i<N;i+=8)
 		{
