@@ -205,7 +205,7 @@ DataType sum_pairwise2(DataType* in, int n)
 	{
 		int N = n-n%128;
 		DataType res[8] = {0,0,0,0,0,0,0,0};
-		for(int i=0;i<N/8;i+=8)
+		for(int i=0;i<N;i+=8)
 		{
 			py::print(i);
 			res[0] += in[i];
