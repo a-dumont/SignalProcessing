@@ -236,6 +236,7 @@ DataType sum_pairwise_complex(DataType* in, int n)
 	{
 		int N = n-n%128;
 		double res[16] = {};
+		DataType zero = DataType (0.0,0.0);
 		#pragma omp parallel for default(shared) reduction(+:res[:16])
 		for(int i=0;i<N;i+=8)
 		{
@@ -256,7 +257,7 @@ DataType sum_pairwise_complex(DataType* in, int n)
 			res[14] += std::imag(in[i+6]); 
 			res[15] += std::imag(in[i+7]); 
 		}
-		return DataType (std::accumulate(res,res+8,0.0),std::accumulate(res,res+16,0.0))+std::accumulate(in+N,in+n,0.0);
+		return DataType (std::accumulate(res,res+8,0.0),std::accumulate(res,res+16,0.0))+std::accumulate(in+N,in+n,zero);
 	}
 }
 
