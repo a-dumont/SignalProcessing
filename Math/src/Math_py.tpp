@@ -188,7 +188,7 @@ DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1,int N)
 	DataType res;
 	#pragma omp parallel shared(res)
     {
-		#define MAX_PARALLEL_RECURSIVE_LEVEL 4
+		#define MAX_PARALLEL_RECURSIVE_LEVEL 100
 		#pragma omp single
 		res = sum_pairwise<DataType>(in,n,N);;
 	}
