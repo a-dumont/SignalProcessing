@@ -258,7 +258,7 @@ DataType variance_pairwise(DataType* in, long int n)
 				DataType res[8] = {};
 				for(long int i=0;i<128;i+=8)
 				{
-					res[0] += (in[128*j+i]*_mean)*(in[128*j+i]*_mean);
+					res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean);
 					res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
 					res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
 					res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
@@ -288,7 +288,7 @@ DataType variance_pairwise(DataType* in, long int n)
 			DataType res[8] = {};
 			for(long int i=0;i<128;i+=8)
 			{
-				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]*_mean);
+				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean);
 				res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
 				res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
 				res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
