@@ -271,7 +271,7 @@ DataType variance_pairwise(DataType* in, long int n)
 			}
 			for(int i=N;i<n;i++)
 			{
-				remainder += (in[i]*_mean)*(in[i]*_mean)
+				remainder += (in[i]*_mean)*(in[i]*_mean);
 			}
 			return out+remainder;
 		}
@@ -300,9 +300,9 @@ DataType variance_pairwise(DataType* in, long int n)
 			out[j] = std::accumulate(res,res+8,remainder);
 		}
 		for(int i=N;i<n;i++)
-			{
-				remainder += (in[i]*_mean)*(in[i]*_mean)
-			}
+		{
+			remainder += (in[i]*_mean)*(in[i]*_mean);
+		}
 		DataType res = variance_pairwise<DataType>(out,m)+remainder;
 		free(out);
 		return res;
