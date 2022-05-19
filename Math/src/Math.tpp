@@ -168,13 +168,12 @@ DataType sum_pairwise(DataType* in, long int n)
 		else 
 		{
 			long int N = n-n%128;
-			DataType remainder = 0;
+			DataType remainder = 0.0;
 			long int m = N/128;
-			DataType res[8] = {};
-			DataType out = (DataType) 0;
+			DataType out =  0.0;
 			for(long int j=0;j<m;j++)
 			{
-				std::memset(res,0,8*sizeof(DataType));
+				DataType res[8] = {};
 				for(long int i=0;i<128;i+=8)
 				{
 					res[0] += in[128*j+i];
@@ -186,7 +185,7 @@ DataType sum_pairwise(DataType* in, long int n)
 					res[6] += in[128*j+i+6]; 
 					res[7] += in[128*j+i+7]; 
 				}
-				out += std::accumulate(res,res+8,remainder);
+				out = std::accumulate(res,res+8,remainder);
 			}
 			return out+std::accumulate(in+N,in+n,remainder);
 		}
