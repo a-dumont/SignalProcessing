@@ -163,7 +163,7 @@ DataType sum_pairwise(DataType* in, int n)
 		}
 		return res;
 	}
-	else if (n<16324)
+	else if (n<=128)
 	{
 		int N = n-n%128;
 		int m = N/128;
@@ -191,11 +191,11 @@ DataType sum_pairwise(DataType* in, int n)
 	{
 		int N = n-n%128;
 		int m = N/128;
-		DataType res[8] = {};
 		DataType out[m] = {};
+		#pragma omp parallel for
 		for(int j=0;j<m;j++)
 		{
-			std::memset(res,0,8*sizeof(DataType));
+			DataType res[8] = {};
 			for(int i=0;i<128;i+=8)
 			{
 				res[0] += in[128*j+i];
