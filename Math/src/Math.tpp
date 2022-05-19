@@ -171,9 +171,9 @@ DataType sum_pairwise(DataType* in, int n, int N)
 		int m = (int) n/2;
 		DataType a;
 		DataType b;
-		#pragma omp tasked shared(a)
+		#pragma omp task shared(a)
 		a = sum_pairwise<DataType>(in, m, N);
-		#pragma omp tasked shared(a)
+		#pragma omp task shared(b)
 		b = sum_pairwise<DataType>(in+m,n-m,N);
 		#pragma omp taskwait
 		return a+b;
