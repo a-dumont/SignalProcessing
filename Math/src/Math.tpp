@@ -152,7 +152,7 @@ void continuous_min(long int* out, DataType* in, int n)
 }
 
 template<class DataType>
-DataType sum_pairwise(DataType* in, int n)
+DataType sum_pairwise(DataType* in, long int n)
 {
 	if(n<8)
 	{
@@ -165,14 +165,14 @@ DataType sum_pairwise(DataType* in, int n)
 	}
 	else if (n<=128)
 	{
-		int N = n-n%128;
-		int m = N/128;
+		long int N = n-n%128;
+		long int m = N/128;
 		DataType res[8] = {};
 		DataType out = (DataType) 0;
-		for(int j=0;j<m;j++)
+		for(long int j=0;j<m;j++)
 		{
 			std::memset(res,0,8*sizeof(DataType));
-			for(int i=0;i<128;i+=8)
+			for(long int i=0;i<128;i+=8)
 			{
 				res[0] += in[128*j+i];
 				res[1] += in[128*j+i+1];
@@ -189,14 +189,14 @@ DataType sum_pairwise(DataType* in, int n)
 	}
 	else
 	{
-		int N = n-n%128;
-		int m = N/128;
+		long int N = n-n%128;
+		long int m = N/128;
 		DataType out[m] = {};
 		#pragma omp parallel for
-		for(int j=0;j<m;j++)
+		for(long int j=0;j<m;j++)
 		{
 			DataType res[8] = {};
-			for(int i=0;i<128;i+=8)
+			for(long int i=0;i<128;i+=8)
 			{
 				res[0] += in[128*j+i];
 				res[1] += in[128*j+i+1];
@@ -214,13 +214,13 @@ DataType sum_pairwise(DataType* in, int n)
 }
 
 template<class DataType>
-DataType sum_pairwise_complex(DataType* in, int n)
+DataType sum_pairwise_complex(DataType* in, long int n)
 {
 	return DataType (sum_pairwise(std::real(in),n),sum_pairwise(std::imag(in),n));
 }
 
 template<class DataType>
-double variance(DataType* in, int n)
+double variance(DataType* in, long int n)
 {
 	double var = 0;
 	DataType _mean = sum_pairwise(in,n)/n;
@@ -233,7 +233,7 @@ double variance(DataType* in, int n)
 }
 
 template<class DataType>
-double skewness(DataType* in, int n)
+double skewness(DataType* in, long int n)
 {
 	double poisson = 0;
 	DataType _mean = sum_pairwise(in,n)/n;
