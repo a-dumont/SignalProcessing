@@ -163,7 +163,25 @@ DataType sum_pairwise(DataType* in, int n)
 		}
 		return res;
 	}
-	else 
+	else if (n<8096)
+	{
+		int N = n-n%128;
+		DataType res[8] = {};
+		//#pragma omp parallel for default(shared) reduction(+:res[:8])
+		for(int i=0;i<N;i+=8)
+		{
+			res[0] += in[i];
+			res[1] += in[i+1];
+			res[2] += in[i+2]; 
+			res[3] += in[i+3]; 
+			res[4] += in[i+4]; 
+			res[5] += in[i+5]; 
+			res[6] += in[i+6]; 
+			res[7] += in[i+7]; 
+		}
+		return std::accumulate(res,res+8,0.0)+std::accumulate(in+N,in+n,0.0);
+	}
+	else
 	{
 		int N = n-n%128;
 		DataType res[8] = {};
@@ -198,18 +216,6 @@ DataType sum_complex(DataType* in, int n)
 }
 
 template<class DataType>
-double mean(DataType* in, int n)
-{
-	double _mean = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:_mean)
-	for (int i = 0; i < n; i++)
-	{
-    	_mean += in[i];
-	}
-	return _mean/n;
-}
-
-template<class DataType>
 DataType mean_complex(DataType* in, int n)
 {
 	double mean_r = 0.0;
@@ -227,7 +233,7 @@ template<class DataType>
 double variance(DataType* in, int n)
 {
 	double var = 0;
-	DataType _mean = mean(in,n);
+	DataType _mean = sum_pairwise(in,n)/n;
 	#pragma omp parallel for default(shared) reduction(+:var)
 	for(int i=0;i<n;i++)
 	{

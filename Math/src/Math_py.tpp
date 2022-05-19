@@ -199,23 +199,7 @@ template<class DataType>
 DataType mean_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return mean((DataType*) buf1.ptr,buf1.size);
-}
-
-template<class DataType>
-DataType mean_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1,int N)
-{
-	py::buffer_info buf1 = py_in1.request();
-	int n = buf1.size;
-	DataType* in = (DataType*) buf1.ptr;
-	DataType res;
-	#pragma omp parallel shared(res)
-    {
-		setenv("OMP_NESTED","true",1);
-		#pragma omp single
-		res = sum_pairwise<DataType>(in,n,N);
-	}
-	return res/n;
+	return sum_piecewise((DataType*) buf1.ptr,buf1.size)/buf1.size;
 }
 
 template<class DataType>
