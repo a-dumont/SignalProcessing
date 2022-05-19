@@ -202,17 +202,61 @@ DataType sum_pairwise(DataType* in, int n)
 }
 
 template<class DataType>
-DataType sum_complex(DataType* in, int n)
+DataType sum_pairwise_complex(DataType* in, int n)
 {
-	double sum_r = 0.0;
-	double sum_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:sum_r) reduction(+:sum_i)
-	for (int i = 0; i < n; i++)
+	if(n<8)
 	{
-    	sum_r += std::real(in[i]);
-		sum_i += std::imag(in[i]);
+		DataType res = 0.0;
+		for(int i=0;i<n;i++)
+		{
+			res += in[i];
+		}
+		return res;
 	}
-	return DataType (sum_r,sum_i);
+	else if (n<8096)
+	{
+		int N = n-n%128;
+		DataType res[8] = {};
+		//#pragma omp parallel for default(shared) reduction(+:res[:8])
+		for(int i=0;i<N;i+=8)
+		{
+			res[0] += in[i];
+			res[1] += in[i+1];
+			res[2] += in[i+2]; 
+			res[3] += in[i+3]; 
+			res[4] += in[i+4]; 
+			res[5] += in[i+5]; 
+			res[6] += in[i+6]; 
+			res[7] += in[i+7]; 
+		}
+		return std::accumulate(res,res+8,0.0)+std::accumulate(in+N,in+n,0.0);
+	}
+	else
+	{
+		int N = n-n%128;
+		DataType res[16] = {};
+		#pragma omp parallel for default(shared) reduction(+:res[:8])
+		for(int i=0;i<N;i+=8)
+		{
+			res[0] += std::real(in[i]);
+			res[1] += std::real(in[i+1]);
+			res[2] += std::real(in[i+2]); 
+			res[3] += std::real(in[i+3]); 
+			res[4] += std::real(in[i+4]); 
+			res[5] += std::real(in[i+5]); 
+			res[6] += std::real(in[i+6]); 
+			res[7] += std::real(in[i+7]); 
+			res[8] += std::imag(in[i]);
+			res[9] += std::imag(in[i+1]);
+			res[10] += std::imag(in[i+2]); 
+			res[11] += std::imag(in[i+3]); 
+			res[12] += std::imag(in[i+4]); 
+			res[13] += std::imag(in[i+5]); 
+			res[14] += std::imag(in[i+6]); 
+			res[15] += std::imag(in[i+7]); 
+		}
+		return DataType (std::accumulate(res,res+8,0.0),std::accumulate(res,res+16,0.0))+std::accumulate(in+N,in+n,0.0);
+	}
 }
 
 template<class DataType>

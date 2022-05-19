@@ -189,10 +189,10 @@ DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1)
 }
 
 template<class DataType>
-DataType sum_complex_py(py::array_t<DataType,py::array::c_style>& py_in1)
+DataType sum_pairwise_complex_py(py::array_t<DataType,py::array::c_style>& py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return sum_complex<DataType>((DataType*) buf1.ptr,buf1.size);
+	return sum_pairwise_complex<DataType>((DataType*) buf1.ptr,buf1.size);
 }
 
 template<class DataType>
