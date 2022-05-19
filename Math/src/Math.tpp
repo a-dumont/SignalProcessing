@@ -245,7 +245,7 @@ DataType variance_pairwise(DataType* in, long int n)
 			{
 				res += (in[i]-_mean)*(in[i]-_mean);
 			}
-			return res;
+			return res/n;
 		}
 		else 
 		{
@@ -259,21 +259,21 @@ DataType variance_pairwise(DataType* in, long int n)
 				for(long int i=0;i<128;i+=8)
 				{
 					res[0] += (in[128*j+i]*_mean)*(in[128*j+i]*_mean);
-					res[1] += (in[128*j+i+1]*_mean)*(in[128*j+i+1]*_mean);
-					res[2] += (in[128*j+i+2]*_mean)*(in[128*j+i+2]*_mean);
-					res[3] += (in[128*j+i+3]*_mean)*(in[128*j+i+3]*_mean); 
-					res[4] += (in[128*j+i+4]*_mean)*(in[128*j+i+4]*_mean);
-					res[5] += (in[128*j+i+5]*_mean)*(in[128*j+i+5]*_mean);
-					res[6] += (in[128*j+i+6]*_mean)*(in[128*j+i+6]*_mean); 
-					res[7] += (in[128*j+i+7]*_mean)*(in[128*j+i+7]*_mean);
+					res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
+					res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
+					res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
+					res[4] += (in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean);
+					res[5] += (in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean);
+					res[6] += (in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean); 
+					res[7] += (in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean);
 				}
 				out = std::accumulate(res,res+8,remainder);
 			}
 			for(int i=N;i<n;i++)
 			{
-				remainder += (in[i]*_mean)*(in[i]*_mean);
+				remainder += (in[i]-_mean)*(in[i]-_mean);
 			}
-			return out+remainder;
+			return (out+remainder)/n;
 		}
 	}
 	else
@@ -288,22 +288,22 @@ DataType variance_pairwise(DataType* in, long int n)
 			DataType res[8] = {};
 			for(long int i=0;i<128;i+=8)
 			{
-				res[0] += (in[128*j+i]*_mean)*(in[128*j+i]*_mean);
-				res[1] += (in[128*j+i+1]*_mean)*(in[128*j+i+1]*_mean);
-				res[2] += (in[128*j+i+2]*_mean)*(in[128*j+i+2]*_mean);
-				res[3] += (in[128*j+i+3]*_mean)*(in[128*j+i+3]*_mean); 
-				res[4] += (in[128*j+i+4]*_mean)*(in[128*j+i+4]*_mean);
-				res[5] += (in[128*j+i+5]*_mean)*(in[128*j+i+5]*_mean);
-				res[6] += (in[128*j+i+6]*_mean)*(in[128*j+i+6]*_mean); 
-				res[7] += (in[128*j+i+7]*_mean)*(in[128*j+i+7]*_mean);
+				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]*_mean);
+				res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
+				res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
+				res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
+				res[4] += (in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean);
+				res[5] += (in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean);
+				res[6] += (in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean); 
+				res[7] += (in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean);
 			}
 			out[j] = std::accumulate(res,res+8,remainder);
 		}
 		for(int i=N;i<n;i++)
 		{
-			remainder += (in[i]*_mean)*(in[i]*_mean);
+			remainder += (in[i]-_mean)*(in[i]-_mean);
 		}
-		DataType res = variance_pairwise<DataType>(out,m)+remainder;
+		DataType res = variance_pairwise<DataType>(out,m)+remainder/n;
 		free(out);
 		return res;
 	}
