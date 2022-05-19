@@ -217,7 +217,7 @@ DataType sum_pairwise2(DataType* in, int n)
 			res[6] += in[i+6]; 
 			res[7] += in[i+7]; 
 		}
-		return std::accumulate(res,res+7,0)+std::accumulate(in+N,in+(n-1),0);
+		return std::accumulate(res,res+8,0)+std::accumulate(in+N,in+n,0);
 	}
 }
 
