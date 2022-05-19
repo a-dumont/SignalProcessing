@@ -206,7 +206,7 @@ template<class DataType>
 DataType mean_complex_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	DataType res = sum_pairwise_complex((DataType*) buf1.ptr,buf1.size);
+	DataType res = sum_pairwise((DataType*) buf1.ptr,buf1.size);
 	return DataType(std::real(res)/buf1.size,std::imag(res)/buf1.size);
 }
 
