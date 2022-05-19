@@ -217,7 +217,7 @@ DataType sum_pairwise_complex(DataType* in, int n)
 	{
 		int N = n-n%128;
 		DataType res[8] = {};
-		DataType zero = Datatype (0.0,0.0)
+		DataType zero = DataType (0.0,0.0)
 		//#pragma omp parallel for default(shared) reduction(+:res[:8])
 		for(int i=0;i<N;i+=8)
 		{
