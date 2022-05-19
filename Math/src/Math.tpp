@@ -229,9 +229,8 @@ double variance(DataType* in, long int n)
 }
 
 template<class DataType>
-DataType variance_pairwise(DataType* in, long int n)
+DataType variance_pairwise(DataType* in, long int n, DataType _mean)
 {
-	DataType _mean = sum_pairwise(in,n)/n;
 	if (n<=128)
 	{
 		if(n<8)
@@ -295,7 +294,7 @@ DataType variance_pairwise(DataType* in, long int n)
 		{
 			remainder += (in[i]-_mean)*(in[i]-_mean);
 		}
-		DataType res = variance_pairwise<DataType>(out,m)+remainder;
+		DataType res = variance_pairwise<DataType>(out,m,_mean)+remainder;
 		free(out);
 		return res;
 	}
