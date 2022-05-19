@@ -163,21 +163,27 @@ DataType sum_pairwise(DataType* in, int n)
 		}
 		return res;
 	}
-	else if (n<8096)
+	else if (n<=8096)
 	{
 		int N = n-n%128;
+		int m = N/128;
 		DataType res[8] = {};
-		//#pragma omp parallel for default(shared) reduction(+:res[:8])
-		for(int i=0;i<N;i+=8)
+		DataType out = (DataType) 0;
+		for(int j=0;j<m;j++)
 		{
-			res[0] += in[i];
-			res[1] += in[i+1];
-			res[2] += in[i+2]; 
-			res[3] += in[i+3]; 
-			res[4] += in[i+4]; 
-			res[5] += in[i+5]; 
-			res[6] += in[i+6]; 
-			res[7] += in[i+7]; 
+			std::memset(res,0,8*sizeof(DataType));
+			for(int i=0;i<128;i+=8)
+			{
+				res[0] += in[128*j+i];
+				res[1] += in[128*j+i+1];
+				res[2] += in[128*j+i+2]; 
+				res[3] += in[128*j+i+3]; 
+				res[4] += in[128*j+i+4]; 
+				res[5] += in[128*j+i+5]; 
+				res[6] += in[128*j+i+6]; 
+				res[7] += in[128*j+i+7]; 
+			}
+			out += std::accumulate(res,res+8,0.0);
 		}
 		return std::accumulate(res,res+8,0.0)+std::accumulate(in+N,in+n,0.0);
 	}
@@ -204,61 +210,7 @@ DataType sum_pairwise(DataType* in, int n)
 template<class DataType>
 DataType sum_pairwise_complex(DataType* in, int n)
 {
-	if(n<8)
-	{
-		DataType res = 0.0;
-		for(int i=0;i<n;i++)
-		{
-			res += in[i];
-		}
-		return res;
-	}
-	else if (n<8096)
-	{
-		int N = n-n%128;
-		DataType res[8] = {};
-		DataType zero = DataType (0.0,0.0);
-		//#pragma omp parallel for default(shared) reduction(+:res[:8])
-		for(int i=0;i<N;i+=8)
-		{
-			res[0] += in[i];
-			res[1] += in[i+1];
-			res[2] += in[i+2]; 
-			res[3] += in[i+3]; 
-			res[4] += in[i+4]; 
-			res[5] += in[i+5]; 
-			res[6] += in[i+6]; 
-			res[7] += in[i+7]; 
-		}
-		return std::accumulate(res,res+8,zero)+std::accumulate(in+N,in+n,zero);
-	}
-	else
-	{
-		int N = n-n%128;
-		double res[16] = {};
-		DataType zero = DataType (0.0,0.0);
-		#pragma omp parallel for default(shared) reduction(+:res[:16])
-		for(int i=0;i<N;i+=8)
-		{
-			res[0] += std::real(in[i]);
-			res[1] += std::real(in[i+1]);
-			res[2] += std::real(in[i+2]); 
-			res[3] += std::real(in[i+3]); 
-			res[4] += std::real(in[i+4]); 
-			res[5] += std::real(in[i+5]); 
-			res[6] += std::real(in[i+6]); 
-			res[7] += std::real(in[i+7]); 
-			res[8] += std::imag(in[i]);
-			res[9] += std::imag(in[i+1]);
-			res[10] += std::imag(in[i+2]); 
-			res[11] += std::imag(in[i+3]); 
-			res[12] += std::imag(in[i+4]); 
-			res[13] += std::imag(in[i+5]); 
-			res[14] += std::imag(in[i+6]); 
-			res[15] += std::imag(in[i+7]); 
-		}
-		return DataType (std::accumulate(res,res+8,0.0),std::accumulate(res,res+16,0.0))+std::accumulate(in+N,in+n,zero);
-	}
+	return DataType (sum_pairwise(std::real(in),n),sum_pairwise(std::imag(in),n))
 }
 
 template<class DataType>
