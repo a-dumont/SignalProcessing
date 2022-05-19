@@ -207,7 +207,7 @@ template<class DataType>
 DataType variance_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return variance_pairwise((DataType*) buf1.ptr,buf1.size);
+	return variance_pairwise((DataType*) buf1.ptr,buf1.size)/buf1.size;
 }
 
 template<class DataType>
