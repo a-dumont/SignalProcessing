@@ -228,81 +228,10 @@ double variance(DataType* in, long int n)
 	return var/n;
 }
 
-template<class DataType>
-DataType variance_pairwise(DataType* in, long int n)
-{
-	DataType _mean = sum_pairwise(in,n)/n;
-	if (n<=128)
-	{
-		if(n<8)
-		{
-			DataType var = 0.0;
-			for(int i=0;i<n;i++)
-			{
-				var += (in[i]-_mean)*(in[i]-_mean);
-			}
-			return var/n;
-		}
-		else 
-		{
-			long int N = n-n%8;
-			DataType remainder = 0.0;
-			DataType out =  0.0;
-			DataType res[8] = {};
-			for(long int i=0;i<N;i+=8)
-			{
-				res[0] += (in[i]-_mean)*(in[i]-_mean);
-				res[1] += (in[i+1]-_mean)*(in[i+1]-_mean);
-				res[2] += (in[i+2]-_mean)*(in[i+2]-_mean);
-				res[3] += (in[i+3]-_mean)*(in[i+3]-_mean); 
-				res[4] += (in[i+4]-_mean)*(in[i+4]-_mean);
-				res[5] += (in[i+5]-_mean)*(in[i+5]-_mean);
-				res[6] += (in[i+6]-_mean)*(in[i+6]-_mean); 
-				res[7] += (in[i+7]-_mean)*(in[i+7]-_mean);
-			}
-			out = std::accumulate(res,res+8,remainder);
-			for(int i=N;i<n;i++)
-			{
-				remainder += (in[i]-_mean)*(in[i]-_mean);
-			}
-			return (out+remainder)/n;
-		}
-	}
-	else
-	{
-		long int N = n-n%128;
-		long int m = N/128;
-		DataType remainder = 0.0;
-		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
-		#pragma omp parallel for
-		for(long int j=0;j<m;j++)
-		{
-			DataType res[8] = {};
-			for(long int i=0;i<128;i+=8)
-			{
-				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean);
-				res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
-				res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
-				res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
-				res[4] += (in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean);
-				res[5] += (in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean);
-				res[6] += (in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean); 
-				res[7] += (in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean);
-			}
-			out[j] = std::accumulate(res,res+8,remainder);
-		}
-		for(int i=N;i<n;i++)
-		{
-			remainder += (in[i]-_mean)*(in[i]-_mean);
-		}
-		DataType res = sum_pairwise<DataType>(out,m)+remainder;
-		free(out);
-		return res/n;
-	}
-}
+
 
 template<class DataType>
-DataType variance_pairwise2(DataType* in, long int n)
+DataType variance_pairwise(DataType* in, long int n)
 {
 	DataType _mean = sum_pairwise(in,n)/n;
 	if (n<=128)
@@ -385,6 +314,79 @@ double skewness(DataType* in, long int n)
 		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
 	}
 	return poisson/n;
+}
+
+template<class DataType>
+DataType skewness_pairwise(DataType* in, long int n)
+{
+	DataType _mean = sum_pairwise(in,n)/n;
+	if (n<=128)
+	{
+		if(n<8)
+		{
+			DataType skew = 0.0;
+			for(int i=0;i<n;i++)
+			{
+				skew += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+			}
+			return skew/n;
+		}
+		else 
+		{
+			long int N = n-n%8;
+			DataType remainder = 0.0;
+			DataType out =  0.0;
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
+			{
+				res[0] += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+				res[1] += (in[i+1]-_mean)*(in[i+1]-_mean)*(in[i+1]-_mean);
+				res[2] += (in[i+2]-_mean)*(in[i+2]-_mean)*(in[i+2]-_mean);
+				res[3] += (in[i+3]-_mean)*(in[i+3]-_mean)*(in[i+3]-_mean); 
+				res[4] += (in[i+4]-_mean)*(in[i+4]-_mean)*(in[i+4]-_mean);
+				res[5] += (in[i+5]-_mean)*(in[i+5]-_mean)*(in[i+5]-_mean);
+				res[6] += (in[i+6]-_mean)*(in[i+6]-_mean)*(in[i+6]-_mean); 
+				res[7] += (in[i+7]-_mean)*(in[i+7]-_mean)*(in[i+7]-_mean);
+			}
+			out = std::accumulate(res,res+8,remainder);
+			for(int i=N;i<n;i++)
+			{
+				remainder += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+			}
+			return (out+remainder)/n;
+		}
+	}
+	else
+	{
+		long int N = n-n%128;
+		long int m = N/128;
+		DataType remainder = 0.0;
+		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
+		#pragma omp parallel for
+		for(long int j=0;j<m;j++)
+		{
+			DataType res[8] = {};
+			for(long int i=0;i<128;i+=8)
+			{
+				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean)*(in[128*j+i]-_mean);
+				res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
+				res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
+				res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
+				res[4] += (in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean);
+				res[5] += (in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean);
+				res[6] += (in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean); 
+				res[7] += (in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean);
+			}
+			out[j] = std::accumulate(res,res+8,remainder);
+		}
+		for(int i=N;i<n;i++)
+		{
+			remainder += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+		}
+		DataType res = sum_pairwise<DataType>(out,m)+remainder;
+		free(out);
+		return res/n;
+	}
 }
 
 template<class DataType, class DataType2>
