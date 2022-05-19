@@ -169,11 +169,21 @@ DataType sum_pairwise(DataType* in, int n, int N)
 	if(n > N)
 	{
 		int m = (int) n/2;
-		return sum_pairwise<DataType>(in, m, N)+ sum_pairwise<DataType>(in+m,n-m,N);
+		#pragma omp parallel
+		{
+			DataType a = sum_pairwise<DataType>(in, m, N);
+			DataType b = sum_pairwise<DataType>(in+m,n-m,N);
+		}
+		return a+b;
 	}
 	else 
 	{
-		return sum<DataType>(in,n);	
+		DataType _sum = 0;
+		for (int i = 0; i < n; i++)
+		{
+    		_sum += in[i];
+		}
+		return _sum;
 	}
 }
 
