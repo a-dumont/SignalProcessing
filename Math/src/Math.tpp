@@ -302,6 +302,79 @@ DataType variance_pairwise(DataType* in, long int n)
 }
 
 template<class DataType>
+DataType variance_pairwise2(DataType* in, long int n)
+{
+	DataType _mean = sum_pairwise(in,n)/n;
+	if (n<=128)
+	{
+		if(n<8)
+		{
+			DataType var = 0.0;
+			for(int i=0;i<n;i++)
+			{
+				var += (in[i])*(in[i]);
+			}
+			return var/n-_mean*_mean;
+		}
+		else 
+		{
+			long int N = n-n%8;
+			DataType remainder = 0.0;
+			DataType out =  0.0;
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
+			{
+				res[0] += (in[i])*(in[i]);
+				res[1] += (in[i+1])*(in[i+1]);
+				res[2] += (in[i+2])*(in[i+2]);
+				res[3] += (in[i+3])*(in[i+3]); 
+				res[4] += (in[i+4])*(in[i+4]);
+				res[5] += (in[i+5])*(in[i+5]);
+				res[6] += (in[i+6])*(in[i+6]); 
+				res[7] += (in[i+7])*(in[i+7]);
+			}
+			out = std::accumulate(res,res+8,remainder);
+			for(int i=N;i<n;i++)
+			{
+				remainder += (in[i])*(in[i]);
+			}
+			return (out+remainder)/n-_mean*_mean;
+		}
+	}
+	else
+	{
+		long int N = n-n%128;
+		long int m = N/128;
+		DataType remainder = 0.0;
+		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
+		#pragma omp parallel for
+		for(long int j=0;j<m;j++)
+		{
+			DataType res[8] = {};
+			for(long int i=0;i<128;i+=8)
+			{
+				res[0] += (in[128*j+i])*(in[128*j+i]);
+				res[1] += (in[128*j+i+1])*(in[128*j+i+1]);
+				res[2] += (in[128*j+i+2])*(in[128*j+i+2]);
+				res[3] += (in[128*j+i+3])*(in[128*j+i+3]); 
+				res[4] += (in[128*j+i+4])*(in[128*j+i+4]);
+				res[5] += (in[128*j+i+5])*(in[128*j+i+5]);
+				res[6] += (in[128*j+i+6])*(in[128*j+i+6]); 
+				res[7] += (in[128*j+i+7])*(in[128*j+i+7]);
+			}
+			out[j] = std::accumulate(res,res+8,remainder);
+		}
+		for(int i=N;i<n;i++)
+		{
+			remainder += (in[i])*(in[i]);
+		}
+		DataType res = sum_pairwise<DataType>(out,m)+remainder;
+		free(out);
+		return res/n-_mean*_mean;
+	}
+}
+
+template<class DataType>
 double skewness(DataType* in, long int n)
 {
 	double poisson = 0;
