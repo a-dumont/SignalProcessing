@@ -265,7 +265,7 @@ DataType variance_pairwise(DataType* in, long int n)
 			{
 				remainder += (in[i]-_mean)*(in[i]-_mean);
 			}
-			return out/n;
+			return (out+remainder)/n;
 		}
 	}
 	else
@@ -295,7 +295,7 @@ DataType variance_pairwise(DataType* in, long int n)
 		{
 			remainder += (in[i]-_mean)*(in[i]-_mean);
 		}
-		DataType res = variance_pairwise<DataType>(out,m)+remainder/n;
+		DataType res = (m*variance_pairwise<DataType>(out,m)+remainder)/n;
 		free(out);
 		return res;
 	}
