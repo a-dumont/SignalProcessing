@@ -16,8 +16,6 @@ void init_module(py::module &m)
 	m.def("mean",&mean_py<int>,"in"_a);
 	m.def("mean",&mean_py<double>,"in"_a);
 	m.def("mean",&mean_complex_py<dbl_complex>,"in"_a);
-	m.def("mean_pairwise",&mean_pairwise_py<int>,"in"_a,"N"_a=20000);
-	m.def("mean_pairwise",&mean_pairwise_py<double>,"in"_a,"N"_a=20000);
 	m.def("variance",&variance_py<double>,"in"_a);
 	m.def("skewness",&skewness_py<double>,"in"_a);
 	m.def("product",&product_py<int,int>,"in1"_a,"in2"_a);
