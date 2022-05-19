@@ -180,12 +180,7 @@ DataType sum_pairwise(DataType* in, int n, int N)
 	}
 	else 
 	{
-		DataType _sum = 0;
-		for (int i = 0; i < n; i++)
-		{
-    		_sum += in[i];
-		}
-		return _sum;
+		return sum<DataType>(in,n);
 	}
 }
 
