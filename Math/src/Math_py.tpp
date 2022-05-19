@@ -188,7 +188,7 @@ DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1,int N)
 	DataType res;
 	#pragma omp parallel shared(res)
     {
-		#define OMP_NESTED=TRUE
+		setenv("OMP_NESTED","true",1);
 		#pragma omp single
 		res = sum_pairwise<DataType>(in,n,N);;
 	}
