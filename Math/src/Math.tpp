@@ -167,26 +167,22 @@ DataType sum_pairwise(DataType* in, long int n)
 		}
 		else 
 		{
-			long int N = n-n%128;
+			long int N = n-n%8;
 			DataType remainder = 0.0;
-			long int m = N/128;
 			DataType out =  0.0;
-			for(long int j=0;j<m;j++)
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
 			{
-				DataType res[8] = {};
-				for(long int i=0;i<128;i+=8)
-				{
-					res[0] += in[128*j+i];
-					res[1] += in[128*j+i+1];
-					res[2] += in[128*j+i+2]; 
-					res[3] += in[128*j+i+3]; 
-					res[4] += in[128*j+i+4]; 
-					res[5] += in[128*j+i+5]; 
-					res[6] += in[128*j+i+6]; 
-					res[7] += in[128*j+i+7]; 
-				}
-				out = std::accumulate(res,res+8,remainder);
+				res[0] += in[i];
+				res[1] += in[i+1];
+				res[2] += in[i+2]; 
+				res[3] += in[i+3]; 
+				res[4] += in[i+4]; 
+				res[5] += in[i+5]; 
+				res[6] += in[i+6]; 
+				res[7] += in[i+7]; 
 			}
+			out = std::accumulate(res,res+8,remainder)+std::accumulate(in+N,in+n,remainder);
 			return out;
 		}
 	}
@@ -249,25 +245,25 @@ DataType variance_pairwise(DataType* in, long int n)
 		}
 		else 
 		{
-			long int N = n-n%128;
+			long int N = n-n%8;
 			DataType remainder = 0.0;
-			long int m = N/128;
 			DataType out =  0.0;
-			for(long int j=0;j<m;j++)
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
 			{
-				DataType res[8] = {};
-				for(long int i=0;i<128;i+=8)
-				{
-					res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean);
-					res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
-					res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
-					res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
-					res[4] += (in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean);
-					res[5] += (in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean);
-					res[6] += (in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean); 
-					res[7] += (in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean);
-				}
-				out = std::accumulate(res,res+8,remainder);
+				res[0] += (in[i]-_mean)*(in[i]-_mean);
+				res[1] += (in[i+1]-_mean)*(in[i+1]-_mean);
+				res[2] += (in[i+2]-_mean)*(in[i+2]-_mean);
+				res[3] += (in[i+3]-_mean)*(in[i+3]-_mean); 
+				res[4] += (in[i+4]-_mean)*(in[i+4]-_mean);
+				res[5] += (in[i+5]-_mean)*(in[i+5]-_mean);
+				res[6] += (in[i+6]-_mean)*(in[i+6]-_mean); 
+				res[7] += (in[i+7]-_mean)*(in[i+7]-_mean);
+			}
+			out = std::accumulate(res,res+8,remainder);
+			for(int i=N;i<n;i++)
+			{
+				remainder += (in[i]-_mean)*(in[i]-_mean);
 			}
 			return out/n;
 		}
