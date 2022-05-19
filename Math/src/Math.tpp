@@ -210,7 +210,7 @@ DataType sum_pairwise(DataType* in, int n)
 template<class DataType>
 DataType sum_pairwise_complex(DataType* in, int n)
 {
-	return DataType (sum_pairwise(std::real(in),n),sum_pairwise(std::imag(in),n))
+	return DataType (sum_pairwise(std::real(in),n),sum_pairwise(std::imag(in),n));
 }
 
 template<class DataType>
