@@ -194,7 +194,7 @@ DataType sum_pairwise2(DataType* in, int n)
 {
 	if(n<8)
 	{
-		DataType res = 0;
+		DataType res = 0.0;
 		for(int i=0;i<n;i++)
 		{
 			res += in[i];
@@ -204,7 +204,7 @@ DataType sum_pairwise2(DataType* in, int n)
 	else 
 	{
 		int N = n-n%128;
-		DataType res[8] = {0,0,0,0,0,0,0,0};
+		DataType res[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 		for(int i=0;i<N;i+=8)
 		{
 			res[0] += in[i];
@@ -216,7 +216,7 @@ DataType sum_pairwise2(DataType* in, int n)
 			res[6] += in[i+6]; 
 			res[7] += in[i+7]; 
 		}
-		return std::accumulate(res,res+8,0)+std::accumulate(in+N,in+n,0);
+		return std::accumulate(res,res+8,0.0)+std::accumulate(in+N,in+n,0.0);
 	}
 }
 
