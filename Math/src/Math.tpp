@@ -295,7 +295,7 @@ DataType variance_pairwise(DataType* in, long int n)
 		{
 			remainder += (in[i]-_mean)*(in[i]-_mean);
 		}
-		DataType res = sum_pairwise<DataType>(out,m,_mean)+remainder;
+		DataType res = sum_pairwise<DataType>(out,m)+remainder;
 		free(out);
 		return res/n;
 	}
