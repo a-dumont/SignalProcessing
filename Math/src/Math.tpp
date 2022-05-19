@@ -216,21 +216,6 @@ DataType sum_pairwise(DataType* in, long int n)
 }
 
 template<class DataType>
-double variance(DataType* in, long int n)
-{
-	double var = 0;
-	DataType _mean = sum_pairwise(in,n)/n;
-	#pragma omp parallel for default(shared) reduction(+:var)
-	for(int i=0;i<n;i++)
-	{
-		var += (in[i]-_mean)*(in[i]-_mean);
-	}
-	return var/n;
-}
-
-
-
-template<class DataType>
 DataType variance_pairwise(DataType* in, long int n)
 {
 	DataType _mean = sum_pairwise(in,n)/n;
@@ -301,19 +286,6 @@ DataType variance_pairwise(DataType* in, long int n)
 		free(out);
 		return res/n-_mean*_mean;
 	}
-}
-
-template<class DataType>
-double skewness(DataType* in, long int n)
-{
-	double poisson = 0;
-	DataType _mean = sum_pairwise(in,n)/n;
-	#pragma omp parallel for default(shared) reduction(+:poisson)
-	for(int i=0;i<n;i++)
-	{
-		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
-	}
-	return poisson/n;
 }
 
 template<class DataType>
