@@ -221,8 +221,8 @@ DataType sum_pairwise(DataType* in, long int n)
 template<class DataType>
 DataType sum_pairwise_complex(DataType* in, long int n)
 {
-	double real = reinterpret_cast<double(&)[2]>(in)[0];
-	double imag = reinterpret_cast<double(&)[2]>(in)[1];
+	double* real = reinterpret_cast<double*(&)[2]>(in)[0];
+	double* imag = reinterpret_cast<double*(&)[2]>(in)[1];
 	return DataType (sum_pairwise(real,n),sum_pairwise(imag,n));
 }
 
