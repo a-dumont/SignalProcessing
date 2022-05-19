@@ -194,7 +194,6 @@ DataType sum_pairwise(DataType* in, long int n)
 	{
 		long int N = n-n%128;
 		long int m = N/128;
-		//DataType out[m] = {};
 		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
 		#pragma omp parallel for
 		for(long int j=0;j<m;j++)
@@ -222,7 +221,9 @@ DataType sum_pairwise(DataType* in, long int n)
 template<class DataType>
 DataType sum_pairwise_complex(DataType* in, long int n)
 {
-	return DataType (sum_pairwise(std::real(in),n),sum_pairwise(std::imag(in),n));
+	double* real = reinterpret_cast<double(&)[2]>(in)[0];
+	double* imag = reinterpret_cast<double(&)[2]>(in)[1];
+	return DataType (sum_pairwise(real,n),sum_pairwise(imag,n));
 }
 
 template<class DataType>
