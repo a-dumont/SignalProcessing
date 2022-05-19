@@ -240,12 +240,12 @@ DataType variance_pairwise(DataType* in, long int n)
 	{
 		if(n<8)
 		{
-			DataType res = 0.0;
+			DataType var = 0.0;
 			for(int i=0;i<n;i++)
 			{
-				res += (in[i]-_mean)*(in[i]-_mean);
+				var += (in[i]-_mean)*(in[i]-_mean);
 			}
-			return res/n;
+			return var/n;
 		}
 		else 
 		{
