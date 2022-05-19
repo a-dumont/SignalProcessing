@@ -234,8 +234,8 @@ DataType sum_pairwise_complex(DataType* in, int n)
 	else
 	{
 		int N = n-n%128;
-		DataType res[16] = {};
-		#pragma omp parallel for default(shared) reduction(+:res[:8])
+		double res[16] = {};
+		#pragma omp parallel for default(shared) reduction(+:res[:16])
 		for(int i=0;i<N;i+=8)
 		{
 			res[0] += std::real(in[i]);
