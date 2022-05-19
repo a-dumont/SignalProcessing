@@ -187,7 +187,7 @@ DataType sum_pairwise(DataType* in, long int n)
 				}
 				out = std::accumulate(res,res+8,remainder);
 			}
-			return out+std::accumulate(in+N,in+n,remainder);
+			return out;
 		}
 	}
 	else
@@ -269,18 +269,14 @@ DataType variance_pairwise(DataType* in, long int n)
 				}
 				out = std::accumulate(res,res+8,remainder);
 			}
-			for(int i=N;i<n;i++)
-			{
-				remainder += (in[i]-_mean)*(in[i]-_mean);
-			}
-			return (out+remainder)/n;
+			return out/n;
 		}
 	}
 	else
 	{
 		long int N = n-n%128;
 		long int m = N/128;
-		DataType remainder = 0;
+		DataType remainder = 0.0;
 		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
 		#pragma omp parallel for
 		for(long int j=0;j<m;j++)
