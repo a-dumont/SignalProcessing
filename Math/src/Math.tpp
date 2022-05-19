@@ -185,9 +185,9 @@ DataType sum_pairwise(DataType* in, long int n)
 					res[6] += in[128*j+i+6]; 
 					res[7] += in[128*j+i+7]; 
 				}
-				out += std::accumulate(res,res+8,0.0);
+				out += std::accumulate(res,res+8,(DataType) 0.0);
 			}
-			return out+std::accumulate(in+N,in+n,0.0);
+			return out+std::accumulate(in+N,in+n,(DataType) 0.0);
 		}
 	}
 	else
@@ -210,9 +210,9 @@ DataType sum_pairwise(DataType* in, long int n)
 				res[6] += in[128*j+i+6]; 
 				res[7] += in[128*j+i+7]; 
 			}
-			out[j] = std::accumulate(res,res+8,0.0);
+			out[j] = std::accumulate(res,res+8,(DataType) 0.0);
 		}
-		DataType res = sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,0.0);
+		DataType res = sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,(DataType) 0.0);
 		free(out);
 		return res;
 	}
