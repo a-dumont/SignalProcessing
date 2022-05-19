@@ -163,7 +163,7 @@ DataType sum_pairwise(DataType* in, int n)
 		}
 		return res;
 	}
-	else if (n<=8096)
+	else if (n<=8192)
 	{
 		int N = n-n%128;
 		int m = N/128;
@@ -185,7 +185,7 @@ DataType sum_pairwise(DataType* in, int n)
 			}
 			out += std::accumulate(res,res+8,0.0);
 		}
-		return std::accumulate(res,res+8,0.0)+std::accumulate(in+N,in+n,0.0);
+		return out+std::accumulate(in+N,in+n,0.0);
 	}
 	else
 	{
