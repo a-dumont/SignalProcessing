@@ -210,6 +210,7 @@ DataType sum_pairwise(DataType* in, int n)
 			out[j] += std::accumulate(res,res+8,0.0);
 		}
 		return sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,0.0);
+	}
 }
 
 template<class DataType>
