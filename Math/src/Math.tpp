@@ -246,7 +246,7 @@ template<class DataType>
 double skewness(DataType* in, int n)
 {
 	double poisson = 0;
-	DataType _mean = mean(in,n);
+	DataType _mean = sum_pairwise(in,n)/n;
 	#pragma omp parallel for default(shared) reduction(+:poisson)
 	for(int i=0;i<n;i++)
 	{
