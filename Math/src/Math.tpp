@@ -154,38 +154,41 @@ void continuous_min(long int* out, DataType* in, int n)
 template<class DataType>
 DataType sum_pairwise(DataType* in, long int n)
 {
-	if(n<8)
+	if (n<=128)
 	{
-		DataType res = 0.0;
-		for(int i=0;i<n;i++)
+		if(n<8)
 		{
-			res += in[i];
-		}
-		return res;
-	}
-	else if (n<=128)
-	{
-		long int N = n-n%128;
-		long int m = N/128;
-		DataType res[8] = {};
-		DataType out = (DataType) 0;
-		for(long int j=0;j<m;j++)
-		{
-			std::memset(res,0,8*sizeof(DataType));
-			for(long int i=0;i<128;i+=8)
+			DataType res = 0.0;
+			for(int i=0;i<n;i++)
 			{
-				res[0] += in[128*j+i];
-				res[1] += in[128*j+i+1];
-				res[2] += in[128*j+i+2]; 
-				res[3] += in[128*j+i+3]; 
-				res[4] += in[128*j+i+4]; 
-				res[5] += in[128*j+i+5]; 
-				res[6] += in[128*j+i+6]; 
-				res[7] += in[128*j+i+7]; 
+				res += in[i];
 			}
-			out += std::accumulate(res,res+8,0.0);
+			return res;
 		}
-		return out+std::accumulate(in+N,in+n,0.0);
+		else 
+		{
+			long int N = n-n%128;
+			long int m = N/128;
+			DataType res[8] = {};
+			DataType out = (DataType) 0;
+			for(long int j=0;j<m;j++)
+			{
+				std::memset(res,0,8*sizeof(DataType));
+				for(long int i=0;i<128;i+=8)
+				{
+					res[0] += in[128*j+i];
+					res[1] += in[128*j+i+1];
+					res[2] += in[128*j+i+2]; 
+					res[3] += in[128*j+i+3]; 
+					res[4] += in[128*j+i+4]; 
+					res[5] += in[128*j+i+5]; 
+					res[6] += in[128*j+i+6]; 
+					res[7] += in[128*j+i+7]; 
+				}
+				out += std::accumulate(res,res+8,0.0);
+			}
+			return out+std::accumulate(in+N,in+n,0.0);
+		}
 	}
 	else
 	{
