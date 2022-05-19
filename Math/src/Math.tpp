@@ -233,6 +233,83 @@ double variance(DataType* in, long int n)
 }
 
 template<class DataType>
+DataType variance_pairwise(DataType* in, long int n)
+{
+	DataType _mean = sum_pairwise(in,n)/n;
+	if (n<=128)
+	{
+		if(n<8)
+		{
+			DataType res = 0.0;
+			for(int i=0;i<n;i++)
+			{
+				res += (in[i]-_mean)*(in[i]-_mean);
+			}
+			return res;
+		}
+		else 
+		{
+			long int N = n-n%128;
+			DataType remainder = 0.0;
+			long int m = N/128;
+			DataType out =  0.0;
+			for(long int j=0;j<m;j++)
+			{
+				DataType res[8] = {};
+				for(long int i=0;i<128;i+=8)
+				{
+					res[0] += (in[128*j+i]*_mean)*(in[128*j+i]*_mean);
+					res[1] += (in[128*j+i+1]*_mean)*(in[128*j+i+1]*_mean);
+					res[2] += (in[128*j+i+2]*_mean)*(in[128*j+i+2]*_mean);
+					res[3] += (in[128*j+i+3]*_mean)*(in[128*j+i+3]*_mean); 
+					res[4] += (in[128*j+i+4]*_mean)*(in[128*j+i+4]*_mean);
+					res[5] += (in[128*j+i+5]*_mean)*(in[128*j+i+5]*_mean);
+					res[6] += (in[128*j+i+6]*_mean)*(in[128*j+i+6]*_mean); 
+					res[7] += (in[128*j+i+7]*_mean)*(in[128*j+i+7]*_mean);
+				}
+				out = std::accumulate(res,res+8,remainder);
+			}
+			for(int i=N;i<n;i++)
+			{
+				remainder += (in[i]*_mean)*(in[i]*_mean)
+			}
+			return out+remainder;
+		}
+	}
+	else
+	{
+		long int N = n-n%128;
+		long int m = N/128;
+		DataType remainder = 0;
+		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
+		#pragma omp parallel for
+		for(long int j=0;j<m;j++)
+		{
+			DataType res[8] = {};
+			for(long int i=0;i<128;i+=8)
+			{
+				res[0] += (in[128*j+i]*_mean)*(in[128*j+i]*_mean);
+				res[1] += (in[128*j+i+1]*_mean)*(in[128*j+i+1]*_mean);
+				res[2] += (in[128*j+i+2]*_mean)*(in[128*j+i+2]*_mean);
+				res[3] += (in[128*j+i+3]*_mean)*(in[128*j+i+3]*_mean); 
+				res[4] += (in[128*j+i+4]*_mean)*(in[128*j+i+4]*_mean);
+				res[5] += (in[128*j+i+5]*_mean)*(in[128*j+i+5]*_mean);
+				res[6] += (in[128*j+i+6]*_mean)*(in[128*j+i+6]*_mean); 
+				res[7] += (in[128*j+i+7]*_mean)*(in[128*j+i+7]*_mean);
+			}
+			out[j] = std::accumulate(res,res+8,remainder);
+		}
+		for(int i=N;i<n;i++)
+			{
+				remainder += (in[i]*_mean)*(in[i]*_mean)
+			}
+		DataType res = variance_pairwise<DataType>(out,m)+remainder;
+		free(out);
+		return res;
+	}
+}
+
+template<class DataType>
 double skewness(DataType* in, long int n)
 {
 	double poisson = 0;
