@@ -180,28 +180,12 @@ DataType sum_py(py::array_t<DataType,py::array::c_style>& py_in1)
 }
 
 template<class DataType>
-DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1,int N)
+DataType sum_pairwise_py(py::array_t<DataType,py::array::c_style>& py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
 	int n = buf1.size;
 	DataType* in = (DataType*) buf1.ptr;
-	DataType res;
-	#pragma omp parallel shared(res)
-    {
-		setenv("OMP_NESTED","true",1);
-		#pragma omp single
-		res = sum_pairwise<DataType>(in,n,N);
-	}
-	return res;
-}
-
-template<class DataType>
-DataType sum_pairwise2_py(py::array_t<DataType,py::array::c_style>& py_in1)
-{
-	py::buffer_info buf1 = py_in1.request();
-	int n = buf1.size;
-	DataType* in = (DataType*) buf1.ptr;
-	return sum_pairwise2(in,n);
+	return sum_pairwise(in,n);
 }
 
 template<class DataType>

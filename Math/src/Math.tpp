@@ -152,45 +152,7 @@ void continuous_min(long int* out, DataType* in, int n)
 }
 
 template<class DataType>
-DataType sum(DataType* in, int n)
-{
-	DataType _sum = 0;
-	#pragma omp parallel for default(shared) reduction(+:_sum)
-	for (int i = 0; i < n; i++)
-	{
-    	_sum += in[i];
-	}
-	return _sum;
-}
-
-template<class DataType>
-DataType sum_pairwise(DataType* in, int n, int N)
-{
-	if(n > N)
-	{
-		int m = (int) n/2;
-		DataType a;
-		DataType b;
-		#pragma omp task shared(a)
-		a = sum_pairwise<DataType>(in, m, N);
-		#pragma omp task shared(b)
-		b = sum_pairwise<DataType>(in+m,n-m,N);
-		#pragma omp taskwait
-		return a+b;
-	}
-	else 
-	{
-		DataType _sum = 0;
-		for (int i = 0; i < n; i++)
-		{
-    		_sum += in[i];
-		}
-		return _sum;
-	}
-}
-
-template<class DataType>
-DataType sum_pairwise2(DataType* in, int n)
+DataType sum_pairwise(DataType* in, int n)
 {
 	if(n<8)
 	{
@@ -205,6 +167,7 @@ DataType sum_pairwise2(DataType* in, int n)
 	{
 		int N = n-n%128;
 		DataType res[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+		#pragma omp parallel for reduction(+:res[:8])
 		for(int i=0;i<N;i+=8)
 		{
 			res[0] += in[i];
