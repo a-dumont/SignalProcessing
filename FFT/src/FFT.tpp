@@ -75,8 +75,6 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
 	int howmany = n/N;
 	int dist = N;
 	int stride = 1;
-
-    fftw_import_wisdom_from_filename(&wisdom_parallel_path[0]);
 	
 	int threads_init = fftw_init_threads();
 	if (threads_init == 0)
@@ -85,6 +83,8 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
 	}
 	omp_set_num_threads(nthreads);
 	fftw_plan_with_nthreads(omp_get_max_threads());
+	
+	fftw_import_wisdom_from_filename(&wisdom_parallel_path[0]);
 
 	fftw_plan plan = fftw_plan_many_dft(
 					rank,
