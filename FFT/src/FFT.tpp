@@ -29,7 +29,6 @@ void FFT_Parallel(int n, DataType* in, DataType* out, int nthreads)
 					reinterpret_cast<fftw_complex*>(out), 
 					FFTW_FORWARD, 
 					FFTW_ESTIMATE);
-	py::print(fftw_planner_nthreads());
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
 }
