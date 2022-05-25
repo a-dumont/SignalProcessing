@@ -31,6 +31,7 @@ void FFT_Parallel(int n, DataType* in, DataType* out, int nthreads)
 					FFTW_ESTIMATE);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
+	fftw_cleanup_threads();
 }
 
 template<class DataType>
