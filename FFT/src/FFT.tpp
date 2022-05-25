@@ -67,6 +67,47 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
 }
 
 template<class DataType>
+void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
+{
+
+	int rank = 1;
+	int length[] = {N};
+	int howmany = n/N;
+	int dist = N;
+	int stride = 1;
+
+    fftw_import_wisdom_from_filename(&wisdom_parallel_path[0]);
+	
+	int threads_init = fftw_init_threads();
+	if (threads_init == 0)
+	{
+		throw std::runtime_error("Cannot initialize threads.");
+	}
+	omp_set_num_threads(nthreads);
+	fftw_plan_with_nthreads(omp_get_max_threads());
+
+	fftw_plan plan = fftw_plan_many_dft(
+					rank,
+					length,
+					howmany,
+					reinterpret_cast<fftw_complex*>(in),
+					NULL,
+					stride,
+					dist,
+					reinterpret_cast<fftw_complex*>(out),
+					NULL,
+					stride,
+					dist,
+					1,
+					FFTW_EXHAUSTIVE);
+
+    fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+	fftw_cleanup_threads();
+}
+
+template<class DataType>
 void iFFT(int n, DataType* in, DataType* out)
 {
 	fftw_plan plan;
