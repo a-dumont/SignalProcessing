@@ -99,7 +99,7 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
 					stride,
 					dist,
 					1,
-					FFTW_EXHAUSTIVE);
+					FFTW_PATIENT);
 
     fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftw_execute(plan);
