@@ -44,7 +44,6 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
 	int dist = N;
 	int stride = 1;
 
-	fftw_forget_wisdom();
     fftw_import_wisdom_from_filename(&wisdom_path[0]);
 
 	fftw_plan plan = fftw_plan_many_dft(
@@ -65,6 +64,8 @@ void FFT_Block(int n, int N, DataType* in, DataType* out)
     fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
+	fftw_forget_wisdom();
+	fftw_cleanup();
 }
 
 template<class DataType>
@@ -85,7 +86,6 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
 	omp_set_num_threads(nthreads);
 	fftw_plan_with_nthreads(omp_get_max_threads());
 	
-	fftw_forget_wisdom();
 	fftw_import_wisdom_from_filename(&wisdom_parallel_path[0]);
 
 	fftw_plan plan = fftw_plan_many_dft(
@@ -106,6 +106,7 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
     fftw_export_wisdom_to_filename(&wisdom_parallel_path[0]);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
+	fftw_forget_wisdom();
 	fftw_cleanup_threads();
 }
 
