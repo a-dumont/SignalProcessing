@@ -21,7 +21,8 @@ void FFT_Parallel(int n, DataType* in, DataType* out, int nthreads)
 	{
 		throw std::runtime_error("Cannot initialize threads.");
 	}
-	fftw_plan_with_nthreads(nthreads);
+	omp_set_num_threads(nthreads);
+	fftw_plan_with_nthreads(omp_get_max_threads());
 	plan = fftw_plan_dft_1d(
 					n, 
 					reinterpret_cast<fftw_complex*>(in), 
