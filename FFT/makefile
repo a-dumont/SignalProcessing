@@ -26,7 +26,7 @@ DEPS_FLAG = -MMD -MP
 POSITION_INDEP = -fPIC
 SHARED = -shared
 
-FFTW = -lfftw3 -lm
+FFTW = -lfftw3_omp -lfftw3 -lm
 OMP = -fopenmp -fopenmp-simd
 MATH = -lm
 

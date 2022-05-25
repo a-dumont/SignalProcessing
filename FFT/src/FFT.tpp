@@ -13,6 +13,26 @@ void FFT(int n, DataType* in, DataType* out)
 }
 
 template<class DataType>
+void FFT_Parallel(int n, DataType* in, DataType* out, int nthreads)
+{
+	fftw_plan plan;
+	int threads_init = fftw_init_threads();
+	if (threads_init == 0)
+	{
+		throw std::runtime_error("Cannot initialize threads.");
+	}
+	void fftw_plan_with_nthreads(nthreads);
+	plan = fftw_plan_dft_1d(
+					n, 
+					reinterpret_cast<fftw_complex*>(in), 
+					reinterpret_cast<fftw_complex*>(out), 
+					FFTW_FORWARD, 
+					FFTW_ESTIMATE);
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+}
+
+template<class DataType>
 void FFT_Block(int n, int N, DataType* in, DataType* out)
 {
 

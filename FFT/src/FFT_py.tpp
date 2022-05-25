@@ -25,6 +25,33 @@ DataType FFT_py(DataType py_in)
 	);
 }
 
+template< class DataType >
+DataType FFT_Parallel_py(DataType py_in, int nthreads)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+	
+	dbl_complex* ptr_py_in = (dbl_complex*) buf_in.ptr;
+	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*n);
+
+	FFT_Parallel(n, ptr_py_in, result, nthreads);
+
+	py::capsule free_when_done( result, fftw_free );
+	return py::array_t<dbl_complex, py::array::c_style> 
+	(
+		{n},
+		{sizeof(dbl_complex)},
+		result,
+		free_when_done	
+	);
+}
+
 template< class DataType ,class DataType2>
 DataType FFT_py(DataType py_in,int N)
 {

@@ -5,6 +5,7 @@
 void init_fft(py::module &m)
 {
 	m.def("fft",&FFT_py<np_complex>, "in"_a);
+	m.def("fft",&FFT_Parallel_py<np_complex>, "in"_a);
 	m.def("ifft",&iFFT_py<np_complex>, "in"_a);
 	m.def("fft",&FFT_py<np_complex,int>, "in"_a,"N"_a);
 	m.def("rfft",&rFFT_py<np_double>, "in"_a.noconvert());
