@@ -101,7 +101,7 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
 					1,
 					FFTW_PATIENT);
 
-    fftw_export_wisdom_to_filename(&wisdom_path[0]);
+    fftw_export_wisdom_to_filename(&wisdom_parallel_path[0]);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
 	fftw_cleanup_threads();
