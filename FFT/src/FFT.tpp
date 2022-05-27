@@ -111,6 +111,35 @@ void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
 }
 
 template<class DataType>
+void FFT_Block_Parallel2(int n, int N, DataType* in, DataType* out)
+{
+
+	int howmany = n/N;
+	fftw_import_wisdom_from_filename(&wisdom_path[0]);
+	
+	fftw_plan plan;
+	plan = fftw_plan_dft_1d(
+					N, 
+					reinterpret_cast<fftw_complex*>(in), 
+					reinterpret_cast<fftw_complex*>(out), 
+					FFTW_FORWARD, 
+					FFTW_ESTIMATE);
+
+	#pragma omp parallel for
+	for(int i=0;i<howmany;i++)
+	{
+		fftw_execute_dft(plan, 
+						reinterpret_cast<fftw_complex*>(in+i*N), 
+						reinterpret_cast<fftw_complex*>(out+i*N));
+	}
+	fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftw_destroy_plan(plan);
+	fftw_forget_wisdom();
+	fftw_cleanup();
+}
+
+
+template<class DataType>
 void iFFT(int n, DataType* in, DataType* out)
 {
 	fftw_plan plan;
