@@ -6,3 +6,5 @@ include SignalProcessing/math/libmath.so
 include SignalProcessing/math/libmath.pyd
 include SignalProcessing/histograms/libhistograms.so
 include SignalProcessing/histograms/libhistograms.pyd
+include SignalProcessing/fft/libfftcuda.so
+include SignalProcessing/fft/libfftcuda.pyd
