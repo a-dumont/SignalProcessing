@@ -68,6 +68,11 @@ DataType rolling_average_py(DataType py_in, int size)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
+	
+	if (buf_x.size < size)
+	{
+		throw std::runtime_error("U dumbdumb window must be smaller than array.");
+	}	
 
 	int n = buf_x.size;
 
@@ -166,47 +171,60 @@ np_int continuous_min_py(py::array_t<DataType,py::array::c_style> py_in)
 		free_when_done	
 		);
 	}
-	
+
 template<class DataType>
 DataType sum_py(py::array_t<DataType,py::array::c_style>& py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return sum<DataType>((DataType*) buf1.ptr,buf1.size);
+	long int n = buf1.size;
+	DataType* in = (DataType*) buf1.ptr;
+	return sum_pairwise(in,n);
 }
 
 template<class DataType>
-DataType sum_complex_py(py::array_t<DataType,py::array::c_style>& py_in1)
+double mean_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return sum_complex<DataType>((DataType*) buf1.ptr,buf1.size);
-}
-
-template<class DataType>
-DataType mean_py(py::array_t<DataType,py::array::c_style> py_in1)
-{
-	py::buffer_info buf1 = py_in1.request();
-	return mean((DataType*) buf1.ptr,buf1.size);
+	return (double) sum_pairwise((DataType*) buf1.ptr,buf1.size)/buf1.size;
 }
 
 template<class DataType>
 DataType mean_complex_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return mean_complex((DataType*) buf1.ptr,buf1.size);
+	DataType res = sum_pairwise((DataType*) buf1.ptr,buf1.size);
+	return DataType(std::real(res)/buf1.size,std::imag(res)/buf1.size);
 }
 
 template<class DataType>
 DataType variance_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return variance((DataType*) buf1.ptr,buf1.size);
+	DataType* ptr = (DataType*) buf1.ptr;
+	return variance_pairwise(ptr,buf1.size);
 }
 
 template<class DataType>
-DataType mode_py(py::array_t<DataType,py::array::c_style> py_in1)
+DataType skewness_py(py::array_t<DataType,py::array::c_style> py_in1)
 {
 	py::buffer_info buf1 = py_in1.request();
-	return mode((DataType*) buf1.ptr,buf1.size);
+	return skewness_pairwise((DataType*) buf1.ptr,buf1.size);
+}
+
+template<class DataType>
+DataType max_py(py::array_t<DataType,py::array::c_style> py_in1)
+{
+	py::buffer_info buf1 = py_in1.request();
+	DataType* ptr = (DataType*) buf1.ptr;
+	return max(ptr,buf1.size);
+}
+
+template<class DataType>
+DataType min_py(py::array_t<DataType,py::array::c_style> py_in1)
+{
+	py::buffer_info buf1 = py_in1.request();
+	DataType* ptr = (DataType*) buf1.ptr;
+	return min(ptr,buf1.size);
 }
 
 template<class DataType, class DataType2>

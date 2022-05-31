@@ -5,8 +5,11 @@
 void init_fft(py::module &m)
 {
 	m.def("fft",&FFT_py<np_complex>, "in"_a);
+	//m.def("fft_parallel",&FFT_Parallel_py<np_complex>, "in"_a,"nthreads"_a);
 	m.def("ifft",&iFFT_py<np_complex>, "in"_a);
 	m.def("fft",&FFT_py<np_complex,int>, "in"_a,"N"_a);
+	m.def("fft_parallel",&FFT_Block_Parallel_py<np_complex,int>, "in"_a,"N"_a,"nthreads"_a);
+	m.def("fft_parallel",&FFT_Block_Parallel2_py<np_complex,int>, "in"_a,"N"_a);
 	m.def("rfft",&rFFT_py<np_double>, "in"_a.noconvert());
 	m.def("rfft",&rFFT_py<np_double,int>, "in"_a.noconvert(),"N"_a);
 	m.def("irfft",&irFFT_py<np_complex>, "in"_a.noconvert());

@@ -152,85 +152,213 @@ void continuous_min(long int* out, DataType* in, int n)
 }
 
 template<class DataType>
-DataType sum(DataType* in, int n)
+DataType sum_pairwise(DataType* in, long int n)
 {
-	DataType _sum = (DataType) 0;
-	#pragma omp parallel for default(shared) reduction(+:_sum)
-	for (int i = 0; i < n; i++)
+	if (n<=128)
 	{
-    	_sum += in[i];
+		if(n<8)
+		{
+			DataType res = 0.0;
+			for(int i=0;i<n;i++)
+			{
+				res += in[i];
+			}
+			return res;
+		}
+		else 
+		{
+			long int N = n-n%8;
+			DataType remainder = 0.0;
+			DataType out =  0.0;
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
+			{
+				res[0] += in[i];
+				res[1] += in[i+1];
+				res[2] += in[i+2]; 
+				res[3] += in[i+3]; 
+				res[4] += in[i+4]; 
+				res[5] += in[i+5]; 
+				res[6] += in[i+6]; 
+				res[7] += in[i+7]; 
+			}
+			out = std::accumulate(res,res+8,remainder)+std::accumulate(in+N,in+n,remainder);
+			return out;
+		}
 	}
-	return _sum;
+	else
+	{
+		long int N = n-n%128;
+		long int m = N/128;
+		DataType remainder = 0;
+		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
+		#pragma omp parallel for
+		for(long int j=0;j<m;j++)
+		{
+			DataType res[8] = {};
+			for(long int i=0;i<128;i+=8)
+			{
+				res[0] += in[128*j+i];
+				res[1] += in[128*j+i+1];
+				res[2] += in[128*j+i+2]; 
+				res[3] += in[128*j+i+3]; 
+				res[4] += in[128*j+i+4]; 
+				res[5] += in[128*j+i+5]; 
+				res[6] += in[128*j+i+6]; 
+				res[7] += in[128*j+i+7]; 
+			}
+			out[j] = std::accumulate(res,res+8,remainder);
+		}
+		DataType res = sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,remainder);
+		free(out);
+		return res;
+	}
 }
 
 template<class DataType>
-DataType sum_complex(DataType* in, int n)
+DataType variance_pairwise(DataType* in, long int n)
 {
-	double sum_r = 0.0;
-	double sum_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:sum_r) reduction(+:sum_i)
-	for (int i = 0; i < n; i++)
+	DataType _mean = sum_pairwise(in,n)/n;
+	if (n<=128)
 	{
-    	sum_r += std::real(in[i]);
-		sum_i += std::imag(in[i]);
+		if(n<8)
+		{
+			DataType var = 0.0;
+			for(int i=0;i<n;i++)
+			{
+				var += (in[i])*(in[i]);
+			}
+			return var/n-_mean*_mean;
+		}
+		else 
+		{
+			long int N = n-n%8;
+			DataType remainder = 0.0;
+			DataType out =  0.0;
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
+			{
+				res[0] += (in[i])*(in[i]);
+				res[1] += (in[i+1])*(in[i+1]);
+				res[2] += (in[i+2])*(in[i+2]);
+				res[3] += (in[i+3])*(in[i+3]); 
+				res[4] += (in[i+4])*(in[i+4]);
+				res[5] += (in[i+5])*(in[i+5]);
+				res[6] += (in[i+6])*(in[i+6]); 
+				res[7] += (in[i+7])*(in[i+7]);
+			}
+			out = std::accumulate(res,res+8,remainder);
+			for(int i=N;i<n;i++)
+			{
+				remainder += (in[i])*(in[i]);
+			}
+			return (out+remainder)/n-_mean*_mean;
+		}
 	}
-	return DataType (sum_r,sum_i);
+	else
+	{
+		long int N = n-n%128;
+		long int m = N/128;
+		DataType remainder = 0.0;
+		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
+		#pragma omp parallel for
+		for(long int j=0;j<m;j++)
+		{
+			DataType res[8] = {};
+			for(long int i=0;i<128;i+=8)
+			{
+				res[0] += (in[128*j+i])*(in[128*j+i]);
+				res[1] += (in[128*j+i+1])*(in[128*j+i+1]);
+				res[2] += (in[128*j+i+2])*(in[128*j+i+2]);
+				res[3] += (in[128*j+i+3])*(in[128*j+i+3]); 
+				res[4] += (in[128*j+i+4])*(in[128*j+i+4]);
+				res[5] += (in[128*j+i+5])*(in[128*j+i+5]);
+				res[6] += (in[128*j+i+6])*(in[128*j+i+6]); 
+				res[7] += (in[128*j+i+7])*(in[128*j+i+7]);
+			}
+			out[j] = std::accumulate(res,res+8,remainder);
+		}
+		for(int i=N;i<n;i++)
+		{
+			remainder += (in[i])*(in[i]);
+		}
+		DataType res = sum_pairwise<DataType>(out,m)+remainder;
+		free(out);
+		return res/n-_mean*_mean;
+	}
 }
 
 template<class DataType>
-DataType mean(DataType* in, int n)
+DataType skewness_pairwise(DataType* in, long int n)
 {
-	DataType _mean = (DataType) 0;
-	double N = 1.0/n;
-	#pragma omp parallel for default(shared) reduction(+:_mean)
-	for (int i = 0; i < n; i++)
+	DataType _mean = sum_pairwise(in,n)/n;
+	if (n<=128)
 	{
-    	_mean += in[i]*N;
+		if(n<8)
+		{
+			DataType skew = 0.0;
+			for(int i=0;i<n;i++)
+			{
+				skew += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+			}
+			return skew/n;
+		}
+		else 
+		{
+			long int N = n-n%8;
+			DataType remainder = 0.0;
+			DataType out =  0.0;
+			DataType res[8] = {};
+			for(long int i=0;i<N;i+=8)
+			{
+				res[0] += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+				res[1] += (in[i+1]-_mean)*(in[i+1]-_mean)*(in[i+1]-_mean);
+				res[2] += (in[i+2]-_mean)*(in[i+2]-_mean)*(in[i+2]-_mean);
+				res[3] += (in[i+3]-_mean)*(in[i+3]-_mean)*(in[i+3]-_mean); 
+				res[4] += (in[i+4]-_mean)*(in[i+4]-_mean)*(in[i+4]-_mean);
+				res[5] += (in[i+5]-_mean)*(in[i+5]-_mean)*(in[i+5]-_mean);
+				res[6] += (in[i+6]-_mean)*(in[i+6]-_mean)*(in[i+6]-_mean); 
+				res[7] += (in[i+7]-_mean)*(in[i+7]-_mean)*(in[i+7]-_mean);
+			}
+			out = std::accumulate(res,res+8,remainder);
+			for(int i=N;i<n;i++)
+			{
+				remainder += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+			}
+			return (out+remainder)/n;
+		}
 	}
-	return _mean;
-}
-
-template<class DataType>
-DataType mean_complex(DataType* in, int n)
-{
-	double N = 1.0/n;
-	double mean_r = 0.0;
-	double mean_i = 0.0;
-	#pragma omp parallel for default(shared) reduction(+:mean_r) reduction(+:mean_i)
-	for (int i = 0; i < n; i++)
+	else
 	{
-    	mean_r += std::real(in[i])*N;
-		mean_i += std::imag(in[i])*N;
+		long int N = n-n%128;
+		long int m = N/128;
+		DataType remainder = 0.0;
+		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
+		#pragma omp parallel for
+		for(long int j=0;j<m;j++)
+		{
+			DataType res[8] = {};
+			for(long int i=0;i<128;i+=8)
+			{
+				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean)*(in[128*j+i]-_mean);
+				res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
+				res[2] += (in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean)*(in[128*j+i+2]-_mean);
+				res[3] += (in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean)*(in[128*j+i+3]-_mean); 
+				res[4] += (in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean)*(in[128*j+i+4]-_mean);
+				res[5] += (in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean)*(in[128*j+i+5]-_mean);
+				res[6] += (in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean)*(in[128*j+i+6]-_mean); 
+				res[7] += (in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean)*(in[128*j+i+7]-_mean);
+			}
+			out[j] = std::accumulate(res,res+8,remainder);
+		}
+		for(int i=N;i<n;i++)
+		{
+			remainder += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
+		}
+		DataType res = sum_pairwise<DataType>(out,m)+remainder;
+		free(out);
+		return res/n;
 	}
-	return DataType (mean_r,mean_i);
-}
-
-template<class DataType>
-double variance(DataType* in, int n)
-{
-	double var = 0;
-	double N =  1.0/n;
-	DataType _mean = mean(in,n);
-	#pragma omp parallel for default(shared) reduction(+:var)
-	for(int i=0;i<n;i++)
-	{
-		var += (in[i]-_mean)*(in[i]-_mean)*N;
-	}
-	return var;
-}
-
-template<class DataType>
-double mode(DataType* in, int n)
-{
-	double poisson = 0;
-	double N = 1.0/n;
-	DataType _mean = mean(in,n);
-	#pragma omp parallel for default(shared) reduction(+:poisson)
-	for(int i=0;i<n;i++)
-	{
-		poisson += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean)*N;
-	}
-	return poisson;
 }
 
 template<class DataType, class DataType2>
@@ -271,4 +399,28 @@ void division(DataType* in1, DataType* in2, DataType2* out, int n)
 	{
 		out[i] = in1[i]/in2[i];
 	}
+}
+
+template<class DataType>
+DataType max(DataType* in, int n)
+{
+	DataType _max = in[0];
+	#pragma omp parallel for default(shared) reduction(max:_max)
+	for(int i=1;i<n;i++)
+	{
+		_max = _max > in[i] ? _max : in[i];
+	}
+	return _max;
+}
+
+template<class DataType>
+DataType min(DataType* in, int n)
+{
+	DataType _min = in[0];
+	#pragma omp parallel for default(shared) reduction(min:_min)
+	for(int i=1;i<n;i++)
+	{
+		_min = _min < in[i] ? _min : in[i];
+	}
+	return _min;
 }

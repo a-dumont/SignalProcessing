@@ -1,4 +1,4 @@
-NAME = fft
+NAME = fftcuda
 PYLIB_EXT = $(if $(filter $(OS),Windows_NT),.pyd,.so)
 TARGET_STATIC = lib$(NAME).a
 TARGET_PYLIB = obj/lib$(NAME)$(PYLIB_EXT)
@@ -17,7 +17,8 @@ DEPS = $(OBJ:.o=.d)
 EXTERNAL_OBJ = 
 EXTERNAL_INCLUDES = 
 CXX = $(OS:Windows_NT=x86_64-w64-mingw32-)g++
-OPTIMIZATION = -O3 -march=native
+LXX = $(OS:Windows_NT=x86_64-w64-mingw32-)g++
+OPTIMIZATION = -O3 
 CPP_STD = -std=c++14
 WARNINGS = -Wall
 MINGW_COMPATIBLE = $(OS:Windows_NT=-DMS_WIN64 -D_hypot=hypot)
@@ -26,23 +27,23 @@ DEPS_FLAG = -MMD -MP
 POSITION_INDEP = -fPIC
 SHARED = -shared
 
-FFTW = -lfftw3_omp -lfftw3 -lm
-OMP = -fopenmp -fopenmp-simd
+FFTW = -L/opt/cuda/lib64 -lcufft -lcufftw -lcudart
 MATH = -lm
 
 PY = $(OS:Windows_NT=/c/Anaconda2/)python
 
 PY_INCL := $(shell $(PY) -m pybind11 --includes)
+CUDA_INCL = -I/opt/cuda/include
 
 PY_LINKS 	= 	$(OS:Windows_NT=-L /c/Anaconda2/ -lpython27)
 
-LINKS 		= 	$(OMP) $(PY_LINKS) $(FFTW)
+LINKS 		= 	$(PY_LINKS) $(FFTW)
 LINKING 	= 	$(CXX) $(OPTIMIZATION) $(POSITION_INDEP) $(SHARED) -o $(TARGET_PYLIB) \
 				$(OBJ_PY) $(LINKS) $(EXTERNAL_OBJ) $(DEPS_FLAG) $(MINGW_COMPATIBLE)
 STATIC_LIB 	= 	ar cr $(TARGET_STATIC) $(OBJ) 
 
-INCLUDES 	= 	$(OMP) $(PY_INCL) $(EXTERNAL_INCLUDES)
-COMPILE  	= 	$(CXX) $(CPP_STD) $(OPTIMIZATION) $(POSITION_INDEP) $(WARNINGS) \
+INCLUDES 	= 	$(CUDA_INCL) $(PY_INCL) $(EXTERNAL_INCLUDES)
+COMPILE  	= 	$(CXX) $(CPP_STD) $(OPTIMIZATION) $(POSITION_INDEP) $(WARNINGS)  \
 				-c -o $@ $< $(INCLUDES) $(DEPS_FLAG) $(MINGW_COMPATIBLE)
 ASSEMBLY 	= 	$(CXX) $(CPP_STD) $(OPTIMIZATION) $(POSITION_INDEP) $(WARNINGS) \
 				-S -o $@ $< $(INCLUDES) $(DEPS_FLAG) $(MINGW_COMPATIBLE)

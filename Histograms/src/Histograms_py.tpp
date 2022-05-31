@@ -943,7 +943,7 @@ DataType histogram_nth_order_derivative_py(DataType data_after_py, DataType data
 	{
 		throw std::runtime_error("U dumbdumb ndim must be 5.");
 	}
-	if(data_after_py.shape(0) != m || data_before_py.shape(0) != m)
+	if(data_after_py.shape(0) < m || data_before_py.shape(0) < m)
 	{
 		throw std::runtime_error("U dumbdumb must have atleast m nbins**4 arrays to compute.");
 	}
