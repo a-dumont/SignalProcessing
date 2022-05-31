@@ -6,6 +6,13 @@ if os.name == "nt" and s not in os.environ["PATH"]:
 
 from .libfft import *
 
+try:
+    from .libfftcuda import *
+    del libfftcuda
+except ModuleNotFoundError:
+    print("No CUDA support")
+
+
 del s
 del os
 del libfft
