@@ -22,6 +22,9 @@ void cuFree(void* ptr)
 {
 	cudaFree(ptr);
 }
-
+void cuFreeHost(void* ptr)
+{
+	cudaFreeHost(ptr);
+}
 
 #include "FFT_CUDA_py.tpp"

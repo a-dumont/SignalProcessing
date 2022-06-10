@@ -32,7 +32,6 @@ void fFFT_CUDA(int n, DataType* in, DataType* out)
 	cufftDestroy(plan);
 }
 
-
 template<class DataType>
 void FFT_Block_CUDA(long long int n, long long int size, DataType* in, DataType* out)
 {
@@ -69,6 +68,18 @@ void FFT_Block_CUDA(long long int n, long long int size, DataType* in, DataType*
 }
 
 template<class DataType>
+void FFT_Block2_CUDA(DataType* in, cufftHandle plan, cudaStream_t stream)
+{
+	cufftSetStream(plan, stream);	
+	if (cufftExecZ2Z(plan, reinterpret_cast<cufftDoubleComplex*>(in), 
+							reinterpret_cast<cufftDoubleComplex*>(in), 
+							CUFFT_FORWARD) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: ExecZ2Z Forward failed");
+	}
+}
+
+template<class DataType>
 void fFFT_Block_CUDA(long long int n, long long int size, DataType* in, DataType* out)
 {
 
@@ -92,7 +103,7 @@ void fFFT_Block_CUDA(long long int n, long long int size, DataType* in, DataType
         stride, idist, onembed, stride,
         odist, CUFFT_C2C, batch, worksize) != CUFFT_SUCCESS)
 	{
-		throw std::runtime_error("CUFFT error: Plan creation failed");	
+		throw std::runtime_error("CUFFT error: Plan initialization failed");	
 	}
 	if (cufftExecC2C(plan, reinterpret_cast<cufftComplex*>(in), 
 							reinterpret_cast<cufftComplex*>(out), 
@@ -196,14 +207,27 @@ void rFFT_Block_CUDA(int n, int size, DataTypeIn* in, DataTypeOut* out)
         stride, idist, onembed, stride,
         odist, CUFFT_D2Z, batch, worksize) != CUFFT_SUCCESS)
 	{
-		throw std::runtime_error("CUFFT error: Plan creation failed");	
+		throw std::runtime_error("CUFFT error: Plan initialization failed");
+		cufftDestroy(plan);
 	}
 	if (cufftExecD2Z(plan, reinterpret_cast<cufftDoubleReal*>(in), 
 							reinterpret_cast<cufftDoubleComplex*>(out)) != CUFFT_SUCCESS)
 	{
 		throw std::runtime_error("CUFFT error: ExecD2Z failed");
+		cufftDestroy(plan);
 	}
 	cufftDestroy(plan);
+}
+
+template<class DataTypeIn,class DataTypeOut>
+void rFFT_Block2_CUDA(DataTypeIn* in, DataTypeOut* out, cufftHandle plan, cudaStream_t stream)
+{
+	cufftSetStream(plan, stream);	
+	if (cufftExecD2Z(plan, reinterpret_cast<cufftDoubleReal*>(in), 
+							reinterpret_cast<cufftDoubleComplex*>(out)) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: ExecD2Z Forward failed");
+	}
 }
 
 template<class DataTypeIn, class DataTypeOut>

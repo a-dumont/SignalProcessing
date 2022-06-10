@@ -7,9 +7,11 @@ void init_fft(py::module &m)
 	// Double
 	m.def("fft_cuda",&FFT_CUDA_py<np_complex>, "in"_a);
 	m.def("fft_cuda",&FFT_Block_CUDA_py<np_complex,long long int>, "in"_a,"N"_a);
+	m.def("fft_cuda2",&FFT_Block_CUDA2_py<np_complex,int>, "in"_a,"N"_a);
 	m.def("ifft_cuda",&iFFT_CUDA_py<np_complex>, "in"_a);
 	m.def("rfft_cuda",&rFFT_CUDA_py<np_double>, "in"_a.noconvert());
 	m.def("rfft_cuda",&rFFT_Block_CUDA_py<np_double,int>, "in"_a.noconvert(),"N"_a);
+	m.def("rfft_cuda2",&rFFT_Block_CUDA2_py<np_double,int>, "in"_a.noconvert(),"N"_a);
 	m.def("irfft_cuda",&irFFT_CUDA_py<np_complex>, "in"_a.noconvert());
 	// Float
 	m.def("ffft_cuda",&fFFT_CUDA_py<np_fcomplex>, "in"_a);
