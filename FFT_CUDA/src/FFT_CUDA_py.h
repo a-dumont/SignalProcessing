@@ -1,5 +1,4 @@
 #pragma once
-#include <complex>
 #include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
 #include<pybind11/numpy.h>
@@ -13,8 +12,7 @@ using namespace pybind11::literals;
 
 typedef py::array_t<double,py::array::c_style> np_double;
 typedef py::array_t<std::complex<double>,py::array::c_style> np_complex;
-typedef std::complex<double> dbl_complex;
-typedef std::complex<float> flt_complex;
+
 typedef py::array_t<float,py::array::c_style> np_float;
 typedef py::array_t<std::complex<float>,py::array::c_style> np_fcomplex;
 
