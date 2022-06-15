@@ -1,4 +1,3 @@
-#include <complex>
 template< class DataType >
 py::array_t<DataType, py::array::c_style> FFT_CUDA_py(
 				py::array_t<DataType, py::array::c_style> py_in)
