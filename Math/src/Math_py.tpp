@@ -1,5 +1,8 @@
-template<class DataType>
-DataType gradient_py(DataType py_in1, DataType py_in2)
+// Gradient with fullsize x and t
+template<class DataType, class DataType2>
+py::array_t<DataType, py::array::c_style> gradient_py(
+				py::array_t<DataType, py::array::c_style> py_in1, 
+				py::array_t<DataType2, py::array::c_style> py_in2)
 {
 	py::buffer_info buf_x = py_in1.request();
 	py::buffer_info buf_t = py_in2.request();
@@ -16,24 +19,25 @@ DataType gradient_py(DataType py_in1, DataType py_in2)
 
 	int n = buf_x.size;
 
-	double* x = (double*) buf_x.ptr;
-	double* t = (double*) buf_t.ptr;
-	double* out = (double*) malloc(sizeof(double)*n);
+	DataType* x = (DataType*) buf_x.ptr;
+	DataType2* t = (DataType2*) buf_t.ptr;
+	DataType* out = (DataType*) malloc(sizeof(DataType)*n);
 
-	gradient<double>(n, x, t, out);
+	gradient<DataType,DataType2>(n, x, t, out);
 
 	py::capsule free_when_done( out, free );
-	return py::array_t<double, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		{n},
-		{sizeof(double)},
+		{sizeof(DataType)},
 		out,
 		free_when_done	
 	);
 }
 
 template<class DataType, class DataType2>
-DataType gradient_py(DataType py_in1, DataType2 dt)
+py::array_t<DataType, py::array::c_style> gradient2_py(
+				py::array_t<DataType, py::array::c_style> py_in1, DataType2 dt)
 {
 	py::buffer_info buf_x = py_in1.request();
 
@@ -44,23 +48,24 @@ DataType gradient_py(DataType py_in1, DataType2 dt)
 
 	int n = buf_x.size;
 
-	double* x = (double*) buf_x.ptr;
-	double* out = (double*) malloc(sizeof(double)*n);
+	DataType* x = (DataType*) buf_x.ptr;
+	DataType* out = (DataType*) malloc(sizeof(DataType)*n);
 
-	gradient<double,double>(n, x, dt, out);
+	gradient2<DataType,DataType2>(n, x, dt, out);
 
 	py::capsule free_when_done( out, free );
-	return py::array_t<double, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		{n},
-		{sizeof(double)},
+		{sizeof(DataType)},
 		out,
 		free_when_done	
 	);
 }
 
 template<class DataType>
-DataType rolling_average_py(DataType py_in, int size)
+py::array_t<DataType, py::array::c_style> rolling_average_py(
+				py::array_t<DataType, py::array::c_style> py_in, long long int size)
 {
 	py::buffer_info buf_x = py_in.request();
 
@@ -74,40 +79,44 @@ DataType rolling_average_py(DataType py_in, int size)
 		throw std::runtime_error("U dumbdumb window must be smaller than array.");
 	}	
 
-	int n = buf_x.size;
+	long long int n = buf_x.size;
 
-	double* in = (double*) buf_x.ptr;
-	double* out = (double*) malloc(sizeof(double)*(n-size+1));
+	DataType* in = (DataType*) buf_x.ptr;
+	DataType* out = (DataType*) malloc(sizeof(DataType)*(n-size+1));
+	std::memset(out,0,(n-size+1)*sizeof(DataType));
 	rolling_average(n, in, out, size);
 
 	py::capsule free_when_done( out, free );
-	return py::array_t<double, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		{n-size+1},
-		{sizeof(double)},
+		{sizeof(DataType)},
 		out,
 		free_when_done	
 	);
 }
 
 template<class DataType>
-DataType finite_difference_coefficients_py(int M, int N)
+py::array_t<DataType, py::array::c_style> finite_difference_coefficients_py(int M, int N)
 {
-	double* coeff = finite_difference_coefficients(M,N);
+	DataType* coeff = (DataType*) malloc((M+1)*(2*N+1)*(2*N+1)*sizeof(DataType));
+	std::memset(coeff,0,(M+1)*(2*N+1)*(2*N+1)*sizeof(DataType));
+	finite_difference_coefficients(M,N,coeff);
 	N = 2*N;
 	int n = N+1;
 	py::capsule free_when_done( coeff, free );
-	return py::array_t<double, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		{(N+1)},
-		{sizeof(double)},
+		{sizeof(DataType)},
 		coeff+(M*n*n+N*n),
 		free_when_done	
 	);
 }
 
 template<class DataType, class DataType2>
-DataType nth_order_gradient_py(DataType py_in, DataType2 dt,int M, int N)
+py::array_t<DataType,py::array::c_style> nth_order_gradient_py(
+				py::array_t<DataType,py::array::c_style> py_in, DataType2 dt,int M, int N)
 {
 	py::buffer_info buf_x = py_in.request();
 
@@ -118,17 +127,22 @@ DataType nth_order_gradient_py(DataType py_in, DataType2 dt,int M, int N)
 
 	int n = buf_x.size;
 
-	double* x = (double*) buf_x.ptr;
-	double* out = (double*) malloc(sizeof(double)*(n-2*N));
-	std::memset(out,0,sizeof(double)*(n-2*N));
+	DataType* x = (DataType*) buf_x.ptr;
+	DataType* out = (DataType*) malloc(sizeof(DataType)*(n-2*N));
+	
+	DataType* coeff = (DataType*) malloc((M+1)*(2*N+1)*(2*N+1)*sizeof(DataType));
+	std::memset(coeff,0,(M+1)*(2*N+1)*(2*N+1)*sizeof(DataType));
+	finite_difference_coefficients(M,N,coeff);
 
-	nth_order_gradient(n, x, dt, out, M, N);
+	std::memset(out,0,sizeof(DataType)*(n-2*N));
+	nth_order_gradient(n, x, dt, out, M, N, coeff);
+	free(coeff);
 
 	py::capsule free_when_done( out, free );
-	return py::array_t<double, py::array::c_style> 
+	return py::array_t<DataType, py::array::c_style> 
 	(
 		{n-N-N},
-		{sizeof(double)},
+		{sizeof(DataType)},
 		out,
 		free_when_done	
 	);
@@ -141,13 +155,13 @@ np_int continuous_max_py(py::array_t<DataType,py::array::c_style> py_in)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	long int* out = (long int*) malloc(py_in.request().size*sizeof(long int));
+	long long int* out = (long long int*) malloc(py_in.request().size*sizeof(long long int));
 	continuous_max(out,(DataType*) py_in.request().ptr,py_in.request().size);
 	py::capsule free_when_done( out, free );
-	return py::array_t<long int, py::array::c_style> 
+	return py::array_t<long long int, py::array::c_style> 
 	(
 		{py_in.request().size},
-		{sizeof(long int)},
+		{sizeof(long long int)},
 		out,
 		free_when_done	
 		);
@@ -160,13 +174,13 @@ np_int continuous_min_py(py::array_t<DataType,py::array::c_style> py_in)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	long int* out = (long int*) malloc(py_in.request().size*sizeof(long int));
+	long long int* out = (long long int*) malloc(py_in.request().size*sizeof(long long int));
 	continuous_min(out,(DataType*) py_in.request().ptr,py_in.request().size);
 	py::capsule free_when_done( out, free );
-	return py::array_t<long int, py::array::c_style> 
+	return py::array_t<long long int, py::array::c_style> 
 	(
 		{py_in.request().size},
-		{sizeof(long int)},
+		{sizeof(long long int)},
 		out,
 		free_when_done	
 		);
@@ -240,21 +254,15 @@ py::array_t<DataType,py::array::c_style> product_py(py::array_t<DataType,py::arr
 	{
 		throw std::runtime_error("U dumbdumb size must be same.");
 	}
+
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	product((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
-	int ndim = py_in1.ndim();
-	std::vector<int> shape;
-	std::vector<int> strides;
-	for(int i=0;i<ndim;i++)
-	{
-		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i));
-	}
+
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
 	(
-		shape,
-		strides,
+		buf1.shape,
+		buf1.strides,
 		out,
 		free_when_done	
 		);
@@ -273,21 +281,15 @@ py::array_t<DataType,py::array::c_style> sum_py(py::array_t<DataType,py::array::
 	{
 		throw std::runtime_error("U dumbdumb size must be same.");
 	}
+
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	sum((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
-	int ndim = py_in1.ndim();
-	std::vector<int> shape;
-	std::vector<int> strides;
-	for(int i=0;i<ndim;i++)
-	{
-		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i));
-	}
+
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
 	(
-		shape,
-		strides,
+		buf1.shape,
+		buf1.strides,
 		out,
 		free_when_done	
 		);
@@ -306,21 +308,15 @@ py::array_t<DataType,py::array::c_style> difference_py(py::array_t<DataType,py::
 	{
 		throw std::runtime_error("U dumbdumb size must be same.");
 	}
+
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	difference((DataType*) buf1.ptr,(DataType*) buf2.ptr,out,buf1.size);
-	int ndim = py_in1.ndim();
-	std::vector<int> shape;
-	std::vector<int> strides;
-	for(int i=0;i<ndim;i++)
-	{
-		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i));
-	}
+
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
 	(
-		shape,
-		strides,
+		buf1.shape,
+		buf1.strides,
 		out,
 		free_when_done	
 		);
@@ -339,21 +335,15 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 	{
 		throw std::runtime_error("U dumbdumb size must be same.");
 	}
+
 	DataType* out = (DataType*) malloc(sizeof(DataType)*buf1.size);
 	division((DataType*) buf1.ptr,(DataType2*) buf2.ptr,out,buf1.size);
-	int ndim = py_in1.ndim();
-	std::vector<int> shape;
-	std::vector<int> strides;
-	for(int i=0;i<ndim;i++)
-	{
-		shape.push_back(py_in1.shape(i));
-		strides.push_back((int) py_in1.strides(i));
-	}
+
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 
 	(
-		shape,
-		strides,
+		buf1.shape,
+		buf1.strides,
 		out,
 		free_when_done	
 		);
