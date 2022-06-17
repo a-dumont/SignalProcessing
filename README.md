@@ -11,6 +11,9 @@ C++ methods wrapped with pybind11 for signal processing and whatever else I migh
 - pybind11
 - OpenMP
 - mingw (To compile on or for Windows)
+- cuda (Optional)
+- cufft (Optional)
+- cuda runtime api (Optional)
 - Tested only with g++
 
 ## Build from source
