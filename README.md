@@ -11,6 +11,9 @@ C++ methods wrapped with pybind11 for signal processing and whatever else I migh
 - pybind11
 - OpenMP
 - mingw (To compile on or for Windows)
+- cuda (Optional)
+- cufft (Optional)
+- cuda runtime api (Optional)
 - Tested only with g++
 
 ## Build from source
@@ -30,19 +33,3 @@ To enable CUDA support for Nvidia GPUs:
 foo@bar:~$ bash build.sh --enable_cuda
 foo@bar:~$ python setup.py install
 ```
-
-# Contents so far
-- FFT
-	- Wrappers around FFTW3 to easily interface with python.
-- FFT_CUDA
-	- Wrappers around cuFFT to easily interface with python.
-- Correlations
-	- Uses FFT to compute correlation in the frequency domain.
-	- TODO add time correlations/convolutions.
-	- TODO wrap ifft to give a time result.
-- Histograms
-	- 1D or 2D Histograms.
-- Math
-	- General purpose arithmetic.
-	- Statistics, mean, variance, skewness.
-	- Numerical derivative.
