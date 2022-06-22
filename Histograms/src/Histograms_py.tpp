@@ -1041,7 +1041,7 @@ template<class DataType>
 py::array_t<DataType,py::array::c_style> histogram_nth_order_derivative_py(
 				py::array_t<DataType,py::array::c_style> data_after_py,
 				py::array_t<DataType,py::array::c_style> data_before_py, 
-				DataType dt, long long int n, long long int m)
+				DataType dt, long long int m, long long int n)
 {
 	if(data_after_py.ndim() != 5 || data_before_py.ndim() != 5)
 	{
@@ -1069,7 +1069,7 @@ py::array_t<DataType,py::array::c_style> histogram_nth_order_derivative_py(
 	DataType* coeff = (DataType*) malloc(sizeof(DataType)*(2*n+1)*(2*n+1)*(m+1));
 	std::memset(coeff,0,sizeof(DataType)*(2*n+1)*(2*n+1)*(m+1));
 	finite_difference_coefficients(m,n,coeff);
-	histogram_nth_order_derivative(nbins,data_after,data_before,dt,n,m,out,coeff);
+	histogram_nth_order_derivative(nbins,data_after,data_before,dt,m,n,out,coeff);
 	free(coeff);
 	py::capsule free_when_done( out, free );
 	return py::array_t<DataType, py::array::c_style> 

@@ -365,12 +365,12 @@ void histogram_vectorial_average(long long int nbins,
 }
 
 template<class DataType>
-void histogram_nth_order_derivative(long long int nbins, DataType* data_after, DataType* data_before, DataType dt, long long int n, long long int m, DataType* out, DataType* coeff)
+void histogram_nth_order_derivative(long long int nbins, DataType* data_after, DataType* data_before, DataType dt, long long int m, long long int n, DataType* out, DataType* coeff)
 {
 	long long int size = nbins*nbins*nbins*nbins;
-	DataType in[2*m+1];
-	in[m] = 0;
-	//#pragma omp parallel for
+	DataType in[2*n+1];
+	in[n] = 0;
+	#pragma omp parallel for
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
@@ -379,15 +379,15 @@ void histogram_nth_order_derivative(long long int nbins, DataType* data_after, D
 			{
 				for(long long int l=0;l<nbins;l++)
 				{
-					for(long long int s=0;s<m;s++)
+					for(int s=0;s<n;s++)
 					{
-						in[m+1+s]=data_after[s*size+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l];
-						in[m-1-s]=data_before[s*size+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l];
+						in[n+1+s]=data_after[s*size+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l];
+						in[n-1-s]=data_before[s*size+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l];
 					}
-					nth_order_gradient<DataType,DataType>((2*m)+1,
+					nth_order_gradient<DataType,DataType>((2*n)+1,
 									in,dt,
 									out+i*nbins*nbins*nbins+j*nbins*nbins+k*nbins+l,
-									n,m,coeff);
+									m,n,coeff);
 				}
 			}
 		}
