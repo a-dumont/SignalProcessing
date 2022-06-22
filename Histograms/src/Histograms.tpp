@@ -365,7 +365,7 @@ void histogram_vectorial_average(long long int nbins,
 }
 
 template<class DataType>
-void histogram_nth_order_derivative(int nbins, DataType* data_after, DataType* data_before, DataType dt, long long int n, long long int m, DataType* out, DataType* coeff)
+void histogram_nth_order_derivative(long long int nbins, DataType* data_after, DataType* data_before, DataType dt, long long int n, long long int m, DataType* out, DataType* coeff)
 {
 	long long int size = nbins*nbins*nbins*nbins;
 	DataType in[2*m+1];
