@@ -1,5 +1,6 @@
-template<class DataType>
-void gradient(int n, DataType* x, DataType* t, DataType* out)
+// Gradient with full size x and t
+template<class DataType, class DataType2>
+void gradient(int n, DataType* x, DataType2* t, DataType* out)
 {
 	out[0] = (x[1]-x[0])/(t[1]-t[0]);
 	out[n-1] = (x[n-1]-x[n-2])/(t[n-1]-t[n-2]);
@@ -11,10 +12,13 @@ void gradient(int n, DataType* x, DataType* t, DataType* out)
 	}
 }
 
+
+
+// Gradient with fullsize x and constant dt
 template<class DataType, class DataType2>
-void gradient(int n, DataType* x, DataType2 dt, DataType* out)
+void gradient2(int n, DataType* x, DataType2 dt, DataType* out)
 {
-	DataType2 h = 1/(2*dt);
+	DataType h = (DataType) 1/(2*dt);
 	out[0] = 2*h*(x[1]-x[0]);
 	out[n-1] = 2*h*(x[n-1]-x[n-2]);
 	for (int i=1; i<(n-1); i++)
@@ -24,15 +28,13 @@ void gradient(int n, DataType* x, DataType2 dt, DataType* out)
 }
 
 template<class DataType>
-double* finite_difference_coefficients(DataType M, int N)
+void finite_difference_coefficients(int M, int N, DataType* coeff)
 {
-	double alpha[2*N+1];//double* alpha = (double*) malloc((2*N+1)*sizeof(double));
-	N = 2*N;
-	double* coeff = (double*) malloc((M+1)*(N+1)*(N+1)*sizeof(double));
-	std::memset(coeff,0,(M+1)*(N+1)*(N+1)*sizeof(double));
+	DataType alpha[2*N+1];
+	N = 2*N;	
 	alpha[0] = 0;
 	alpha[1] = 1;
-	double a; double b; double c;
+	DataType a; DataType b; DataType c;
 	for(int i=2;i<(N+1);i++)
 	{
 		if(alpha[i-1] > 0)
@@ -78,15 +80,14 @@ double* finite_difference_coefficients(DataType M, int N)
 		}
 		a = b;
 	}
-	//free(alpha);
-	return coeff;
 }
 
-template<class DataType>
-void nth_order_gradient(int n, DataType* x, DataType dt, DataType* out,int M, int N)
+template<class DataType, class DataType2>
+void nth_order_gradient(int n, DataType* x,
+				DataType2 dt, DataType* out, int M, int N, DataType* coeff)
 {
-	double* coeff = finite_difference_coefficients(M,N)+(M*(2*N+1)*(2*N+1)+2*N*(2*N+1));
-	double norm = 1/dt;
+	coeff += (M*(2*N+1)*(2*N+1)+2*N*(2*N+1));
+	DataType norm = (DataType) 1.0/dt;
 	int k;
 	for(int i=N;i<(n-N);i++)
 	{
@@ -99,14 +100,13 @@ void nth_order_gradient(int n, DataType* x, DataType dt, DataType* out,int M, in
 		}
 		for(int l=0;l<M;l++){out[i-N] *= norm;}
 	}
-	free(coeff-(M*(2*N+1)*(2*N+1)+2*N*(2*N+1)));
+	coeff -= (M*(2*N+1)*(2*N+1)+2*N*(2*N+1));
 }
 
 template<class DataType>
 void rolling_average(int n, DataType* in, DataType* out, int size)
 {	
-	std::memset(out,0,(n-size)*sizeof(DataType));
-	DataType norm = 1.0/size;
+	DataType norm = (DataType) 1.0/size;
 	for(int i=0;i<(n-size+1);i++)
 	{	
 		for(int j=0;j<size;j++)
@@ -118,10 +118,10 @@ void rolling_average(int n, DataType* in, DataType* out, int size)
 }
 
 template<class DataType>
-void continuous_max(long int* out, DataType* in, int n)
+void continuous_max(long long int* out, DataType* in, int n)
 {
 	out[0] = 0;
-	for(long int i=1;i<n;i++)
+	for(long long int i=1;i<n;i++)
 	{
 		if(in[i] > in[out[i-1]])
 		{
@@ -135,10 +135,10 @@ void continuous_max(long int* out, DataType* in, int n)
 }
 
 template<class DataType>
-void continuous_min(long int* out, DataType* in, int n)
+void continuous_min(long long int* out, DataType* in, int n)
 {
 	out[0] = 0;
-	for(long int i=1;i<n;i++)
+	for(long long int i=1;i<n;i++)
 	{
 		if(in[i] < in[out[i-1]])
 		{
@@ -158,7 +158,7 @@ DataType sum_pairwise(DataType* in, long int n)
 	{
 		if(n<8)
 		{
-			DataType res = 0.0;
+			DataType res = 0;
 			for(int i=0;i<n;i++)
 			{
 				res += in[i];
@@ -168,8 +168,8 @@ DataType sum_pairwise(DataType* in, long int n)
 		else 
 		{
 			long int N = n-n%8;
-			DataType remainder = 0.0;
-			DataType out =  0.0;
+			DataType remainder = 0;
+			DataType out =  0;
 			DataType res[8] = {};
 			for(long int i=0;i<N;i+=8)
 			{

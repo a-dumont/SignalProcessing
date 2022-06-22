@@ -1,5 +1,6 @@
-template< class Datatype >
-np_complex autocorrelation_py(Datatype py_in)
+template< class DataType >
+py::array_t<std::complex<DataType>,py::array::c_style> 
+autocorrelation_py(py::array_t<DataType,py::array::c_style> py_in)
 {
 	// Requests the buffer from pyhton
 	py::buffer_info buf_in = py_in.request();
@@ -14,26 +15,28 @@ np_complex autocorrelation_py(Datatype py_in)
 	int n = buf_in.size;
 	
 	// Get the pointer from python
-	double* ptr_py_in = (double*) buf_in.ptr;
+	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 		
 	// Creates the output buffer
-	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(n/2+1));
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*(n/2+1));
 
 	autocorrelation(n, ptr_py_in, result);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
-	return py::array_t<dbl_complex, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{(n/2+1)}, // Size of array
-		{sizeof(dbl_complex)}, // Stride 
+		{sizeof(std::complex<DataType>)}, // Stride 
 		result, // C++ pointer
 		free_when_done	// Free function
 	);	
 }
 
-template< class Datatype, class Datatype2>
-np_complex autocorrelation_py(Datatype py_in, int N)
+template< class DataType, class DataType2>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+autocorrelation_py(py::array_t<DataType,py::array::c_style> py_in, DataType2 N)
 {
 	// Requests the buffer from pyhton
 	py::buffer_info buf_in = py_in.request();
@@ -48,27 +51,30 @@ np_complex autocorrelation_py(Datatype py_in, int N)
 	int n = buf_in.size;
 	
 	// Get the pointer from python
-	double* ptr_py_in = (double*) buf_in.ptr;
+	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 		
 	// Creates the output buffer
-	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(N/2+1));
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*(N/2+1));
 
 	autocorrelation_Block(n, N, ptr_py_in, result);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
-	return py::array_t<dbl_complex, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{(N/2+1)}, // Size of array
-		{sizeof(dbl_complex)}, // Stride 
+		{sizeof(std::complex<DataType>)}, // Stride 
 		result, // C++ pointer
 		free_when_done	// Free function
 	);	
 }
 
 
-template< class Datatype >
-np_complex xcorrelation_py(Datatype py_in1, Datatype py_in2)
+template< class DataType >
+py::array_t<std::complex<DataType>,py::array::c_style> 
+xcorrelation_py(py::array_t<DataType,py::array::c_style> py_in1,
+				py::array_t<DataType,py::array::c_style> py_in2)
 {
 	// Requests the buffer from pyhton
 	py::buffer_info buf_in1 = py_in1.request();
@@ -90,27 +96,30 @@ np_complex xcorrelation_py(Datatype py_in1, Datatype py_in2)
 	int n = buf_in1.size;
 	
 	// Get the pointers from python
-	double* ptr_py_in1 = (double*) buf_in1.ptr;
-	double* ptr_py_in2 = (double*) buf_in2.ptr;
+	DataType* ptr_py_in1 = (DataType*) buf_in1.ptr;
+	DataType* ptr_py_in2 = (DataType*) buf_in2.ptr;
 		
 	// Creates the output buffer
-	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(n/2+1));
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*(n/2+1));
 
 	xcorrelation(n, ptr_py_in1, ptr_py_in2,result);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
-	return py::array_t<dbl_complex, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{(n/2+1)}, // Size of array
-		{sizeof(dbl_complex)}, // Stride 
+		{sizeof(std::complex<DataType>)}, // Stride 
 		result, // C++ pointer
 		free_when_done	// Free function
 	);	
 }
 
-template< class Datatype, class DataTtype2>
-np_complex xcorrelation_py(Datatype py_in1, Datatype py_in2, int N)
+template< class DataType, class DataType2>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+xcorrelation_py(py::array_t<DataType,py::array::c_style> py_in1, 
+				py::array_t<DataType,py::array::c_style> py_in2, DataType2 N)
 {
 	// Requests the buffer from pyhton
 	py::buffer_info buf_in1 = py_in1.request();
@@ -132,27 +141,30 @@ np_complex xcorrelation_py(Datatype py_in1, Datatype py_in2, int N)
 	int n = buf_in1.size;
 	
 	// Get the pointers from python
-	double* ptr_py_in1 = (double*) buf_in1.ptr;
-	double* ptr_py_in2 = (double*) buf_in2.ptr;
+	DataType* ptr_py_in1 = (DataType*) buf_in1.ptr;
+	DataType* ptr_py_in2 = (DataType*) buf_in2.ptr;
 		
 	// Creates the output buffer
-	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*(N/2+1));
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*(N/2+1));
 
 	xcorrelation_Block(n, N, ptr_py_in1, ptr_py_in2, result);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
-	return py::array_t<dbl_complex, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{(N/2+1)}, // Size of array
-		{sizeof(dbl_complex)}, // Stride 
+		{sizeof(std::complex<DataType>)}, // Stride 
 		result, // C++ pointer
 		free_when_done	// Free function
 	);	
 }
 
-template< class Datatype>
-np_complex complete_correlation_py(Datatype py_in1, Datatype py_in2)
+template< class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+complete_correlation_py(py::array_t<DataType,py::array::c_style> py_in1, 
+				py::array_t<DataType,py::array::c_style> py_in2)
 {
 	// Requests the buffer from pyhton
 	py::buffer_info buf_in1 = py_in1.request();
@@ -174,27 +186,30 @@ np_complex complete_correlation_py(Datatype py_in1, Datatype py_in2)
 	int n = buf_in1.size;
 	
 	// Get the pointers from python
-	double* ptr_py_in1 = (double*) buf_in1.ptr;
-	double* ptr_py_in2 = (double*) buf_in2.ptr;
+	DataType* ptr_py_in1 = (DataType*) buf_in1.ptr;
+	DataType* ptr_py_in2 = (DataType*) buf_in2.ptr;
 		
 	// Creates the output buffer
-	dbl_complex* result = (dbl_complex*) fftw_malloc(3*sizeof(dbl_complex)*(n/2+1));
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					3*sizeof(std::complex<DataType>)*(n/2+1));
 
 	complete_correlation(n, ptr_py_in1, ptr_py_in2, result);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
-	return py::array_t<dbl_complex, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{3,(n/2+1)}, // Size of array
-		{(n/2+1)*sizeof(dbl_complex),sizeof(dbl_complex)}, // Stride 
+		{(n/2+1)*sizeof(std::complex<DataType>),sizeof(std::complex<DataType>)}, // Stride 
 		result, // C++ pointer
 		free_when_done	// Free function
 	);	
 }
 
-template< class Datatype, class Datatype2>
-np_complex complete_correlation_py(Datatype py_in1, Datatype py_in2, int N)
+template< class DataType, class DataType2>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+complete_correlation_py(py::array_t<DataType,py::array::c_style> py_in1, 
+				py::array_t<DataType,py::array::c_style> py_in2, DataType2 N)
 {
 	// Requests the buffer from pyhton
 	py::buffer_info buf_in1 = py_in1.request();
@@ -216,20 +231,21 @@ np_complex complete_correlation_py(Datatype py_in1, Datatype py_in2, int N)
 	int n = buf_in1.size;
 	
 	// Get the pointers from python
-	double* ptr_py_in1 = (double*) buf_in1.ptr;
-	double* ptr_py_in2 = (double*) buf_in2.ptr;
+	DataType* ptr_py_in1 = (DataType*) buf_in1.ptr;
+	DataType* ptr_py_in2 = (DataType*) buf_in2.ptr;
 		
 	// Creates the output buffer
-	dbl_complex* result = (dbl_complex*) fftw_malloc(3*sizeof(dbl_complex)*(N/2+1));
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					3*sizeof(std::complex<DataType>)*(N/2+1));
 
 	complete_correlation_Block(n, N, ptr_py_in1, ptr_py_in2, result);
 
 	// Wraps the output to pass it to python
 	py::capsule free_when_done( result, fftw_free );
-	return py::array_t<dbl_complex, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{3,(N/2+1)}, // Size of array
-		{(N/2+1)*sizeof(dbl_complex),sizeof(dbl_complex)}, // Stride 
+		{(N/2+1)*sizeof(std::complex<DataType>),sizeof(std::complex<DataType>)}, // Stride 
 		result, // C++ pointer
 		free_when_done	// Free function
 	);	
