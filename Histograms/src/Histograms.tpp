@@ -370,7 +370,7 @@ void histogram_nth_order_derivative(int nbins, DataType* data_after, DataType* d
 	long long int size = nbins*nbins*nbins*nbins;
 	DataType in[2*m+1];
 	in[m] = 0;
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
