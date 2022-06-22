@@ -95,7 +95,7 @@ FFT_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, DataType2 N
 template< class DataType ,class DataType2>
 py::array_t<std::complex<DataType>,py::array::c_style> 
 FFT_Block_Parallel_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in,
-				int N, int nthreads)
+				DataType2 N, DataType2 nthreads)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -131,7 +131,7 @@ FFT_Block_Parallel_py(py::array_t<std::complex<DataType>,py::array::c_style> py_
 
 template< class DataType ,class DataType2>
 py::array_t<std::complex<DataType>,py::array::c_style> 
-FFT_Block_Parallel2_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in,int N)
+FFT_Block_Parallel2_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, DataType2 N)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -227,7 +227,7 @@ rFFT_py(py::array_t<DataType,py::array::c_style> py_in)
 
 template< class DataType ,class DataType2>
 py::array_t<std::complex<DataType>,py::array::c_style> 
-rFFT_py(py::array_t<DataType,py::array::c_style> py_in,int N)
+rFFT_py(py::array_t<DataType,py::array::c_style> py_in, DataType2 N)
 {
 	py::buffer_info buf_in = py_in.request();
 
