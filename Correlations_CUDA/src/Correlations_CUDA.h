@@ -1,5 +1,6 @@
 #include <cuda.h>
 #include <cuComplex.h>
+#include <complex>
 
 void autocorrelation_cuda(int N, cuDoubleComplex* in, double* out, int blocks, int threads);
 void xcorrelation_cuda(int N, cuDoubleComplex* in, cuDoubleComplex* in2, int blocks, int threads);
