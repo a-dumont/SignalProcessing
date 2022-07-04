@@ -481,10 +481,13 @@ class cdigitizer_histogram2D_steps
 {
 	protected:
 		uint32_t* hist;
+		uint64_t* hist_out;
+		bool hist_out_init;
 		uint64_t nbits;
 		uint64_t size;
 		uint64_t steps;
 		uint64_t count;
+		uint64_t N_t;
 	public:
 		cdigitizer_histogram2D_steps(uint64_t nbits_in, uint64_t steps_in)
 		{
@@ -494,27 +497,61 @@ class cdigitizer_histogram2D_steps
 			size = 1<<nbits;
 			steps = steps_in;
 			count = 0;
+			N_t = omp_get_max_threads();
 			
-			hist = (uint32_t*) malloc(sizeof(uint32_t)*size*size*(2*steps*size*size+1));
-			std::memset(hist,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));	
+			hist = (uint32_t*) malloc(N_t*sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+
+			std::memset(hist,0,N_t*sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+			hist_out_init = false;
 		}
 		
-		~cdigitizer_histogram2D_steps(){free(hist);}
+		~cdigitizer_histogram2D_steps(){free(hist);if(hist_out_init == true){free(hist_out);}}
 
 		template <class DataType>
 		void accumulate(DataType* xdata, DataType* ydata, uint64_t N)
 		{
-			digitizer_histogram2D_steps(hist,xdata,ydata,N,nbits,steps);
+			uint64_t total_size = size*size*(2*steps*size*size+1);
+			N = N/N_t;
+			#pragma omp parallel for
+			for(uint64_t i=0;i<N_t;i++)
+			{
+				digitizer_histogram2D_steps(hist+i*total_size,xdata+i*N,ydata+i*N,N,nbits,steps);
+			}
 			count += 1;
 		}
 		void resetHistogram()
 		{
-			std::memset(hist,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+			std::memset(hist,0,N_t*sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+			if(hist_out_init == true)
+			{
+				std::memset(hist_out,0,sizeof(uint64_t)*size*size*(2*steps*size*size+1));
+			}
 			count = 0;
 		}
-		uint32_t* getHistogram(){return hist;}
+		uint64_t* getHistogram()
+		{
+			if(hist_out_init == false)
+			{
+				hist_out = (uint64_t*) malloc(sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+				std::memset(hist_out,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+				hist_out_init = true;
+			}
+			else
+			{
+				std::memset(hist_out,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));	
+			}
+			uint64_t total_size = size*size*(2*steps*size*size+1);
+			#pragma omp parallel for
+			for(uint64_t i=0;i<(N_t*total_size);i++)
+			{
+				#pragma omp atomic
+				hist_out[i%total_size] += hist[i];
+			}
+			return hist_out;
+		}
 		uint64_t getCount(){return count;}
 		uint64_t getNbits(){return nbits;}
 		uint64_t getSteps(){return steps;}
 		uint64_t getSize(){return size;}
+		uint64_t getThreads(){return N_t;}
 };
