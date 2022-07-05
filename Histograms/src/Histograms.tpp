@@ -3,7 +3,7 @@
 void manage_thread_affinity()
 {
 	//Shamelessly stolen from Jean-Olivier's code at
-	//https://github.com/JeanOlivier/aCorrs-OTF/blob/master/src/common.cpp
+	//https://github.com/JeanOlivier/Histograms-OTF/blob/master/histograms.c
     #ifdef _WIN32_WINNT
         int nbgroups = GetActiveProcessorGroupCount();
         int *threads_per_groups = (int *) malloc(nbgroups*sizeof(int));
