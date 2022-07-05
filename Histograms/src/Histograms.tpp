@@ -18,7 +18,7 @@ void manage_thread_affinity()
         bool result;
 
         // We change group for each thread
-        WORD set_group = tid%nbgroups; 
+        short unsigned int set_group = tid%nbgroups; 
 		
 		// Nb of threads in group for affinity mask.
         int nbthreads = threads_per_groups[set_group]; 
@@ -29,6 +29,7 @@ void manage_thread_affinity()
 		// Actually setting the affinity
         result = SetThreadGroupAffinity(thandle, &group, NULL); 
         if(!result) std::fprintf(stderr, "Failed setting output for tid=%i\n", tid);
+        free(threads_per_groups);
     #else
         //We let openmp and the OS manage the threads themselves
     #endif
@@ -536,9 +537,13 @@ class cdigitizer_histogram2D_steps
 			size = 1<<nbits;
 			steps = steps_in;
 			count = 0;
-			manage_thread_affinity();
-			N_t = omp_get_max_threads();
-			
+            #ifdef _WIN32_WINNT
+                uint64_t nbgroups = GetActiveProcessorGroupCount();
+                N_t = omp_get_max_threads()*nbgroups;
+            #else
+                N_t = omp_get_max_threads();
+			#endif
+            
 			hist = (uint32_t*) malloc(N_t*sizeof(uint32_t)*size*size*(2*steps*size*size+1));
 
 			std::memset(hist,0,N_t*sizeof(uint32_t)*size*size*(2*steps*size*size+1));
@@ -552,10 +557,10 @@ class cdigitizer_histogram2D_steps
 		{
 			uint64_t total_size = size*size*(2*steps*size*size+1);
 			N = N/N_t;
-			manage_thread_affinity();
-			#pragma omp parallel for
+			#pragma omp parallel for num_threads(N_t)
 			for(uint64_t i=0;i<N_t;i++)
 			{
+                manage_thread_affinity();
 				digitizer_histogram2D_steps(hist+i*total_size,xdata+i*N,ydata+i*N,N,nbits,steps);
 			}
 			count += 1;
@@ -582,10 +587,10 @@ class cdigitizer_histogram2D_steps
 				std::memset(hist_out,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));	
 			}
 			uint64_t total_size = size*size*(2*steps*size*size+1);
-			manage_thread_affinity();
-			#pragma omp parallel for
+			#pragma omp parallel for num_threads(N_t)
 			for(uint64_t i=0;i<(N_t*total_size);i++)
 			{
+                manage_thread_affinity();
 				#pragma omp atomic
 				hist_out[i%total_size] += hist[i];
 			}

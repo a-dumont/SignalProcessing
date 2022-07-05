@@ -9,6 +9,8 @@ from .libfft import *
 try:
     from .libfftcuda import *
     del libfftcuda
+except ImportError:
+    print("No CUDA support")
 except ModuleNotFoundError:
     print("No CUDA support")
 
