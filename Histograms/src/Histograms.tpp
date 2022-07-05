@@ -439,15 +439,7 @@ template<class DataType>
 void digitizer_histogram(uint32_t* hist, DataType* data, uint64_t N)
 {
 	uint64_t size = 1<<(sizeof(DataType)*8);
-
-	#ifdef _WIN32_WINNT
-		uint64_t nbgroups = GetActiveProcessorGroupCount();
-		uint64_t N_t = omp_get_max_threads()*nbgroups;
-	#else
-		uint64_t N_t = omp_get_max_threads();
-	#endif
-
-	#pragma omp parallel for reduction(+:hist[:size]) num_threads(N_t)
+	#pragma omp parallel for reduction(+:hist[:size])
 	for(uint64_t i=0; i<N; i++)
 	{
 		manage_thread_affinity();
@@ -459,15 +451,7 @@ template<class DataType>
 void digitizer_histogram_subbyte(uint32_t* hist, DataType* data, uint64_t N, int nbits)
 {
 	uint8_t shift = sizeof(DataType)*8-nbits;
-
-	#ifdef _WIN32_WINNT
-		uint64_t nbgroups = GetActiveProcessorGroupCount();
-		uint64_t N_t = omp_get_max_threads()*nbgroups;
-	#else
-		uint64_t N_t = omp_get_max_threads();
-	#endif
-
-	#pragma omp parallel for reduction(+:hist[:1<<nbits]) num_threads(N_t)
+	#pragma omp parallel for reduction(+:hist[:1<<nbits])
 	for(uint64_t i=0; i<N; i++)
 	{
 		manage_thread_affinity();
@@ -479,15 +463,7 @@ template<class DataType>
 void digitizer_histogram2D(uint32_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
 {
 	uint64_t size = 1<<(8*sizeof(DataType));
-
-	#ifdef _WIN32_WINNT
-		uint64_t nbgroups = GetActiveProcessorGroupCount();
-		uint64_t N_t = omp_get_max_threads()*nbgroups;
-	#else
-		uint64_t N_t = omp_get_max_threads();
-	#endif
-
-	#pragma omp parallel for reduction(+:hist[:size*size]) num_threads(N_t)
+	#pragma omp parallel for reduction(+:hist[:size*size])
 	for(uint64_t i=0; i<N; i++)
 	{
 		manage_thread_affinity();
@@ -501,15 +477,7 @@ void digitizer_histogram2D_subbyte(uint32_t* hist, DataType* data_x,
 {
 	uint64_t size = 1<<nbits;
 	uint8_t shift = sizeof(DataType)*8-nbits;
-
-	#ifdef _WIN32_WINNT
-		uint64_t nbgroups = GetActiveProcessorGroupCount();
-		uint64_t N_t = omp_get_max_threads()*nbgroups;
-	#else
-		uint64_t N_t = omp_get_max_threads();
-	#endif
-
-	#pragma omp parallel for reduction(+:hist[:size<<nbits]) num_threads(N_t)
+	#pragma omp parallel for reduction(+:hist[:size<<nbits])
 	for(uint64_t i=0; i<N; i++)
 	{
 		manage_thread_affinity();
