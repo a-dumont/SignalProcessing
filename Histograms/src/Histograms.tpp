@@ -1,4 +1,39 @@
 #include <stdexcept>
+
+void manage_thread_affinity()
+{
+	//Shamelessly stolen from Jean-Olivier's code at
+	//https://github.com/JeanOlivier/aCorrs-OTF/blob/master/src/common.cpp
+    #ifdef _WIN32_WINNT
+        int nbgroups = GetActiveProcessorGroupCount();
+        int *threads_per_groups = (int *) malloc(nbgroups*sizeof(int));
+        for (int i=0; i<nbgroups; i++)
+        {
+            threads_per_groups[i] = GetActiveProcessorCount(i);
+        }
+
+        // Fetching thread number and assigning it to cores
+        int tid = omp_get_thread_num(); // Internal omp thread number (0 -- OMP_NUM_THREADS)
+        HANDLE thandle = GetCurrentThread();
+        bool result;
+
+        // We change group for each thread
+        WORD set_group = tid%nbgroups; 
+		
+		// Nb of threads in group for affinity mask.
+        int nbthreads = threads_per_groups[set_group]; 
+        
+		// nbcores amount of 1 in binary
+        GROUP_AFFINITY group = {((uint64_t)1<<nbthreads)-1, set_group};
+		
+		// Actually setting the affinity
+        result = SetThreadGroupAffinity(thandle, &group, NULL); 
+        if(!result) std::fprintf(stderr, "Failed setting output for tid=%i\n", tid);
+    #else
+        //We let openmp and the OS manage the threads themselves
+    #endif
+}
+
 template <class DataType>
 void GetEdges(DataType* data, long long int n, long long int nbins, DataType* edges)
 {
@@ -403,6 +438,7 @@ template<class DataType>
 void digitizer_histogram(uint32_t* hist, DataType* data, uint64_t N)
 {
 	uint64_t size = 1<<(sizeof(DataType)*8);
+	manage_thread_affinity();
 	#pragma omp parallel for reduction(+:hist[:size])
 	for(uint64_t i=0; i<N; i++)
 	{
@@ -414,6 +450,7 @@ template<class DataType>
 void digitizer_histogram_subbyte(uint32_t* hist, DataType* data, uint64_t N, int nbits)
 {
 	uint8_t shift = sizeof(DataType)*8-nbits;
+	manage_thread_affinity();
 	#pragma omp parallel for reduction(+:hist[:1<<nbits])
 	for(uint64_t i=0; i<N; i++)
 	{
@@ -425,6 +462,7 @@ template<class DataType>
 void digitizer_histogram2D(uint32_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
 {
 	uint64_t size = 1<<(8*sizeof(DataType));
+	manage_thread_affinity();
 	#pragma omp parallel for reduction(+:hist[:size*size])
 	for(uint64_t i=0; i<N; i++)
 	{
@@ -438,6 +476,7 @@ void digitizer_histogram2D_subbyte(uint32_t* hist, DataType* data_x,
 {
 	uint64_t size = 1<<nbits;
 	uint8_t shift = sizeof(DataType)*8-nbits;
+	manage_thread_affinity();
 	#pragma omp parallel for reduction(+:hist[:size<<nbits])
 	for(uint64_t i=0; i<N; i++)
 	{
@@ -497,6 +536,7 @@ class cdigitizer_histogram2D_steps
 			size = 1<<nbits;
 			steps = steps_in;
 			count = 0;
+			manage_thread_affinity();
 			N_t = omp_get_max_threads();
 			
 			hist = (uint32_t*) malloc(N_t*sizeof(uint32_t)*size*size*(2*steps*size*size+1));
@@ -512,6 +552,7 @@ class cdigitizer_histogram2D_steps
 		{
 			uint64_t total_size = size*size*(2*steps*size*size+1);
 			N = N/N_t;
+			manage_thread_affinity();
 			#pragma omp parallel for
 			for(uint64_t i=0;i<N_t;i++)
 			{
@@ -541,6 +582,7 @@ class cdigitizer_histogram2D_steps
 				std::memset(hist_out,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));	
 			}
 			uint64_t total_size = size*size*(2*steps*size*size+1);
+			manage_thread_affinity();
 			#pragma omp parallel for
 			for(uint64_t i=0;i<(N_t*total_size);i++)
 			{
