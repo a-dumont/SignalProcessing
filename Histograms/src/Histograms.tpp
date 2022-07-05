@@ -442,7 +442,6 @@ void digitizer_histogram(uint32_t* hist, DataType* data, uint64_t N)
 	#pragma omp parallel for reduction(+:hist[:size])
 	for(uint64_t i=0; i<N; i++)
 	{
-		manage_thread_affinity();
 		hist[data[i]] += 1;
 	}
 }
@@ -454,7 +453,6 @@ void digitizer_histogram_subbyte(uint32_t* hist, DataType* data, uint64_t N, int
 	#pragma omp parallel for reduction(+:hist[:1<<nbits])
 	for(uint64_t i=0; i<N; i++)
 	{
-		manage_thread_affinity();
 		hist[data[i] >> shift] += 1;
 	}
 }
@@ -466,7 +464,6 @@ void digitizer_histogram2D(uint32_t* hist, DataType* data_x, DataType* data_y, u
 	#pragma omp parallel for reduction(+:hist[:size*size])
 	for(uint64_t i=0; i<N; i++)
 	{
-		manage_thread_affinity();
 		hist[data_y[i]+size*data_x[i]] += 1;
 	}
 }
@@ -480,7 +477,6 @@ void digitizer_histogram2D_subbyte(uint32_t* hist, DataType* data_x,
 	#pragma omp parallel for reduction(+:hist[:size<<nbits])
 	for(uint64_t i=0; i<N; i++)
 	{
-		manage_thread_affinity();
 		hist[(data_y[i]>>shift)+size*(data_x[i]>>shift)] += 1;
 	}
 }
