@@ -48,4 +48,4 @@ if($ENV{ENABLE_CUDA})
 endif($ENV{ENABLE_CUDA})
 
 install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-		COMMAND ${Python_EXECUTABLE} -m pip install .)")
+COMMAND ${Python_EXECUTABLE} -m pip install . --root=CMAKE_INSTALL_PREFIX)")
