@@ -48,7 +48,7 @@ if($ENV{ENABLE_CUDA})
 endif($ENV{ENABLE_CUDA})
 
 install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-COMMAND ${Python_EXECUTABLE} setup.py sdist")
+COMMAND ${Python_EXECUTABLE} setup.py sdist)")
 
 install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
 COMMAND ${Python_EXECUTABLE} -m pip install dist/SignalProcessing-* ${CMAKE_INSTALL_PREFIX})")
