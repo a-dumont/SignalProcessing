@@ -4,16 +4,17 @@ C++ methods wrapped with pybind11 for signal processing and whatever else I migh
 # Installation
 ## Before installing
 - Make sure Python and pip are installed on your system.
-- On windows it is possible to compile via mingw in wsl2 or cygwin.
+- On windows it is possible to compile via mingw in cygwin.
 
 # Dependencies
+- CMake
 - FFTW3
 - pybind11
 - OpenMP
-- mingw (To compile on or for Windows)
-- cuda (Optional)
+- minGW (To compile on or for Windows)
+- CUDA (Optional)
 - cufft (Optional)
-- cuda runtime api (Optional)
+- CUDA runtime api (Optional)
 - Tested only with g++
 
 ## Build from source
@@ -23,13 +24,16 @@ foo@bar:~$ cd Downloads
 foo@bar:~$ git clone https://github.com/a-dumont/SignalProcessing
 ```
 
-Go to the new SignalProcessing directory and run the installation commands:
+Go to the new SignalProcessing directory and run the installation command:
 ```console
-foo@bar:~$ bash build.sh
-foo@bar:~$ python setup.py install
+foo@bar:~$ cd SignalProcessing/
+foo@bar:~$ mkdir build && cd build
+foo@bar:~$ cmake .. && cmake --build . && cmake --install .
 ```
-To enable CUDA support for Nvidia GPUs:
+
+To compile and install with CUDA support for Nvidia GPUs:
 ```console
-foo@bar:~$ bash build.sh --enable_cuda
-foo@bar:~$ python setup.py install
+foo@bar:~$ cd SignalProcessing/
+foo@bar:~$ mkdir build && cd build
+foo@bar:~$ ENABLE_CUDA=1 cmake .. && cmake --build . && cmake --install .
 ```
