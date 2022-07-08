@@ -3,6 +3,7 @@
 *.so
 *.d
 *.pyc
+build/
 
 CMakeLists.txt.user
 CMakeCache.txt
