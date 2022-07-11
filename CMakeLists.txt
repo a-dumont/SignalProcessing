@@ -49,8 +49,8 @@ endif($ENV{ENABLE_CUDA})
 
 if($ENV{PKGBUILD})
 	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-	COMMAND ${Python_EXECUTABLE} -m pip install setup.py)")
+	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing)")
 else()
 	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-	COMMAND ${Python_EXECUTABLE} -m pip install setup.py --prefix=/usr --root=${CMAKE_INSTALL_PREFIX})")
+	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing --prefix=/usr --root=${CMAKE_INSTALL_PREFIX})")
 endif($ENV{PKGBUILD})
