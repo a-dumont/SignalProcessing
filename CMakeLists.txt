@@ -47,10 +47,13 @@ if($ENV{ENABLE_CUDA})
 		FILES_MATCHING PATTERN "libcorrelationscuda.*")
 endif($ENV{ENABLE_CUDA})
 
+install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
+COMMAND ${Python_EXECUTABLE} setup.py build)")
+
 if($ENV{PKGBUILD})
 	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing)")
+	COMMAND ${Python_EXECUTABLE} setup.py install)")
 else()
 	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing --root=${CMAKE_INSTALL_PREFIX} --prefix=/usr)")
+	COMMAND ${Python_EXECUTABLE} setup.py install --root=${CMAKE_INSTALL_PREFIX} --prefix=/usr --optimize=1)")
 endif($ENV{PKGBUILD})
