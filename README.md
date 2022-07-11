@@ -29,6 +29,7 @@ Go to the new SignalProcessing directory and run the installation command:
 foo@bar:~$ cd SignalProcessing/
 foo@bar:~$ mkdir build && cd build
 foo@bar:~$ cmake .. && cmake --build . && cmake --install .
+foo@bar:~$ python setup.py install
 ```
 
 To compile and install with CUDA support for Nvidia GPUs:
@@ -36,4 +37,5 @@ To compile and install with CUDA support for Nvidia GPUs:
 foo@bar:~$ cd SignalProcessing/
 foo@bar:~$ mkdir build && cd build
 foo@bar:~$ ENABLE_CUDA=1 cmake .. && cmake --build . && cmake --install .
+foo@bar:~$ python setup.py install
 ```
