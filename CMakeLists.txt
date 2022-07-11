@@ -52,5 +52,11 @@ COMMAND ${Python_EXECUTABLE} setup.py sdist)")
 
 file(GLOB python_pkg "dist/SignalProcessing.*")
 
-install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-COMMAND ${Python_EXECUTABLE} -m pip install ${python_pkg} ${CMAKE_INSTALL_PREFIX})")
+if($ENV{PKGBUILD})
+	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
+	COMMAND ${Python_EXECUTABLE} -m pip install ${python_pkg})")
+else()
+	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
+	COMMAND ${Python_EXECUTABLE} -m pip install --prefix=/usr root=${CMAKE_INSTALL_PREFIX} 
+	${python_pkg})")
+endif($ENV{PKGBUILD})
