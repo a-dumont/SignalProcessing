@@ -1222,32 +1222,32 @@ class cdigitizer_histogram2D_steps_py: public cdigitizer_histogram2D_steps
 		: cdigitizer_histogram2D_steps(nbits_in,steps_in){}
 		
 		template<class DataType>
-		void accumulate(py::array_t<DataType,py::array::c_style> x_in,
+		void accumulate_py(py::array_t<DataType,py::array::c_style> x_in,
 						py::array_t<DataType,py::array::c_style> y_in)
 		{
 			DataType* xdata = (DataType*) x_in.request().ptr; 
 			DataType* ydata = (DataType*) y_in.request().ptr;
 		   	uint64_t N = (uint64_t) std::min(x_in.size(),y_in.size());	
-			
-			digitizer_histogram2D_steps(hist,xdata,ydata,N,nbits,steps);
-			count += 1;
+			accumulate(xdata,ydata,N);
 		}
 
 		np_uint64 getHistogram()
 		{
 			uint64_t total_size = size*size*(2*steps*size*size+1);
-			uint64_t* hist_out = (uint64_t*) malloc(sizeof(uint64_t)*total_size);
+			uint64_t* hist_out_py = (uint64_t*) malloc(sizeof(uint64_t)*total_size);
+			std::memset(hist_out_py,0,total_size*sizeof(uint64_t));
 			#pragma omp parallel for
-			for(uint64_t i=0;i<total_size;i++)
+			for(uint64_t i=0;i<(total_size*N_t);i++)
 			{
-				hist_out[i] = (uint64_t) hist[i];
+				#pragma omp atomic
+				hist_out_py[i%total_size] += hist[i];
 			}
 			std::vector<uint64_t> out_size = {(uint64_t)(2*steps*size*size+1),size,size};
-			py::capsule free_when_done(hist_out,free);
+			py::capsule free_when_done(hist_out_py,free);
 			return np_uint64(
 				out_size,
 				{size*size*sizeof(uint64_t),size*sizeof(uint64_t),sizeof(uint64_t)},
-				hist_out,
+				hist_out_py,
 				free_when_done);
 		}
 };

@@ -92,8 +92,9 @@ void init_histograms(py::module &m)
 			.def("getNbits",&cdigitizer_histogram2D_steps_py::getNbits)
 			.def("getSize",&cdigitizer_histogram2D_steps_py::getSize)
 			.def("resetHistogram",&cdigitizer_histogram2D_steps_py::resetHistogram)
-			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate<uint8_t>)
-			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate<uint16_t>);
+			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate_py<uint8_t>)
+			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate_py<uint16_t>)
+			.def("getThreads",&cdigitizer_histogram2D_steps_py::getThreads);
 
 	py::class_<cHistogram2D_py<double>>(m,"Histogram2D")
 			.def(py::init<np_double,np_double,int>())
