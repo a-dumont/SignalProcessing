@@ -52,5 +52,5 @@ if($ENV{PKGBUILD})
 	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing)")
 else()
 	install(CODE "execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing --prefix=/usr --root=${CMAKE_INSTALL_PREFIX})")
+	COMMAND ${Python_EXECUTABLE} -m pip install SignalProcessing --root=${CMAKE_INSTALL_PREFIX} --prefix=/usr)")
 endif($ENV{PKGBUILD})
