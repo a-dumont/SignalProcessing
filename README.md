@@ -11,7 +11,7 @@ C++ methods wrapped with pybind11 for signal processing and whatever else I migh
 - FFTW3
 - pybind11
 - OpenMP
-- minGW (To compile on or for Windows)
+- MinGW (To compile on or for Windows)
 - CUDA (Optional)
 - cufft (Optional)
 - CUDA runtime api (Optional)
@@ -29,7 +29,7 @@ Go to the new SignalProcessing directory and run the installation command:
 foo@bar:~$ cd SignalProcessing/
 foo@bar:~$ mkdir build && cd build
 foo@bar:~$ cmake .. && cmake --build . && cmake --install .
-foo@bar:~$ python setup.py install
+foo@bar:~$ python ../setup.py install
 ```
 
 To compile and install with CUDA support for Nvidia GPUs:
@@ -37,5 +37,14 @@ To compile and install with CUDA support for Nvidia GPUs:
 foo@bar:~$ cd SignalProcessing/
 foo@bar:~$ mkdir build && cd build
 foo@bar:~$ ENABLE_CUDA=1 cmake .. && cmake --build . && cmake --install .
-foo@bar:~$ python setup.py install
+foo@bar:~$ python ../setup.py install
 ```
+
+To compile using MinGW on cygwin:
+```console
+foo@bar:~$ cd SignalProcessing/
+foo@bar:~$ mkdir build && cd build
+foo@bar:~$ CXX=/usr/bin/x86_64-w64-mingw32-g++.exe cmake .. && cmake --build . && cmake --install .
+foo@bar:~$ python ../setup.py install
+```
+Note that for cygwin the location of the python executable is hardcoded into the CMakeLists.txt files.
