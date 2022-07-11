@@ -4,9 +4,7 @@ project(SignalProcessing VERSION 2.1.0 DESCRIPTION "C++ and CUDA routines wrappe
 
 # Cygwin stuff
 if (CYGWIN)
-    set_target_properties(fft PROPERTIES SUFFIX ".pyd")
 	set(Python_EXECUTABLE "/c/Anaconda2/python")
-	target_link_options(fft PUBLIC "LINKER:-L /c/Anaconda2/ -lpython27")
 endif (CYGWIN)
 
 # Python
