@@ -15,6 +15,8 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 # Set output location
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 
 # Sources
 file(GLOB SRC_FILES "src/*.cxx")
