@@ -584,11 +584,13 @@ class cdigitizer_histogram2D_steps
 			}
 			uint64_t total_size = size*size*(2*steps*size*size+1);
 			#pragma omp parallel for num_threads(N_t)
-			for(uint64_t i=0;i<(N_t*total_size);i++)
+			for(uint64_t i=0;i<total_size;i++)
 			{
-                manage_thread_affinity();
-				#pragma omp atomic
-				hist_out[i%total_size] += hist[i];
+				manage_thread_affinity();
+				for(uint64_t j=0;j<N_t;j++)
+				{
+					hist_out[i] += hist[N_t*j*total_size+i];
+				}
 			}
 			return hist_out;
 		}
