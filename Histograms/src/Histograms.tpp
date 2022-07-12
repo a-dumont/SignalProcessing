@@ -589,7 +589,7 @@ class cdigitizer_histogram2D_steps
 				manage_thread_affinity();
 				for(uint64_t i=0;i<total_size;i++)
 				{
-					hist_out[i] += hist[N_t*j*total_size+i];
+					hist_out[i] += hist[j*total_size+i];
 				}
 			}
 			return hist_out;
