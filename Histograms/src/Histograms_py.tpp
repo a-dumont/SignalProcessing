@@ -1236,7 +1236,6 @@ class cdigitizer_histogram2D_steps_py: public cdigitizer_histogram2D_steps
 			uint64_t total_size = size*size*(2*steps*size*size+1);
 			uint64_t* hist_out_py = (uint64_t*) malloc(sizeof(uint64_t)*total_size);
 			std::memset(hist_out_py,0,total_size*sizeof(uint64_t));
-			#pragma omp parallel for num_threads(N_t)
 			for(uint64_t i=0;i<total_size;i++)
 			{
 				manage_thread_affinity();
