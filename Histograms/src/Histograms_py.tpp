@@ -1242,6 +1242,7 @@ class cdigitizer_histogram2D_steps_py: public cdigitizer_histogram2D_steps
 				manage_thread_affinity();
 				for(uint64_t i=0;i<total_size;i++)
 				{
+					#pragma omp atomic
 					hist_out_py[i] += hist[j*total_size+i];
 				}
 			}
