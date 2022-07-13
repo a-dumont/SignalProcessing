@@ -494,7 +494,6 @@ void digitizer_histogram2D_steps(uint32_t* hist, DataType* data_x,
 		
 	uint64_t bin_x, bin_y, bin_x2, bin_y2, bin_x3, bin_y3;
 
-	//#pragma omp parallel for reduction (+:hist[:(2*steps*s4+s2)])
 	for(uint64_t i=steps; i<(N-steps); i++)
 	{
 		bin_x = data_x[i] >> shift;
@@ -535,7 +534,7 @@ class cdigitizer_histogram2D_steps
 			count = 0;
             #ifdef _WIN32_WINNT
                 uint64_t nbgroups = GetActiveProcessorGroupCount();
-                N_t = omp_get_max_threads()*nbgroups;
+                N_t = std::min(64,omp_get_max_threads()*nbgroups);
             #else
                 N_t = omp_get_max_threads();
 			#endif
