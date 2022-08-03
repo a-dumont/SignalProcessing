@@ -333,7 +333,7 @@ void rFFT_Block<double>(int n, int N, double* in, std::complex<double>* out)
 }
 
 template<>
-void rFFT_Block<float>(int n, int N, float* in, std::complex<float>* out){}
+void rFFT_Block<float>(int n, int N, float* in, std::complex<float>* out)
 {
 
 	int rank = 1;
