@@ -1,6 +1,6 @@
 //Full size fft
 template<class DataType>
-void FFT(int n, DataType* in, DataType* out)
+void FFT(int n, DataType* in, DataType* out){}
 
 template<>
 void FFT<dbl_complex>(int n, dbl_complex* in, dbl_complex* out)
@@ -17,7 +17,7 @@ void FFT<dbl_complex>(int n, dbl_complex* in, dbl_complex* out)
 }
 
 template<>
-void FFT<flt_complex>(int n, flt_complex* in, flt_complex* out)
+void FFT<flt_complex>(int n, flt_complex* in, flt_complex* out){}
 {
 	fftwf_plan plan;
 	plan = fftwf_plan_dft_1d(
@@ -30,8 +30,9 @@ void FFT<flt_complex>(int n, flt_complex* in, flt_complex* out)
 	fftwf_destroy_plan(plan);
 }
 
+//Parallel full size fft
 template<class DataType>
-void FFT_Parallel(int n, DataType* in, DataType* out, int nthreads)
+void FFT_Parallel(int n, DataType* in, DataType* out, int nthreads){}
 
 template<>
 void FFT_Parallel<dbl_complex>(int n, dbl_complex* in, dbl_complex* out, int nthreads) 
@@ -55,7 +56,6 @@ void FFT_Parallel<dbl_complex>(int n, dbl_complex* in, dbl_complex* out, int nth
 	fftw_cleanup_threads();
 }
 
-//Parallel full size fft
 template<>
 void FFT_Parallel<flt_complex>(int n, flt_complex* in, flt_complex* out, int nthreads) 
 {
@@ -80,7 +80,7 @@ void FFT_Parallel<flt_complex>(int n, flt_complex* in, flt_complex* out, int nth
 
 //FFTs of size N
 template<class DataType>
-void FFT_Block(int n, int N, DataType* in, DataType* out)
+void FFT_Block(int n, int N, DataType* in, DataType* out){}
 
 template<>
 void FFT_Block<dbl_complex>(int n, int N, dbl_complex* in, dbl_complex* out)
@@ -151,7 +151,7 @@ void FFT_Block<flt_complex>(int n, int N, flt_complex* in, flt_complex* out)
 }
 
 template<class DataType>
-void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads)
+void FFT_Block_Parallel(int n, int N, DataType* in, DataType* out, int nthreads){}
 
 template<>
 void FFT_Block_Parallel<dbl_complex>(int n, int N, dbl_complex* in, dbl_complex* out, int nthreads)
@@ -238,7 +238,7 @@ void FFT_Block_Parallel<flt_complex>(int n, int N, flt_complex* in, flt_complex*
 }
 
 template<class DataType>
-void iFFT(int n, DataType* in, DataType* out)
+void iFFT(int n, DataType* in, DataType* out){}
 
 template<>
 void iFFT<dbl_complex>(int n, dbl_complex* in, dbl_complex* out)
@@ -269,7 +269,7 @@ void iFFT<flt_complex>(int n, flt_complex* in, flt_complex* out)
 }
 
 template<class DataType>
-void rFFT(int n, DataType* in, std::complex<DataType>* out)
+void rFFT(int n, DataType* in, std::complex<DataType>* out){}
 
 template<>
 void rFFT<double>(int n, double* in, std::complex<double>* out)
@@ -298,7 +298,7 @@ void rFFT<float>(int n, float* in, std::complex<float>* out)
 }
 
 template<class DataType>
-void rFFT_Block(int n, int N, DataType* in, std::complex<DataType>* out)
+void rFFT_Block(int n, int N, DataType* in, std::complex<DataType>* out){}
 
 template<>
 void rFFT_Block<double>(int n, int N, double* in, std::complex<double>* out)
@@ -333,7 +333,7 @@ void rFFT_Block<double>(int n, int N, double* in, std::complex<double>* out)
 }
 
 template<>
-void rFFT_Block<float>(int n, int N, float* in, std::complex<float>* out)
+void rFFT_Block<float>(int n, int N, float* in, std::complex<float>* out){}
 {
 
 	int rank = 1;
@@ -365,7 +365,7 @@ void rFFT_Block<float>(int n, int N, float* in, std::complex<float>* out)
 }
 
 template<class DataType>
-void irFFT(int n, std::complex<DataType>* in, DataType* out)
+void irFFT(int n, std::complex<DataType>* in, DataType* out){}
 
 template<>
 void irFFT<double>(int n, std::complex<double>* in, double* out)
