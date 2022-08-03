@@ -54,5 +54,5 @@ endif(CYGWIN)
 separate_arguments(PY_INCL)
 include_directories(${PY_INCL})
 
-target_link_libraries(correlations -lfftw3_omp -lfftw3 -lm)
+target_link_libraries(correlations -lfftw3_omp -lfftw3 -lfftwf3_omp -lfftwf3 -lm)
 target_link_libraries(correlations -fopenmp -fopenmp-simd)
