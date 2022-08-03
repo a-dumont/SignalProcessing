@@ -54,5 +54,5 @@ endif(CYGWIN)
 separate_arguments(PY_INCL)
 include_directories(${PY_INCL})
 
-target_link_libraries(fft -lfftw3_omp -lfftw3 -lm)
+target_link_libraries(fft -lfftw3_omp -lfftw3 -lfftw3f -lfftw3f_omp -lm)
 target_link_libraries(fft -fopenmp -fopenmp-simd)
