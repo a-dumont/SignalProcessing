@@ -272,7 +272,7 @@ digitizer_FFT_py(py::array_t<DataType,py::array::c_style> py_in, double conv)
 	for(uint64_t i=0;i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
 	
 
-	FFT_Parallel<dbl_complex>(n, result, result, nthreads);
+	FFT_Parallel<dbl_complex>(n, result, result, omp_get_max_threads());
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<dbl_complex, py::array::c_style> 
