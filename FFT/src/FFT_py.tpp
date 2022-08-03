@@ -269,7 +269,7 @@ digitizer_FFT_py(py::array_t<DataType,py::array::c_style> py_in, double conv)
 	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*n);
 	
-	for(uint64_t i=0,i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
+	for(uint64_t i=0;i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
 	
 
 	FFT_Parallel<dbl_complex>(n, result, result, nthreads);
