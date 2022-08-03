@@ -17,7 +17,7 @@ void FFT<dbl_complex>(int n, dbl_complex* in, dbl_complex* out)
 }
 
 template<>
-void FFT<flt_complex>(int n, flt_complex* in, flt_complex* out){}
+void FFT<flt_complex>(int n, flt_complex* in, flt_complex* out)
 {
 	fftwf_plan plan;
 	plan = fftwf_plan_dft_1d(
