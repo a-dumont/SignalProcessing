@@ -396,15 +396,46 @@ void histogram_vectorial_average(long long int nbins,
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
 	double theta;
-	double a;
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			a = (double) (i-row)+0.000000000000001;
-			theta = atan((j-col)/a);
-			out[0] += hist[i*nbins+j]*cos(theta);
-			out[1] += hist[i*nbins+j]*sin(theta);
+			if(i-row == 0)
+			{
+				if(j-col > 0)
+				{
+					theta = 0.0;
+					out[0] += hist[i*nbins+j]*cos(theta);
+					out[1] += hist[i*nbins+j]*sin(theta);
+				}
+				else if(j-col < 0)
+				{
+					theta = 180.0;
+					out[0] += hist[i*nbins+j]*cos(theta);
+					out[1] += hist[i*nbins+j]*sin(theta);
+				}
+			}
+			if(j-col == 0)
+			{
+				if(i-row > 0)
+				{
+					theta = 90.0;
+					out[0] += hist[i*nbins+j]*cos(theta);
+					out[1] += hist[i*nbins+j]*sin(theta);
+				}
+				else if(i-row < 0)
+				{
+					theta = 270.0;
+					out[0] += hist[i*nbins+j]*cos(theta);
+					out[1] += hist[i*nbins+j]*sin(theta);
+				}
+			}
+			else
+			{
+				theta = atan((j-col)/(i-row));
+				out[0] += hist[i*nbins+j]*cos(theta);
+				out[1] += hist[i*nbins+j]*sin(theta);
+			}
 		}
 	}
 }
