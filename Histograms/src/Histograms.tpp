@@ -411,7 +411,7 @@ void histogram_vectorial_average(long long int nbins,
 					out[0] -= hist[i*nbins+j];
 				}
 			}
-			if(j-col == 0)
+			else if(j-col == 0)
 			{
 				if(i-row > 0)
 				{
