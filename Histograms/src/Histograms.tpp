@@ -395,12 +395,14 @@ template<class DataType>
 void histogram_vectorial_average(long long int nbins, 
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
+	double theta;
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			out[0] += hist[i*nbins+j]*(i-row);
-			out[1] += hist[i*nbins+j]*(j-col);
+			theta = (j-col)/(i-row)
+			out[0] += hist[i*nbins+j]*cos(theta);
+			out[1] += hist[i*nbins+j]*sin(theta);
 		}
 	}
 }
