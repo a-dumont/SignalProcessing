@@ -405,29 +405,29 @@ void histogram_vectorial_average(long long int nbins,
 			{
 				if(j-col > 0)
 				{
-					out[1] += hist[i*nbins+j];
+					out[0] += hist[i*nbins+j];
 				}
 				else if(j-col < 0)
 				{
-					out[1] -= hist[i*nbins+j];
+					out[0] -= hist[i*nbins+j];
 				}
 			}
 			else if(j-col == 0)
 			{
 				if(i-row > 0)
 				{
-					out[0] += hist[i*nbins+j];
+					out[1] += hist[i*nbins+j];
 				}
 				else if(i-row < 0)
 				{
-					out[0] -= hist[i*nbins+j];
+					out[1] -= hist[i*nbins+j];
 				}
 			}
 			else
 			{
 				theta = atan((j-col)/(i-row));
-				out[1] += hist[i*nbins+j]*cos(theta);
-				out[0] += hist[i*nbins+j]*sin(theta);
+				out[0] += hist[i*nbins+j]*cos(theta);
+				out[1] += hist[i*nbins+j]*sin(theta);
 			}
 		}
 	}
