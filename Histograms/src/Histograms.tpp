@@ -400,7 +400,7 @@ void histogram_vectorial_average(long long int nbins,
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			theta = (j-col)/(i-row)
+			theta = (j-col)/(i-row);
 			out[0] += hist[i*nbins+j]*cos(theta);
 			out[1] += hist[i*nbins+j]*sin(theta);
 		}
