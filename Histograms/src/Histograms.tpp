@@ -409,7 +409,7 @@ void histogram_vectorial_average(long long int nbins,
 				}
 				else if(j-col < 0)
 				{
-					out[1] -= hist[i*nbins+j];
+					out[1] += -hist[i*nbins+j];
 				}
 			}
 			else if(j-col == 0)
@@ -420,7 +420,7 @@ void histogram_vectorial_average(long long int nbins,
 				}
 				else if(i-row < 0)
 				{
-					out[0] -= hist[i*nbins+j];
+					out[0] += -hist[i*nbins+j];
 				}
 			}
 			else
