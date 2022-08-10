@@ -396,11 +396,13 @@ void histogram_vectorial_average(long long int nbins,
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
 	double theta;
+	double a;
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			theta = (j-col)/(i-row);
+			a = (double) (i-row)+0.000000000000001
+			theta = atan((j-col)/a);
 			out[0] += hist[i*nbins+j]*cos(theta);
 			out[1] += hist[i*nbins+j]*sin(theta);
 		}
