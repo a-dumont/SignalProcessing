@@ -396,6 +396,7 @@ void histogram_vectorial_average(long long int nbins,
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
 	double theta;
+	#pragma omp parallel for reduction(+:out[:2])
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
