@@ -416,16 +416,16 @@ void histogram_vectorial_average(long long int nbins,
 			{
 				if(i-row > 0)
 				{
-					out[0] -= hist[i*nbins+j];
+					out[0] += hist[i*nbins+j];
 				}
 				else if(i-row < 0)
 				{
-					out[0] += hist[i*nbins+j];
+					out[0] -= hist[i*nbins+j];
 				}
 			}
 			else
 			{
-				theta = atan((row-i)/(j-col));
+				theta = atan((i-row)/(j-col));
 				out[1] += hist[i*nbins+j]*cos(theta);
 				out[0] += hist[i*nbins+j]*sin(theta);
 			}
