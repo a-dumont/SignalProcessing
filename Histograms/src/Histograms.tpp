@@ -395,40 +395,13 @@ template<class DataType>
 void histogram_vectorial_average(long long int nbins, 
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
-	double theta;
 	#pragma omp parallel for reduction(+:out[:2])
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			if(i-row == 0)
-			{
-				if(j-col > 0)
-				{
-					out[1] += hist[i*nbins+j];
-				}
-				else if(j-col < 0)
-				{
-					out[1] += -hist[i*nbins+j];
-				}
-			}
-			else if(j-col == 0)
-			{
-				if(i-row > 0)
-				{
-					out[0] += hist[i*nbins+j];
-				}
-				else if(i-row < 0)
-				{
-					out[0] += -hist[i*nbins+j];
-				}
-			}
-			else
-			{
-				theta = atan((i-row)/(j-col));
-				out[1] += hist[i*nbins+j]*cos(theta);
-				out[0] += hist[i*nbins+j]*sin(theta);
-			}
+			out[0] += hist[i*nbins+j]*(i-row);
+			out[1] += hist[i*nbins+j]*(j-col);
 		}
 	}
 }
