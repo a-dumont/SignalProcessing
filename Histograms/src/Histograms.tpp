@@ -401,9 +401,12 @@ void histogram_vectorial_average(long long int nbins,
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			norm = sqrt((i-row)*(i-row)+(j-col)*(j-col));
-			out[0] += hist[i*nbins+j]*(i-row)/norm;
-			out[1] += hist[i*nbins+j]*(j-col)/norm;
+			if(i!=row && j!=col)
+			{
+				norm = sqrt(1.0*(i-row)*(i-row)+1.0*(j-col)*(j-col));
+				out[0] += hist[i*nbins+j]*(i-row)/norm;
+				out[1] += hist[i*nbins+j]*(j-col)/norm;
+			}
 		}
 	}
 }
