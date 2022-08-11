@@ -395,13 +395,15 @@ template<class DataType>
 void histogram_vectorial_average(long long int nbins, 
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
+	double norm;
 	#pragma omp parallel for reduction(+:out[:2])
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			out[0] += hist[i*nbins+j]*(i-row);
-			out[1] += hist[i*nbins+j]*(j-col);
+			norm = sqrt((i-row)*(i-row)+(j-col)*(j-col));
+			out[0] += hist[i*nbins+j]*(i-row)/norm;
+			out[1] += hist[i*nbins+j]*(j-col)/norm;
 		}
 	}
 }
