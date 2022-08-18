@@ -14,6 +14,7 @@ void FFT_CUDA<dbl_complex>(int n, dbl_complex* in)
 							reinterpret_cast<cufftDoubleComplex*>(in), 
 							CUFFT_FORWARD) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecZ2Z Forward failed");
 	}
 	cufftDestroy(plan);
@@ -31,6 +32,7 @@ void FFT_CUDA<flt_complex>(int n, flt_complex* in)
 							reinterpret_cast<cufftComplex*>(in), 
 							CUFFT_FORWARD) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecC2C Forward failed");
 	}
 	cufftDestroy(plan);
@@ -62,12 +64,14 @@ void FFT_Block_CUDA<dbl_complex, long long int>(
         stride, idist, inembed, stride,
         idist, CUFFT_Z2Z, batch, worksize) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: Plan creation failed");	
 	}
 	if (cufftExecZ2Z(plan, reinterpret_cast<cufftDoubleComplex*>(in), 
 							reinterpret_cast<cufftDoubleComplex*>(in), 
 							CUFFT_FORWARD) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecZ2Z Forward failed");
 	}
 	cufftDestroy(plan);
@@ -95,12 +99,14 @@ void FFT_Block_CUDA<flt_complex, long long int>(
         stride, idist, inembed, stride,
         idist, CUFFT_C2C, batch, worksize) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: Plan creation failed");	
 	}
 	if (cufftExecC2C(plan, reinterpret_cast<cufftComplex*>(in), 
 							reinterpret_cast<cufftComplex*>(in), 
 							CUFFT_FORWARD) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecC2C Forward failed");
 	}
 	cufftDestroy(plan);
@@ -143,6 +149,7 @@ void FFT_Block_Async_CUDA<dbl_complex>(dbl_complex* in, cufftHandle plan, cudaSt
 							reinterpret_cast<cufftDoubleComplex*>(in), 
 							CUFFT_FORWARD) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecZ2Z Forward failed");
 	}
 }
@@ -155,6 +162,7 @@ void FFT_Block_Async_CUDA<flt_complex>(flt_complex* in, cufftHandle plan, cudaSt
 							reinterpret_cast<cufftComplex*>(in), 
 							CUFFT_FORWARD) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecC2C Forward failed");
 	}
 }
@@ -176,6 +184,7 @@ void iFFT_CUDA<dbl_complex>(int n, dbl_complex* in)
 							reinterpret_cast<cufftDoubleComplex*>(in), 
 							CUFFT_INVERSE) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecZ2Z Inverse failed");
 	}
 	cufftDestroy(plan);
@@ -193,6 +202,7 @@ void iFFT_CUDA<flt_complex>(int n, flt_complex* in)
 							reinterpret_cast<cufftComplex*>(in), 
 							CUFFT_INVERSE) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecC2C Inverse failed");
 	}
 	cufftDestroy(plan);
@@ -213,6 +223,7 @@ void rFFT_CUDA<std::complex<double>>(int n, std::complex<double>* in)
 	if (cufftExecD2Z(plan, reinterpret_cast<cufftDoubleReal*>(in), 
 							reinterpret_cast<cufftDoubleComplex*>(in)) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecD2Z failed");
 	}
 	cufftDestroy(plan);
@@ -229,6 +240,7 @@ void rFFT_CUDA<std::complex<float>>(int n, std::complex<float>* in)
 	if (cufftExecR2C(plan, reinterpret_cast<cufftReal*>(in), 
 							reinterpret_cast<cufftComplex*>(in)) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecR2C failed");
 	}
 	cufftDestroy(plan);
@@ -262,14 +274,14 @@ void rFFT_Block_CUDA<std::complex<double>>(int n, int size, std::complex<double>
         stride, idist, onembed, stride,
         odist, CUFFT_D2Z, batch, worksize) != CUFFT_SUCCESS)
 	{
-		throw std::runtime_error("CUFFT error: Plan initialization failed");
 		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: Plan initialization failed");
 	}
 	if (cufftExecD2Z(plan, reinterpret_cast<cufftDoubleReal*>(in), 
 							reinterpret_cast<cufftDoubleComplex*>(in)) != CUFFT_SUCCESS)
 	{
-		throw std::runtime_error("CUFFT error: ExecD2Z failed");
 		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecD2Z failed");
 	}
 	cufftDestroy(plan);
 }
@@ -298,14 +310,14 @@ void rFFT_Block_CUDA<std::complex<float>>(int n, int size, std::complex<float>* 
         stride, idist, onembed, stride,
         odist, CUFFT_R2C, batch, worksize) != CUFFT_SUCCESS)
 	{
-		throw std::runtime_error("CUFFT error: Plan initialization failed");
 		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: Plan initialization failed");
 	}
 	if (cufftExecR2C(plan, reinterpret_cast<cufftReal*>(in), 
 							reinterpret_cast<cufftComplex*>(in)) != CUFFT_SUCCESS)
 	{
-		throw std::runtime_error("CUFFT error: ExecR2C failed");
 		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecR2C failed");
 	}
 	cufftDestroy(plan);
 }
@@ -343,6 +355,7 @@ void rFFT_Block_Async_CUDA<std::complex<double>>(std::complex<double>* in, cufft
 	if (cufftExecD2Z(plan, reinterpret_cast<cufftDoubleReal*>(in), 
 							reinterpret_cast<cufftDoubleComplex*>(in)) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecD2Z Forward failed");
 	}
 }
@@ -355,6 +368,7 @@ void rFFT_Block_Async_CUDA<std::complex<float>>(std::complex<float>* in,
 	if (cufftExecR2C(plan, reinterpret_cast<cufftReal*>(in), 
 							reinterpret_cast<cufftComplex*>(in)) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecR2C Forward failed");
 	}
 }
@@ -375,6 +389,7 @@ void irFFT_CUDA<double>(int n, double* in)
 	if (cufftExecZ2D(plan, reinterpret_cast<cufftDoubleComplex*>(in), 
 							reinterpret_cast<cufftDoubleReal*>(in)) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecZ2D failed");
 	}
 	cufftDestroy(plan);
@@ -391,6 +406,7 @@ void irFFT_CUDA<float>(int n, float* in)
 	if (cufftExecC2R(plan, reinterpret_cast<cufftComplex*>(in), 
 							reinterpret_cast<cufftReal*>(in)) != CUFFT_SUCCESS)
 	{
+		cufftDestroy(plan);
 		throw std::runtime_error("CUFFT error: ExecC2R failed");
 	}
 	cufftDestroy(plan);

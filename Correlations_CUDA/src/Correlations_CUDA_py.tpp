@@ -20,7 +20,8 @@ autocorrelation_cuda_py(py::array_t<DataType,py::array::c_style> py_in)
 	// Bunch of malloc
 	std::complex<DataType>* fft_result;
 	cudaMallocManaged((void**)&fft_result,(n/2+1)*sizeof(std::complex<DataType>));
-	DataType* out = (DataType*) malloc((n/2+1)*sizeof(DataType));
+	DataType* out;
+	out = (DataType*) malloc((n/2+1)*sizeof(DataType));
 
 	// fft
 	cudaMemcpy(fft_result,ptr_py_in,n*sizeof(DataType),cudaMemcpyHostToDevice);
@@ -32,7 +33,7 @@ autocorrelation_cuda_py(py::array_t<DataType,py::array::c_style> py_in)
 
 	// Autocorrelation
 	autocorrelation_cuda((n/2+1),
-					(cuDoubleComplex*)fft_result,(DataType*)fft_result,blocks,threads);
+					(cuDoubleComplex*)fft_result,(double*)fft_result,blocks,threads);
 
 	// output copy
 	cudaMemcpy(out,fft_result,(n/2+1)*sizeof(DataType),cudaMemcpyDeviceToHost);

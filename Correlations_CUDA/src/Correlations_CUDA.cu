@@ -6,7 +6,7 @@ __global__ void autocorrelation_cuda_kernel(int N, cuDoubleComplex* in, double* 
 	int i = threadIdx.x+blockIdx.x*threads;
 	if(i<N)
 	{
-		out[i] = cuCreal(in[i])*cuCreal(in[i])+cuCimag(in[i])*cuCimag(in[i]);
+		out[i] = cuCreal(cuCmul(in[i],cuConj(in[i])));
 	}
 }
 
