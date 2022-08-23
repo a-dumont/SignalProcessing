@@ -597,6 +597,7 @@ py::array_t<std::complex<DataType2>, py::array::c_style> digitizer_rFFT_Block_As
 		rFFT_Block_Async_CUDA(out+(transfers-1)*batch*(size/2+1),plan,streams[1]);
 		cufftDestroy(plan);
 	}
+	cudaFree(gpu);
 
 	cudaDeviceSynchronize();
 	py::capsule free_when_done( out, cuFree );
