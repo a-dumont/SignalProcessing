@@ -299,13 +299,13 @@ digitizer_FFT_py(py::array_t<DataType,py::array::c_style> py_in, double conv, Da
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
 
-	uint64_t n = buf_in.size;
+	long long int n = buf_in.size;
 	
 	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*n);
 
 	#pragma omp parallel for		
-	for(uint64_t i=0;i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
+	for(long long int i=0;i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
 
 	FFT_Parallel<dbl_complex>(n, result, result, omp_get_max_threads());
 
@@ -330,13 +330,13 @@ digitizer_rFFT_py(py::array_t<DataType,py::array::c_style> py_in, double conv, D
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
 
-	uint64_t n = buf_in.size;
+	long long int n = buf_in.size;
 	
 	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 	double* result = (double*) fftw_malloc(sizeof(double)*(n+2));
 
 	#pragma omp parallel for		
-	for(uint64_t i=0;i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
+	for(long long int i=0;i<=n;i++){result[i]=(ptr_py_in[i]-offset)*conv;}
 
 	rFFT<double>(n, result, (dbl_complex*) result);
 
@@ -352,7 +352,7 @@ digitizer_rFFT_py(py::array_t<DataType,py::array::c_style> py_in, double conv, D
 
 template< class DataType>
 py::array_t<dbl_complex,py::array::c_style> 
-digitizer_FFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t N, double conv, DataType offset)
+digitizer_FFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, long long int N, double conv, DataType offset)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -361,19 +361,19 @@ digitizer_FFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t 
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
 
-	uint64_t n = buf_in.size;
+	long long int n = buf_in.size;
 
 	if (N > 4096 )
 	{
 		throw std::runtime_error("U dumbdumb N too big, can't optimize");
 	}
-	uint64_t howmany = n/N;
+	long long int howmany = n/N;
 	
 	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 	dbl_complex* result = (dbl_complex*) fftw_malloc(sizeof(dbl_complex)*N*howmany);
 
 	#pragma omp parallel for		
-	for(uint64_t i=0;i<=(N*howmany);i++){result[i]=(ptr_py_in[i]-offset)*conv;}
+	for(long long int i=0;i<=(N*howmany);i++){result[i]=(ptr_py_in[i]-offset)*conv;}
 
 	FFT_Block_Parallel<dbl_complex>(n, N, result, result,omp_get_max_threads());
 
@@ -389,7 +389,7 @@ digitizer_FFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t 
 
 template< class DataType>
 py::array_t<dbl_complex,py::array::c_style> 
-digitizer_rFFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t N, double conv, DataType offset)
+digitizer_rFFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, long long int N, double conv, DataType offset)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -398,19 +398,19 @@ digitizer_rFFT_Block_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
 
-	uint64_t n = buf_in.size;
+	long long int n = buf_in.size;
 
 	if (N > 4096 )
 	{
 		throw std::runtime_error("U dumbdumb N too big, can't optimize");
 	}
-	uint64_t howmany = n/N;
+	long long int howmany = n/N;
 	
 	DataType* ptr_py_in = (DataType*) buf_in.ptr;
 	double* result = (double*) fftw_malloc(sizeof(double)*(N+2)*howmany);
 
 	#pragma omp parallel for		
-	for(uint64_t i=0;i<=(N*howmany);i++){result[i]=(ptr_py_in[i]-offset)*conv;}
+	for(long long int i=0;i<=(N*howmany);i++){result[i]=(ptr_py_in[i]-offset)*conv;}
 
 	rFFT_Block_Parallel<double>(n, N, result, (dbl_complex*) result,omp_get_max_threads());
 
