@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(SignalProcessing VERSION 2.1.0 DESCRIPTION "C++ and CUDA routines wrapped with pybind11")
+project(SignalProcessing VERSION 2.2.0 DESCRIPTION "C++ and CUDA routines wrapped with pybind11")
 
 # Cygwin stuff
 if(CYGWIN)

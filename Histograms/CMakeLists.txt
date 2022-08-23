@@ -5,7 +5,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Project name
-project(histograms VERSION 2.1.1)
+project(histograms VERSION 2.2.0)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)

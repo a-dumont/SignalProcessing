@@ -5,7 +5,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Project name
-project(correlations VERSION 2.1.0)
+project(correlations VERSION 2.2.0)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 14)
