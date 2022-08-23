@@ -33,10 +33,7 @@ endif()
 
 # Target library
 add_library(correlationscuda ${SRC_FILES} ${CUDA_SRC_FILES})
-
-# CUDA stuff
 set_target_properties(correlationscuda PROPERTIES CUDA_ARCHITECTURES 60)
-#set_target_properties(correlationscuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 # Dependencies
 find_package(Python COMPONENTS Interpreter REQUIRED)

@@ -9,6 +9,7 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 
 #include "FFT_CUDA.h"
+#include "FFT_CUDA_cu.h"
 
 typedef py::array_t<double,py::array::c_style> np_double;
 typedef py::array_t<std::complex<double>,py::array::c_style> np_complex;

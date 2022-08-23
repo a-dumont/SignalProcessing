@@ -5,7 +5,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Project name
-project(fftcuda LANGUAGES CXX VERSION 2.1.0)
+project(fftcuda LANGUAGES CXX CUDA VERSION 2.1.0)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 14)
@@ -20,18 +20,19 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 
 # Sources
 file(GLOB SRC_FILES "src/*.cpp")
+file(GLOB SRC_CUDA "src/*.cu")
 
 # Compiler options
 if(CYGWIN)
     add_compile_options(-Wall -O3 -march=native -MMD -MP-DMS_WIN64 -D_hypot=hypot)
 elseif(MSVC)
-    add_compile_options(/Wall /openmp /arch:AVX2)
-else()
+	#add_compile_options(/Wall /openmp /arch:AVX2)
+elseif(UNIX)
     add_compile_options(-Wall -O3 -march=native -MMD -MP)
 endif()
 
 # Target library
-add_library(fftcuda ${SRC_FILES})
+add_library(fftcuda ${SRC_FILES} ${SRC_CUDA})
 set_target_properties(fftcuda PROPERTIES CUDA_ARCHITECTURES 60)
 
 # Dependencies
@@ -57,8 +58,10 @@ elseif(MSVC)
 	target_link_libraries(fftcuda ${CUFFT})
     find_library(CUDART NAMES cudart HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
 	target_link_libraries(fftcuda ${CUDART})
+    find_library(CUDA NAMES cuda HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
+	target_link_libraries(fftcuda ${CUDA})
 else()
-    target_link_libraries(fftcuda -L/opt/cuda/lib64 -lcufft -lcudart)
+    target_link_libraries(fftcuda -L/opt/cuda/lib64 -lcufft -lcudart -lcuda)
 endif()
 
 # pybind11 includes
@@ -69,5 +72,4 @@ if(CYGWIN)
 string(REGEX REPLACE "C\:" "/c" PY_INCL ${PY_INCL})
 endif(CYGWIN)
 separate_arguments(PY_INCL)
-include_directories(${PY_INCL})
 include_directories(${PY_INCL})
