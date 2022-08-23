@@ -14,6 +14,14 @@ void init_fft(py::module &m)
 	m.def("rfft_cuda",&rFFT_Block_CUDA2_py<double,long long int>, "in"_a.noconvert(),"N"_a);
 	m.def("irfft_cuda",&irFFT_CUDA_py<float>, "in"_a.noconvert());
 	m.def("irfft_cuda",&irFFT_CUDA_py<double>, "in"_a.noconvert());
+	m.def("digitizer_FFT_cuda",&digitizer_FFT_Block_Async_CUDA_py<uint8_t,double>,
+					"in"_a.noconvert(),"size"_a,"conv"_a.noconvert(),"offset"_a);
+	m.def("digitizer_FFT_cudaf",&digitizer_FFT_Block_Async_CUDA_py<uint8_t,float>,
+					"in"_a.noconvert(),"size"_a,"conv"_a.noconvert(),"offset"_a);
+	m.def("digitizer_rFFT_cuda",&digitizer_rFFT_Block_Async_CUDA_py<uint8_t,double>,
+					"in"_a.noconvert(),"size"_a,"conv"_a.noconvert(),"offset"_a);
+	m.def("digitizer_rFFT_cudaf",&digitizer_rFFT_Block_Async_CUDA_py<uint8_t,float>,
+					"in"_a.noconvert(),"size"_a,"conv"_a.noconvert(),"offset"_a);
 }
 
 PYBIND11_MODULE(libfftcuda, m)

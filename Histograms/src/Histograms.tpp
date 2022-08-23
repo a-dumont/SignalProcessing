@@ -395,12 +395,18 @@ template<class DataType>
 void histogram_vectorial_average(long long int nbins, 
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
+	double norm;
+	#pragma omp parallel for reduction(+:out[:2])
 	for(long long int i=0;i<nbins;i++)
 	{
 		for(long long int j=0;j<nbins;j++)
 		{
-			out[0] += hist[i*nbins+j]*(i-row);
-			out[1] += hist[i*nbins+j]*(j-col);
+			if(i!=row && j!=col)
+			{
+				norm = sqrt(1.0*(i-row)*(i-row)+1.0*(j-col)*(j-col));
+				out[0] += hist[i*nbins+j]*(i-row)/norm;
+				out[1] += hist[i*nbins+j]*(j-col)/norm;
+			}
 		}
 	}
 }
@@ -494,7 +500,6 @@ void digitizer_histogram2D_steps(uint32_t* hist, DataType* data_x,
 		
 	uint64_t bin_x, bin_y, bin_x2, bin_y2, bin_x3, bin_y3;
 
-	//#pragma omp parallel for reduction (+:hist[:(2*steps*s4+s2)])
 	for(uint64_t i=steps; i<(N-steps); i++)
 	{
 		bin_x = data_x[i] >> shift;
@@ -535,7 +540,7 @@ class cdigitizer_histogram2D_steps
 			count = 0;
             #ifdef _WIN32_WINNT
                 uint64_t nbgroups = GetActiveProcessorGroupCount();
-                N_t = omp_get_max_threads()*nbgroups;
+                N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
             #else
                 N_t = omp_get_max_threads();
 			#endif

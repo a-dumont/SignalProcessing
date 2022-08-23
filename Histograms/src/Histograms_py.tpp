@@ -696,10 +696,10 @@ class cHistogram2D_py: public cHistogram2D<double>
 		{
 			DataType* xedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
 			DataType* yedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
-			py::capsule free_when_done2( xedges2, free );
-			py::capsule free_when_done3( yedges2, free );
 			xedges2 = (DataType*) std::memcpy(xedges2,xedges,sizeof(DataType)*(nbins+1));
 			yedges2 = (DataType*) std::memcpy(yedges2,yedges,sizeof(DataType)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
 
 			py::array_t<DataType,py::array::c_style> xedges_py;
 			xedges_py = py::array_t<DataType,py::array::c_style>(
@@ -789,10 +789,10 @@ class cHistogram_2D_Density_py: public cHistogram_2D_Density<double>
 		{
 			DataType* xedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
 			DataType* yedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
-			py::capsule free_when_done2( xedges2, free );
-			py::capsule free_when_done3( yedges2, free );
 			std::memcpy(xedges2,xedges,sizeof(DataType)*(nbins+1));
 			std::memcpy(yedges2,yedges,sizeof(DataType)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
 
 			py::array_t<DataType,py::array::c_style> xedges_py;
 			xedges_py = py::array_t<DataType,py::array::c_style>(
@@ -882,10 +882,10 @@ class cHistogram_And_Displacement_2D_py: public cHistogram_And_Displacement_2D<d
 		{
 			DataType* xedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
 			DataType* yedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
-			py::capsule free_when_done2( xedges2, free );
-			py::capsule free_when_done3( yedges2, free );
 			std::memcpy(xedges2,xedges,sizeof(DataType)*(nbins+1));
 			std::memcpy(yedges2,yedges,sizeof(DataType)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
 
 			py::array_t<DataType,py::array::c_style> xedges_py;
 			xedges_py = py::array_t<DataType,py::array::c_style>(
@@ -975,10 +975,10 @@ class cHistogram_And_Displacement_2D_steps_py: public cHistogram_And_Displacemen
 		{
 			DataType* xedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
 			DataType* yedges2 = (DataType*)malloc(sizeof(DataType)*(nbins+1));
-			py::capsule free_when_done2( xedges2, free );
-			py::capsule free_when_done3( yedges2, free );
 			std::memcpy(xedges2,xedges,sizeof(DataType)*(nbins+1));
 			std::memcpy(yedges2,yedges,sizeof(DataType)*(nbins+1));
+			py::capsule free_when_done2( xedges2, free );
+			py::capsule free_when_done3( yedges2, free );
 
 			py::array_t<DataType,py::array::c_style> xedges_py;
 			xedges_py = py::array_t<DataType,py::array::c_style>(
