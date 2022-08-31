@@ -559,10 +559,23 @@ py::array_t<std::complex<DataType2>, py::array::c_style> digitizer_rFFT_Block_As
 
 		rFFT_Block_Async_CUDA(out+i*batch*(size/2+1),plan,streams[1]);
 	}
+
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+
+	cudaEventRecord(start);
 	cudaMemcpy(out_host+(transfers-1)*batch*(size/2+1),
 						out+(transfers-1)*batch*(size/2+1),
 						batch*(size+2)*sizeof(DataType2),
 						cudaMemcpyDeviceToHost);
+	cudaEventRecord(stop);
+
+	cudaEventSynchronize(stop);
+	float milliseconds = 0;
+	cudaEventElapsedTime(&milliseconds, start, stop);
+	py::print(milliseconds);
+
 	cufftDestroy(plan);
 	cudaFree(out);
 	cudaFree(gpu);

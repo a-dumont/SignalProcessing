@@ -3,9 +3,18 @@
 
 void init_correlations(py::module &m)
 {
-	m.def("auto_correlation_cuda",&autocorrelation_cuda_py<double>, "In"_a, "Given only 1 argument, will compute the full length auto-correlation");
-	m.def("cross_correlation_cuda",&xcorrelation_cuda_py<double>, "In1"_a, "In2"_a,"Given only 2 arguments, will compute the full length cross-correlation");
-	m.def("cross_correlation_cuda",&xcorrelation_block_cuda_py<double>, "In1"_a, "In2"_a,"size"_a,"Given only 2 arguments, will compute the full length cross-correlation");
+	m.def("auto_correlation_cuda",&autocorrelation_cuda_py<double>, "In"_a.noconvert());
+	m.def("auto_correlation_cuda",&autocorrelation_cuda_py<float>, "In"_a.noconvert());
+
+	m.def("cross_correlation_cuda",&cross_correlation_cuda_py<double>, "In1"_a.noconvert(),
+					"In2"_a.noconvert());
+	m.def("cross_correlation_cuda",&cross_correlation_cuda_py<float>, "In1"_a.noconvert(),
+					"In2"_a.noconvert());
+
+	m.def("complete_correlation_cuda",&complete_correlation_cuda_py<double>, "In1"_a.noconvert(),
+					"In2"_a.noconvert());
+	m.def("complete_correlation_cuda",&complete_correlation_cuda_py<float>, "In1"_a.noconvert(),
+					"In2"_a.noconvert());
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)
