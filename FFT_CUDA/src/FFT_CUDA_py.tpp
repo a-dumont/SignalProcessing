@@ -142,6 +142,9 @@ py::array_t<DataType, py::array::c_style> FFT_Block_Async_CUDA_py(
 		cufftDestroy(plan);
 	}
 
+	cudaStreamDestroy(streams[0]);
+	cudaStreamDestroy(streams[1]);
+
 	cudaDeviceSynchronize();
 	py::capsule free_when_done( out, cuFree );
 	return py::array_t<DataType, py::array::c_style> 
@@ -348,6 +351,9 @@ py::array_t<std::complex<DataType>, py::array::c_style> rFFT_Block_CUDA2_py(
 	}
 
 	cudaDeviceSynchronize();
+	cudaStreamDestroy(streams[0]);
+	cudaStreamDestroy(streams[1]);
+
 	py::capsule free_when_done( out, cuFree );
 	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
@@ -470,6 +476,8 @@ py::array_t<std::complex<DataType2>, py::array::c_style> digitizer_FFT_Block_Asy
 	cufftDestroy(plan);
 	cudaFree(out);
 	cudaFree(gpu);
+	cudaStreamDestroy(streams[0]);
+	cudaStreamDestroy(streams[1]);
 
 	py::capsule free_when_done( out_host, free );
 	return py::array_t<std::complex<DataType2>, py::array::c_style> 
@@ -568,6 +576,8 @@ py::array_t<std::complex<DataType2>, py::array::c_style> digitizer_rFFT_Block_As
 	cufftDestroy(plan);
 	cudaFree(out);
 	cudaFree(gpu);
+	cudaStreamDestroy(streams[0]);
+	cudaStreamDestroy(streams[1]);
 
 	py::capsule free_when_done( out_host, free );
 	return py::array_t<std::complex<DataType2>, py::array::c_style> 
