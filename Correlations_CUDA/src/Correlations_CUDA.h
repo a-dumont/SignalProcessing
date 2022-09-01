@@ -19,7 +19,7 @@ void complete_correlation_cuda(long long int N, std::complex<DataType>* in1,
 				std::complex<DataType>* out3);
 
 template<class DataType> 
-void reduction(long long int N, DataType* in, int size);
+void reduction(long long int N, DataType* in, long long int size);
 
 template<class DataType> 
-void reduction_general(long long int N, DataType* in, int size);
+void reduction_general(long long int N, DataType* in, long long int size);

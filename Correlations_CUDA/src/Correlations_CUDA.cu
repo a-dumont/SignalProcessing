@@ -168,8 +168,16 @@ void complete_correlation_cuda<float>(long long int N, std::complex<float>* in1,
 	cudaDeviceSynchronize();
 }
 
-template<class DataType>
-__global__ void reduction_kernel(long long int N, DataType* in, int threads)
+__global__ void reduction_kernel(long long int N, double* in, int threads)
+{
+	int i = threadIdx.x+blockIdx.x*threads;
+	if(i<N)
+	{
+		in[i] += in[i+N];
+	}
+}
+
+__global__ void reduction_kernelf(long long int N, float* in, int threads)
 {
 	int i = threadIdx.x+blockIdx.x*threads;
 	if(i<N)
@@ -179,14 +187,45 @@ __global__ void reduction_kernel(long long int N, DataType* in, int threads)
 }
 
 template<class DataType> 
-void reduction(long long int N, DataType* in, int size)
+void reduction(long long int N, DataType* in, long long int size){}
+
+template<>
+void reduction<double>(long long int N, double* in, long long int size)
 {
-	reduction_kernel<DataType><<<N/1024+1,512>>>(N/2,in,512);
-	if (N/2 > size){reduction(N/2,in,size);}
+	if (N/2 >= size)
+	{
+		reduction_kernel<<<N/1024+1,512>>>(N/2,in,512);
+		reduction(N/2,in,size);
+	}
 }
 
-template<class DataType>
-__global__ void reduction_general_kernel(long long int N, DataType* in, int size, int threads)
+template<>
+void reduction<float>(long long int N, float* in, long long int size)
+{
+	if (N/2 >= size)
+	{
+		reduction_kernelf<<<N/1024+1,512>>>(N/2,in,512);
+		reduction(N/2,in,size);
+	}
+}
+
+
+__global__ void reduction_general_kernel(long long int N, double* in, long long int size, 
+				int threads)
+{
+	int i = threadIdx.x+blockIdx.x*threads;
+	long long int howmany = N/size;
+	if(i<size)
+	{
+		for(long long int j=1;j<howmany;j++)
+		{
+			in[i] += in[i+j*size];
+		}
+	}
+}
+
+__global__ void reduction_general_kernelf(long long int N, float* in, long long int size, 
+				int threads)
 {
 	int i = threadIdx.x+blockIdx.x*threads;
 	long long int howmany = N/size;
@@ -200,12 +239,31 @@ __global__ void reduction_general_kernel(long long int N, DataType* in, int size
 }
 
 template<class DataType> 
-void reduction_general(long long int N, DataType* in, int size)
+void reduction_general(long long int N, DataType* in, long long int size){}
+
+template<>
+void reduction_general<double>(long long int N, double* in, long long int size)
 {
-	int power = (int) std::log2(1.0*N);
-	long long int n = 1<<power;
-	long long int diff = N-n+size;
-	reduction_general_kernel<DataType><<<diff/512+1,512>>>(diff,in[n-size],size,512);
-	reduction_kernel<DataType><<<n/1024+1,512>>>(n/2,in,512);
-	if (n/2 > size){reduction(n/2,in,size);}
+	int power = std::log2(N/size);
+	long long int n = size*1<<power;
+	if(n < N)
+	{
+		long long int diff = N-n+size;
+		reduction_general_kernel<<<diff/512+1,512>>>(diff,in+n-size,size,512);
+	}
+	reduction(n,in,size);
 }
+
+template<>
+void reduction_general<float>(long long int N, float* in, long long int size)
+{
+	int power = std::log2(N/size);
+	long long int n = size*1<<power;
+	if(n < N)
+	{
+		long long int diff = N-n+size;
+		reduction_general_kernelf<<<diff/512+1,512>>>(diff,in+n-size,size,512);
+	}
+	reduction(n,in,size);
+}
+

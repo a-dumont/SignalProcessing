@@ -5,6 +5,10 @@ void init_correlations(py::module &m)
 {
 	m.def("auto_correlation_cuda",&autocorrelation_cuda_py<double>, "In"_a.noconvert());
 	m.def("auto_correlation_cuda",&autocorrelation_cuda_py<float>, "In"_a.noconvert());
+	m.def("auto_correlation_cuda",&autocorrelation_block_cuda_py<double>, "In"_a.noconvert(), 
+					"size"_a);
+	m.def("auto_correlation_cuda",&autocorrelation_block_cuda_py<float>, "In"_a.noconvert(), 
+					"size"_a);
 
 	m.def("cross_correlation_cuda",&cross_correlation_cuda_py<double>, "In1"_a.noconvert(),
 					"In2"_a.noconvert());
