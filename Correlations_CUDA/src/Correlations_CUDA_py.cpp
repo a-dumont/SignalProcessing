@@ -23,6 +23,10 @@ void init_correlations(py::module &m)
 					"In2"_a.noconvert());
 	m.def("complete_correlation_cuda",&complete_correlation_cuda_py<float>, "In1"_a.noconvert(),
 					"In2"_a.noconvert());
+	m.def("complete_correlation_cuda",&complete_correlation_block_cuda_py<double>, 
+					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a);
+	m.def("complete_correlation_cuda",&complete_correlation_block_cuda_py<float>, 
+					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a);
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)
