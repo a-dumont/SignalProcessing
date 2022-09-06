@@ -518,7 +518,7 @@ py::array_t<std::complex<DataType2>, py::array::c_style> digitizer_rFFT_Block_As
 					ptr_py_in,
 					size*sizeof(DataType),
 					size*sizeof(DataType),
-					howmany*sizeof(DataType),
+					howmany,
 					cudaMemcpyHostToDevice);
 	
 	convert<DataType,DataType2>((size+2)*howmany,
