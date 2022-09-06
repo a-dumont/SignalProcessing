@@ -689,7 +689,7 @@ digitizer_autocorrelation_cuda_py(
 						cudaMemcpyHostToDevice,
 						streams[0]);
 
-		makePlan<DataType2,long long int>(&plan,size,remaining/size/sizeof(DataType2));
+		makePlan<DataType2,long long int>(&plan,size,remaining/size/sizeof(DataType));
 
 		convert(remaining/sizeof(DataType),
 						gpu_in+transfers*batch*size,
