@@ -23,3 +23,11 @@ void reduction(long long int N, DataType* in, long long int size);
 
 template<class DataType> 
 void reduction_general(long long int N, DataType* in, long long int size);
+
+template<class DataType, class DataType2>
+void convertComplex(long long int N, DataType* in, std::complex<DataType2>* out, 
+				DataType2 conv, DataType offset, cudaStream_t stream);
+
+template<class DataType, class DataType2>
+void convert(long long int N, DataType* in, DataType2* out, 
+				DataType2 conv, DataType offset, cudaStream_t stream);

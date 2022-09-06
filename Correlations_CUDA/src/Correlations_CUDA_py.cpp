@@ -27,6 +27,15 @@ void init_correlations(py::module &m)
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a);
 	m.def("complete_correlation_cuda",&complete_correlation_block_cuda_py<float>, 
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a);
+
+	m.def("digitizer_autocorrelation_cuda",&digitizer_autocorrelation_cuda_py<uint8_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_autocorrelation_cuda",&digitizer_autocorrelation_cuda_py<uint16_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_autocorrelation_cudaf",&digitizer_autocorrelation_cuda_py<uint8_t,float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_autocorrelation_cudaf",&digitizer_autocorrelation_cuda_py<uint16_t,float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)
