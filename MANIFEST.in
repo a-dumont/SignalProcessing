@@ -8,3 +8,5 @@ include SignalProcessing/histograms/libhistograms.so
 include SignalProcessing/histograms/libhistograms.pyd
 include SignalProcessing/fft/libfftcuda.so
 include SignalProcessing/fft/libfftcuda.pyd
+include SignalProcessing/correlations/libcorrelationscuda.so
+include SignalProcessing/correlations/libcorrelationscuda.pyd
