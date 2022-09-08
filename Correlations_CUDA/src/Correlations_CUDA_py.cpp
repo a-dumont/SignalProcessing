@@ -61,7 +61,6 @@ void init_correlations(py::module &m)
 
 	py::class_<DigitizerAutoCorrelationCuda<uint8_t>>(m,"DigitizerAutoCorrelationCuda")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
-			.def("getBuffer",&DigitizerAutoCorrelationCuda<uint8_t>::getBuffer)
 			.def("accumulate",&DigitizerAutoCorrelationCuda<uint8_t>::accumulate)
 			.def("clear",&DigitizerAutoCorrelationCuda<uint8_t>::clear)
 			.def("getResult",&DigitizerAutoCorrelationCuda<uint8_t>::getResult);

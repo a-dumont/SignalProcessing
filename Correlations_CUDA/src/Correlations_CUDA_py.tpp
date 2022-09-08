@@ -1165,7 +1165,6 @@ class DigitizerAutoCorrelationCuda
 		long long int N, size, howmany, data_size, transfers, remaining, batch;
 		long long int transfer_size = 1<<24;
 		long long int count = 0;
-		DataType* cpu_raw;
 		DataType* gpu_raw;
 		std::complex<float>* gpu_data;
 		double* gpu_accumulate;
@@ -1176,7 +1175,6 @@ class DigitizerAutoCorrelationCuda
 		{
 			cudaStreamCreate(&streams[0]);
 			cudaStreamCreate(&streams[1]);
-			cudaMallocHost((void**)&cpu_raw, howmany*size*sizeof(DataType));
 			cudaMalloc((void**)&gpu_raw, howmany*(size+2)*sizeof(DataType));
 			cudaMalloc((void**)&gpu_data, howmany*(size/2+1)*sizeof(std::complex<float>));
 			cudaMalloc((void**)&gpu_accumulate,(size/2+1)*sizeof(double));
@@ -1195,7 +1193,6 @@ class DigitizerAutoCorrelationCuda
 			cudaFree(gpu_accumulate);
 			cufftDestroy(plan);
 			if(remaining!=0){cufftDestroy(plan2);}
-			cudaFree(cpu_raw);
 		}
 	public:
 		DigitizerAutoCorrelationCuda
@@ -1214,17 +1211,20 @@ class DigitizerAutoCorrelationCuda
 		}
 		~DigitizerAutoCorrelationCuda(){cudaDel();}
 		
-		py::array_t<DataType,py::array::c_style> getBuffer()
+		void accumulate(py::array_t<DataType,py::array::c_style> py_in)
 		{
-			py::capsule free_when_done(cpu_raw,dummyFree);
-			py::array_t<DataType,py::array::c_style>
-			cpu_py = py::array_t<DataType,py::array::c_style>
-			({howmany*size},{sizeof(DataType)},cpu_raw,free_when_done);
-			return cpu_py;
-		}
+			py::buffer_info buf_in = py_in.request();
+			if (buf_in.ndim != 1)
+			{
+				throw std::runtime_error("U dumbdumb dimension must be 1.");
+			}	
+			if (buf_in.size < howmany*size)
+			{
+				throw std::runtime_error("U dumbdumb not enough data.");
+			}	
 
-		void accumulate()
-		{
+			DataType* cpu_raw = (DataType*) buf_in.ptr;
+
 			cudaMemcpy2DAsync(gpu_raw,
 							(size+2)*sizeof(DataType),
 							cpu_raw,
@@ -1236,7 +1236,6 @@ class DigitizerAutoCorrelationCuda
 
 			for(long long int i=1;i<transfers;i++)
 			{
-				std::memset(cpu_raw+(i-1)*batch*size,0,batch*size*sizeof(DataType));
 				cudaMemcpy2DAsync(gpu_raw+i*batch*(size+2),
 								(size+2)*sizeof(DataType),
 								cpu_raw+i*batch*size,
@@ -1260,7 +1259,6 @@ class DigitizerAutoCorrelationCuda
 			}
 
 
-			std::memset(cpu_raw+(transfers-1)*batch*size,0,batch*size*sizeof(DataType));
 			convert(batch*(size+2),
 							gpu_raw+(transfers-1)*batch*(size+2),
 							reinterpret_cast<float*>(gpu_data)+(transfers-1)*batch*(size+2),
@@ -1320,6 +1318,5 @@ class DigitizerAutoCorrelationCuda
 		{
 			count = 0;
 			cudaMemset(gpu_accumulate,0,(size/2+1)*sizeof(double));
-			std::memset(cpu_raw,0,size*howmany*sizeof(DataType));
 		}
 };
