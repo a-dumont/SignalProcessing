@@ -58,6 +58,13 @@ void init_correlations(py::module &m)
 	m.def("digitizer_completecorrelation_cudaf",
 					&digitizer_completecorrelation_cuda_py<uint16_t,float>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+
+	py::class_<DigitizerAutoCorrelationCuda<uint8_t>>(m,"DigitizerAutoCorrelationCuda")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("getBuffer",&DigitizerAutoCorrelationCuda<uint8_t>::getBuffer)
+			.def("accumulate",&DigitizerAutoCorrelationCuda<uint8_t>::accumulate)
+			.def("clear",&DigitizerAutoCorrelationCuda<uint8_t>::clear)
+			.def("getResult",&DigitizerAutoCorrelationCuda<uint8_t>::getResult);
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)

@@ -1156,3 +1156,170 @@ digitizer_completecorrelation_cuda_py(
 	({(size/2+1)},{sizeof(std::complex<DataType2>)},out3,free_when_done3));
 }
 
+template<class DataType>
+class DigitizerAutoCorrelationCuda
+{
+	private:
+		float conv;
+		DataType offset;
+		long long int N, size, howmany, data_size, transfers, remaining, batch;
+		long long int transfer_size = 1<<24;
+		long long int count = 0;
+		DataType* cpu_raw;
+		DataType* gpu_raw;
+		std::complex<float>* gpu_data;
+		double* gpu_accumulate;
+		cudaStream_t streams[2];
+		cufftHandle plan, plan2;
+
+		void cudaInit()
+		{
+			cudaStreamCreate(&streams[0]);
+			cudaStreamCreate(&streams[1]);
+			cudaMallocHost((void**)&cpu_raw, howmany*size*sizeof(DataType));
+			cudaMalloc((void**)&gpu_raw, howmany*(size+2)*sizeof(DataType));
+			cudaMalloc((void**)&gpu_data, howmany*(size/2+1)*sizeof(std::complex<float>));
+			cudaMalloc((void**)&gpu_accumulate,(size/2+1)*sizeof(double));
+			makePlan<float, long long int>(&plan,size,batch);
+			if(remaining != 0)
+			{
+				makePlan<float, long long int>(&plan2,size,remaining/size/sizeof(DataType));
+			}
+		}
+		void cudaDel()
+		{
+			cudaStreamDestroy(streams[0]);
+			cudaStreamDestroy(streams[1]);	
+			cudaFree(gpu_raw);
+			cudaFree(gpu_data);
+			cudaFree(gpu_accumulate);
+			cufftDestroy(plan);
+			if(remaining!=0){cufftDestroy(plan2);}
+			cudaFree(cpu_raw);
+		}
+	public:
+		DigitizerAutoCorrelationCuda
+		(llint_t N_in, llint_t size_in, float conv_in, llint_t offset_in)
+		{
+			conv = conv_in;
+			offset = (DataType) offset_in;
+			howmany = N_in/size_in;
+			size = size_in;
+			N = howmany*size;
+			data_size = N*sizeof(DataType);
+			if(data_size/transfer_size == 0){transfers=1;transfer_size=data_size;remaining=0;}
+			else{transfers=data_size/transfer_size;remaining=data_size-transfers*transfer_size;}
+			batch = transfer_size/size/sizeof(DataType);
+			cudaInit();
+		}
+		~DigitizerAutoCorrelationCuda(){cudaDel();}
+		
+		py::array_t<DataType,py::array::c_style> getBuffer()
+		{
+			py::capsule free_when_done(cpu_raw,dummyFree);
+			py::array_t<DataType,py::array::c_style>
+			cpu_py = py::array_t<DataType,py::array::c_style>
+			({howmany*size},{sizeof(DataType)},cpu_raw,free_when_done);
+			return cpu_py;
+		}
+
+		void accumulate()
+		{
+			cudaMemcpy2DAsync(gpu_raw,
+							(size+2)*sizeof(DataType),
+							cpu_raw,
+							size*sizeof(DataType),
+							size*sizeof(DataType),
+							batch,
+							cudaMemcpyHostToDevice,
+							streams[0]);
+
+			for(long long int i=1;i<transfers;i++)
+			{
+				std::memset(cpu_raw+(i-1)*batch*size,0,batch*size*sizeof(DataType));
+				cudaMemcpy2DAsync(gpu_raw+i*batch*(size+2),
+								(size+2)*sizeof(DataType),
+								cpu_raw+i*batch*size,
+								sizeof(DataType)*size,
+								sizeof(DataType)*size,
+								batch,
+								cudaMemcpyHostToDevice,
+								streams[1]);
+
+				convert(batch*(size+2),
+								gpu_raw+(i-1)*batch*(size+2),
+								reinterpret_cast<float*>(gpu_data)+(i-1)*batch*(size+2),
+								conv,
+								offset,
+								streams[0]);
+		
+				rFFT_Block_Async_CUDA(gpu_data+(i-1)*batch*(size/2+1),plan,streams[0]);
+				autocorrelation_convert(batch*(size/2+1),
+								gpu_data+(i-1)*batch*(size/2+1),
+								reinterpret_cast<double*>(gpu_data)+(i-1)*batch*(size/2+1));
+			}
+
+
+			std::memset(cpu_raw+(transfers-1)*batch*size,0,batch*size*sizeof(DataType));
+			convert(batch*(size+2),
+							gpu_raw+(transfers-1)*batch*(size+2),
+							reinterpret_cast<float*>(gpu_data)+(transfers-1)*batch*(size+2),
+							conv,
+							offset,
+							streams[0]);
+
+			rFFT_Block_Async_CUDA(gpu_data+(transfers-1)*batch*(size/2+1),plan,streams[0]);
+			autocorrelation_convert(batch*(size/2+1),
+								gpu_data+(transfers-1)*batch*(size/2+1),
+								reinterpret_cast<double*>
+								(gpu_data)+(transfers-1)*batch*(size/2+1));
+
+			if(remaining != 0)
+			{
+				cudaMemcpy2DAsync(gpu_raw+transfers*batch*(size+2),
+								(size+2)*sizeof(DataType),
+								cpu_raw+transfers*transfer_size/sizeof(DataType),
+								sizeof(DataType)*size,
+								sizeof(DataType)*size,
+								remaining/size/sizeof(DataType),
+								cudaMemcpyHostToDevice,
+								streams[0]);
+
+				convert(remaining/sizeof(DataType),
+								gpu_raw+transfers*batch*size,
+								reinterpret_cast<float*>(gpu_data)+transfers*batch*(size+2),
+								conv,
+								offset,
+								streams[0]);
+
+				rFFT_Block_Async_CUDA(gpu_data+transfers*batch*(size/2+1),plan,streams[0]);
+				autocorrelation_convert(remaining/size/sizeof(DataType)*(size/2+1),
+									gpu_data+transfers*batch*(size/2+1),
+									reinterpret_cast<double*>
+									(gpu_data)+transfers*batch*(size/2+1));
+	
+				reduction_general(howmany*(size/2+1),
+								reinterpret_cast<double*>(gpu_data),size/2+1);
+			}
+			else{reduction(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data),size/2+1);}
+			add_cuda(size/2+1,reinterpret_cast<double*>(gpu_data),gpu_accumulate);
+			count += 1;
+		}
+		py::array_t<double,py::array::c_style> getResult()
+		{
+			if(count == 0){throw std::runtime_error("U dumbdumb accumulate first");}
+			double* out;
+			out = (double*) malloc((size/2+1)*sizeof(double));
+			cudaMemcpy(out,gpu_accumulate,(size/2+1)*sizeof(double),cudaMemcpyDeviceToHost);
+			for(long long int i=0;i<(size/2+1);i++){out[i] *= 1.0/count/howmany;}
+			py::capsule free_when_done1(out,free);
+			return py::array_t<double,py::array::c_style>
+			({size/2+1},{sizeof(double)},out,free_when_done1);
+		}
+		void clear()
+		{
+			count = 0;
+			cudaMemset(gpu_accumulate,0,(size/2+1)*sizeof(double));
+			std::memset(cpu_raw,0,size*howmany*sizeof(DataType));
+		}
+};

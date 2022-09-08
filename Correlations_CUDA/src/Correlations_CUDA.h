@@ -31,3 +31,8 @@ void convertComplex(long long int N, DataType* in, std::complex<DataType2>* out,
 template<class DataType, class DataType2>
 void convert(long long int N, DataType* in, DataType2* out, 
 				DataType2 conv, DataType offset, cudaStream_t stream);
+
+void autocorrelation_convert(long long int N, std::complex<float>* in, double* out);
+
+template<class DataType>
+void add_cuda(long long int N, DataType* in, DataType* out);

@@ -386,3 +386,62 @@ void convert<uint16_t,float>(long long int N, uint16_t* in, float* out,
 	convert_kernelf<uint16_t><<<(N/512)+1,512,0,stream>>>(N,in,out,conv,offset,512);
 	cudaDeviceSynchronize();
 }
+
+__global__	void autocorrelation_convert_kernel(long long int N, cuFloatComplex* in, 
+				double* out, int threads)
+{
+	// Compute the correlation
+	long long int i = threadIdx.x+blockIdx.x*threads;
+	if(i<N)
+	{
+		out[i] = cuCrealf(in[i])*cuCrealf(in[i])+cuCimagf(in[i])*cuCimagf(in[i]);
+	}  
+}
+
+void autocorrelation_convert(long long int N, std::complex<float>* in, double* out)
+{
+	int threads = 512;
+	long long int blocks = N/threads;
+	autocorrelation_convert_kernel<<<blocks+1,threads>>>(N,
+					reinterpret_cast<cuFloatComplex*>(in),out,threads);
+	cudaDeviceSynchronize();
+}
+
+__global__ void add_kernel(long long int N, double* in, double* out, int threads)
+{
+	long long int i = threadIdx.x+blockIdx.x*threads;
+	if(i<N)
+	{
+		out[i] += in[i];
+	}  
+}
+
+__global__ void add_kernelf(long long int N, float* in, float* out, int threads)
+{
+	long long int i = threadIdx.x+blockIdx.x*threads;
+	if(i<N)
+	{
+		out[i] += in[i];
+	}  
+}
+
+template<class DataType>
+void add_cuda(long long int N, DataType* in, DataType* out){}
+
+template<>
+void add_cuda<double>(long long int N, double* in, double* out)
+{
+	int threads = 512;
+	long long int blocks = N/threads+1;
+	add_kernel<<<blocks,threads>>>(N,in,out,threads);
+	cudaDeviceSynchronize();
+}
+
+template<>
+void add_cuda<float>(long long int N, float* in, float* out)
+{
+	int threads = 512;
+	long long int blocks = N/threads+1;
+	add_kernelf<<<blocks,threads>>>(N,in,out,threads);
+	cudaDeviceSynchronize();
+}
