@@ -454,9 +454,9 @@ __global__	void cross_correlation_convert_kernel(long long int N, cuFloatComplex
 	cuFloatComplex temp;
 	if(i<N)
 	{ 
-		in1[i] = cuCmulf(in1[i],cuConjf(in2[i]));
-		out2[i] = cuCimagf(temp);
+		temp = cuCmulf(in1[i],cuConjf(in2[i]));
 		out1[i] = cuCrealf(temp);
+		out2[i] = cuCimagf(temp);
 	}
 }
 
