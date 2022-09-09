@@ -36,3 +36,8 @@ void autocorrelation_convert(long long int N, std::complex<float>* in, double* o
 
 template<class DataType>
 void add_cuda(long long int N, DataType* in, DataType* out);
+
+void crosscorrelation_convert(long long int N, std::complex<float>* in1, 
+				std::complex<float>*in2, double* out1, double* out2);
+
+void add_complex_cuda(long long int N, double* in1, double* in2, double* out);

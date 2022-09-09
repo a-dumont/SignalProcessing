@@ -445,3 +445,48 @@ void add_cuda<float>(long long int N, float* in, float* out)
 	add_kernelf<<<blocks,threads>>>(N,in,out,threads);
 	cudaDeviceSynchronize();
 }
+
+__global__	void cross_correlation_convert_kernel(long long int N, cuFloatComplex* in1, 
+				cuFloatComplex* in2, double* out1, double* out2, int threads)
+{
+	// Compute the correlation
+	int i = threadIdx.x+blockIdx.x*threads;
+	cuFloatComplex temp;
+	if(i<N)
+	{ 
+		in1[i] = cuCmulf(in1[i],cuConjf(in2[i]));
+		out2[i] = cuCimagf(temp);
+		out1[i] = cuCrealf(temp);
+	}
+}
+
+void crosscorrelation_convert(long long int N, std::complex<float>* in1, 
+				std::complex<float>*in2, double* out1, double* out2)
+{
+	int threads = 512;
+	long long int blocks = N/threads;
+	cross_correlation_convert_kernel<<<blocks+1,threads>>>(N,
+					reinterpret_cast<cuFloatComplex*>(in1),
+					reinterpret_cast<cuFloatComplex*>(in2),
+					out1,out2,threads);
+	cudaDeviceSynchronize();
+}
+
+__global__ void add_complex_kernel(long long int N, double* in1, double* in2, double* out, 
+				int threads)
+{
+	long long int i = threadIdx.x+blockIdx.x*threads;
+	if(i<N)
+	{
+		out[2*i] += in1[i];
+		out[2*i+1] += in2[i];
+	}  
+}
+
+void add_complex_cuda(long long int N, double* in1, double* in2, double* out)
+{
+	int threads = 512;
+	long long int blocks = N/threads+1;
+	add_complex_kernel<<<blocks,threads>>>(N,in1,in2,out,threads);
+	cudaDeviceSynchronize();
+}
