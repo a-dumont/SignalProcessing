@@ -77,11 +77,23 @@ void init_correlations(py::module &m)
 			.def("clear",&DigitizerCrossCorrelationCuda<uint8_t>::clear)
 			.def("getResult",&DigitizerCrossCorrelationCuda<uint8_t>::getResult);
 
+	py::class_<DigitizerCrossCorrelationCuda<uint16_t>>(m,"DigitizerCrossCorrelationCuda16")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("accumulate",&DigitizerCrossCorrelationCuda<uint16_t>::accumulate)
+			.def("clear",&DigitizerCrossCorrelationCuda<uint16_t>::clear)
+			.def("getResult",&DigitizerCrossCorrelationCuda<uint16_t>::getResult);
+
 	py::class_<DigitizerCompleteCorrelationCuda<uint8_t>>(m,"DigitizerCompleteCorrelationCuda")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
 			.def("accumulate",&DigitizerCompleteCorrelationCuda<uint8_t>::accumulate)
 			.def("clear",&DigitizerCompleteCorrelationCuda<uint8_t>::clear)
 			.def("getResult",&DigitizerCompleteCorrelationCuda<uint8_t>::getResult);
+
+	py::class_<DigitizerCompleteCorrelationCuda<uint16_t>>(m,"DigitizerCompleteCorrelationCuda16")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("accumulate",&DigitizerCompleteCorrelationCuda<uint16_t>::accumulate)
+			.def("clear",&DigitizerCompleteCorrelationCuda<uint16_t>::clear)
+			.def("getResult",&DigitizerCompleteCorrelationCuda<uint16_t>::getResult);
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)
