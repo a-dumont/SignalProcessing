@@ -41,3 +41,6 @@ void crosscorrelation_convert(long long int N, std::complex<float>* in1,
 				std::complex<float>*in2, double* out1, double* out2);
 
 void add_complex_cuda(long long int N, double* in1, double* in2, double* out);
+
+void completecorrelation_convert(long long int N, std::complex<float>* in1, 
+				std::complex<float>*in2, double* out1, double* out2, double* out3, double* out4);

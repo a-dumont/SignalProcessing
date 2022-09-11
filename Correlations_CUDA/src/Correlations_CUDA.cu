@@ -490,3 +490,33 @@ void add_complex_cuda(long long int N, double* in1, double* in2, double* out)
 	add_complex_kernel<<<blocks,threads>>>(N,in1,in2,out,threads);
 	cudaDeviceSynchronize();
 }
+
+__global__	void complete_correlation_convert_kernel(long long int N, float* in1, 
+				float* in2, double* out1, double* out2, double* out3, double* out4,int threads)
+{
+	// Compute the correlation
+	int i = threadIdx.x+blockIdx.x*threads;
+	float a,b,c,d;
+	if(i<N)
+	{ 
+		a = in1[2*i]; b = in1[2*i+1];
+		c = in2[2*i]; d = -in2[2*i+1];
+		out1[i] = a*c+b*d;
+		out2[i] = a*d+b*c;
+		out3[i] = a*a+b*b;
+		out4[i] = c*c+d*d;
+	}
+}
+
+void completecorrelation_convert(long long int N, std::complex<float>* in1, 
+				std::complex<float>*in2, double* out1, double* out2, double* out3, double* out4)
+{
+	int threads = 512;
+	long long int blocks = N/threads;
+	complete_correlation_convert_kernel<<<blocks+1,threads>>>(N,
+					reinterpret_cast<float*>(in1),
+					reinterpret_cast<float*>(in2),
+					out1,out2,out3,out4,threads);
+	cudaDeviceSynchronize();
+}
+
