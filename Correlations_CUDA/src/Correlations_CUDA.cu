@@ -312,6 +312,16 @@ void convertComplex<uint16_t,double>(long long int N, uint16_t* in, std::complex
 }
 
 template<>
+void convertComplex<int16_t,double>(long long int N, int16_t* in, std::complex<double>* out,
+				double conv, int16_t offset, cudaStream_t stream)
+{
+	convertComplex_kernel<int16_t><<<(N/512)+1,512,0,stream>>>(
+					N,in,reinterpret_cast<cuDoubleComplex*>(out),conv,offset,512);
+	cudaDeviceSynchronize();
+}
+
+
+template<>
 void convertComplex<uint8_t,float>(long long int N, uint8_t* in, std::complex<float>* out,
 				float conv, uint8_t offset, cudaStream_t stream)
 {
@@ -325,6 +335,15 @@ void convertComplex<uint16_t,float>(long long int N, uint16_t* in, std::complex<
 				float conv, uint16_t offset, cudaStream_t stream)
 {
 	convertComplex_kernelf<uint16_t><<<(N/512)+1,512,0,stream>>>(
+					N,in,reinterpret_cast<cuFloatComplex*>(out),conv,offset,512);
+	cudaDeviceSynchronize();
+}
+
+template<>
+void convertComplex<int16_t,float>(long long int N, int16_t* in, std::complex<float>* out,
+				float conv, int16_t offset, cudaStream_t stream)
+{
+	convertComplex_kernelf<int16_t><<<(N/512)+1,512,0,stream>>>(
 					N,in,reinterpret_cast<cuFloatComplex*>(out),conv,offset,512);
 	cudaDeviceSynchronize();
 }
@@ -372,6 +391,14 @@ void convert<uint16_t,double>(long long int N, uint16_t* in, double* out,
 }
 
 template<>
+void convert<int16_t,double>(long long int N, int16_t* in, double* out,
+				double conv, int16_t offset, cudaStream_t stream)
+{
+	convert_kernel<int16_t><<<(N/512)+1,512,0,stream>>>(N,in,out,conv,offset,512);
+	cudaDeviceSynchronize();
+}
+
+template<>
 void convert<uint8_t,float>(long long int N, uint8_t* in, float* out,
 				float conv, uint8_t offset, cudaStream_t stream)
 {
@@ -386,6 +413,15 @@ void convert<uint16_t,float>(long long int N, uint16_t* in, float* out,
 	convert_kernelf<uint16_t><<<(N/512)+1,512,0,stream>>>(N,in,out,conv,offset,512);
 	cudaDeviceSynchronize();
 }
+
+template<>
+void convert<int16_t,float>(long long int N, int16_t* in, float* out,
+				float conv, int16_t offset, cudaStream_t stream)
+{
+	convert_kernelf<int16_t><<<(N/512)+1,512,0,stream>>>(N,in,out,conv,offset,512);
+	cudaDeviceSynchronize();
+}
+
 
 __global__	void autocorrelation_convert_kernel(long long int N, cuFloatComplex* in, 
 				double* out, int threads)

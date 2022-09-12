@@ -65,11 +65,11 @@ void init_correlations(py::module &m)
 			.def("clear",&DigitizerAutoCorrelationCuda<uint8_t>::clear)
 			.def("getResult",&DigitizerAutoCorrelationCuda<uint8_t>::getResult);
 
-	py::class_<DigitizerAutoCorrelationCuda<uint16_t>>(m,"DigitizerAutoCorrelationCuda16")
+	py::class_<DigitizerAutoCorrelationCuda<int16_t>>(m,"DigitizerAutoCorrelationCuda16")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
-			.def("accumulate",&DigitizerAutoCorrelationCuda<uint16_t>::accumulate)
-			.def("clear",&DigitizerAutoCorrelationCuda<uint16_t>::clear)
-			.def("getResult",&DigitizerAutoCorrelationCuda<uint16_t>::getResult);
+			.def("accumulate",&DigitizerAutoCorrelationCuda<int16_t>::accumulate)
+			.def("clear",&DigitizerAutoCorrelationCuda<int16_t>::clear)
+			.def("getResult",&DigitizerAutoCorrelationCuda<int16_t>::getResult);
 
 	py::class_<DigitizerCrossCorrelationCuda<uint8_t>>(m,"DigitizerCrossCorrelationCuda")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
@@ -77,11 +77,11 @@ void init_correlations(py::module &m)
 			.def("clear",&DigitizerCrossCorrelationCuda<uint8_t>::clear)
 			.def("getResult",&DigitizerCrossCorrelationCuda<uint8_t>::getResult);
 
-	py::class_<DigitizerCrossCorrelationCuda<uint16_t>>(m,"DigitizerCrossCorrelationCuda16")
+	py::class_<DigitizerCrossCorrelationCuda<int16_t>>(m,"DigitizerCrossCorrelationCuda16")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
-			.def("accumulate",&DigitizerCrossCorrelationCuda<uint16_t>::accumulate)
-			.def("clear",&DigitizerCrossCorrelationCuda<uint16_t>::clear)
-			.def("getResult",&DigitizerCrossCorrelationCuda<uint16_t>::getResult);
+			.def("accumulate",&DigitizerCrossCorrelationCuda<int16_t>::accumulate)
+			.def("clear",&DigitizerCrossCorrelationCuda<int16_t>::clear)
+			.def("getResult",&DigitizerCrossCorrelationCuda<int16_t>::getResult);
 
 	py::class_<DigitizerCompleteCorrelationCuda<uint8_t>>(m,"DigitizerCompleteCorrelationCuda")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
@@ -89,11 +89,23 @@ void init_correlations(py::module &m)
 			.def("clear",&DigitizerCompleteCorrelationCuda<uint8_t>::clear)
 			.def("getResult",&DigitizerCompleteCorrelationCuda<uint8_t>::getResult);
 
-	py::class_<DigitizerCompleteCorrelationCuda<uint16_t>>(m,"DigitizerCompleteCorrelationCuda16")
+	py::class_<DigitizerCompleteCorrelationCuda<int16_t>>(m,"DigitizerCompleteCorrelationCuda16")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
-			.def("accumulate",&DigitizerCompleteCorrelationCuda<uint16_t>::accumulate)
-			.def("clear",&DigitizerCompleteCorrelationCuda<uint16_t>::clear)
-			.def("getResult",&DigitizerCompleteCorrelationCuda<uint16_t>::getResult);
+			.def("accumulate",&DigitizerCompleteCorrelationCuda<int16_t>::accumulate)
+			.def("clear",&DigitizerCompleteCorrelationCuda<int16_t>::clear)
+			.def("getResult",&DigitizerCompleteCorrelationCuda<int16_t>::getResult);
+
+	py::class_<DigitizerAutoCorrelationPadCuda<uint8_t>>(m,"DigitizerAutoCorrelationPadCuda")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("accumulate",&DigitizerAutoCorrelationPadCuda<uint8_t>::accumulate)
+			.def("clear",&DigitizerAutoCorrelationPadCuda<uint8_t>::clear)
+			.def("getResult",&DigitizerAutoCorrelationPadCuda<uint8_t>::getResult);
+
+	py::class_<DigitizerAutoCorrelationPadCuda<int16_t>>(m,"DigitizerAutoCorrelationPadCuda16")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("accumulate",&DigitizerAutoCorrelationPadCuda<int16_t>::accumulate)
+			.def("clear",&DigitizerAutoCorrelationPadCuda<int16_t>::clear)
+			.def("getResult",&DigitizerAutoCorrelationPadCuda<int16_t>::getResult);
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)
