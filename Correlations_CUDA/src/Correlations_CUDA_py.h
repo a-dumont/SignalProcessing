@@ -14,6 +14,9 @@ using namespace pybind11::literals;
 
 typedef py::array_t<double,py::array::c_style> np_double;
 typedef py::array_t<std::complex<double>,py::array::c_style> np_complex;
-typedef std::complex<double> dbl_complex; 
+typedef std::complex<double> dbl_complex;
+typedef long long int llint_t;
+
+void dummyFree(void* ptr){}
 
 #include "Correlations_CUDA_py.tpp"
