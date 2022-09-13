@@ -537,7 +537,7 @@ __global__	void complete_correlation_convert_kernel(long long int N, float* in1,
 	{ 
 		a = in1[2*i]; b = in1[2*i+1];
 		c = in2[2*i]; d = -in2[2*i+1];
-		out1[i] = a*c+b*d;
+		out1[i] = a*c-b*d;
 		out2[i] = a*d+b*c;
 		out3[i] = a*a+b*b;
 		out4[i] = c*c+d*d;

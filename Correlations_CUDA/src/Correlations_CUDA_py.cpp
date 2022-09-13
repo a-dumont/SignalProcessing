@@ -118,6 +118,20 @@ void init_correlations(py::module &m)
 			.def("accumulate",&DigitizerCrossCorrelationPadCuda<int16_t>::accumulate)
 			.def("clear",&DigitizerCrossCorrelationPadCuda<int16_t>::clear)
 			.def("getResult",&DigitizerCrossCorrelationPadCuda<int16_t>::getResult);
+
+	py::class_<DigitizerCompleteCorrelationPadCuda<uint8_t>>
+			(m,"DigitizerCompleteCorrelationPadCuda")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("accumulate",&DigitizerCompleteCorrelationPadCuda<uint8_t>::accumulate)
+			.def("clear",&DigitizerCompleteCorrelationPadCuda<uint8_t>::clear)
+			.def("getResult",&DigitizerCompleteCorrelationPadCuda<uint8_t>::getResult);
+
+	py::class_<DigitizerCompleteCorrelationPadCuda<int16_t>>
+			(m,"DigitizerCompleteCorrelationPadCuda16")
+			.def(py::init<llint_t,llint_t,float,llint_t>())
+			.def("accumulate",&DigitizerCompleteCorrelationPadCuda<int16_t>::accumulate)
+			.def("clear",&DigitizerCompleteCorrelationPadCuda<int16_t>::clear)
+			.def("getResult",&DigitizerCompleteCorrelationPadCuda<int16_t>::getResult);
 }
 
 PYBIND11_MODULE(libcorrelationscuda, m)
