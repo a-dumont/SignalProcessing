@@ -4,7 +4,8 @@
 #include <pybind11/numpy.h>
 #include <stdexcept>
 #include <cuda_runtime_api.h>
-#include<cmath>
+#include <cmath>
+#include <cstdint>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

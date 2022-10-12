@@ -19,6 +19,60 @@ void vector_sum(llint_t N, DataType* in1, DataType* in2)
 }
 
 template <class DataType>
+__global__ void vector_product_kernel(llint_t N, DataType* in1, DataType* in2)
+{
+	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
+	if(i<N)
+	{
+		in1[i] *= in2[i];
+	}
+}
+
+template <class DataType>
+void vector_product(llint_t N, DataType* in1, DataType* in2)
+{
+	int threads = 512;
+	int blocks = N/512+1;
+	vector_product_kernel<<<blocks,threads>>>(N,in1,in2);
+}
+
+template <class DataType>
+__global__ void vector_diff_kernel(llint_t N, DataType* in1, DataType* in2)
+{
+	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
+	if(i<N)
+	{
+		in1[i] -= in2[i];
+	}
+}
+
+template <class DataType>
+void vector_diff(llint_t N, DataType* in1, DataType* in2)
+{
+	int threads = 512;
+	int blocks = N/512+1;
+	vector_diff_kernel<<<blocks,threads>>>(N,in1,in2);
+}
+
+template <class DataType>
+__global__ void vector_div_kernel(llint_t N, DataType* in1, DataType* in2)
+{
+	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
+	if(i<N)
+	{
+		in1[i] /= in2[i];
+	}
+}
+
+template <class DataType>
+void vector_div(llint_t N, DataType* in1, DataType* in2)
+{
+	int threads = 512;
+	int blocks = N/512+1;
+	vector_div_kernel<<<blocks,threads>>>(N,in1,in2);
+}
+
+template <class DataType>
 __global__ void matrix_sum_kernel(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
 {
 	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
@@ -35,6 +89,63 @@ void martrix_sum(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
 	dim3 threads(512, 512);
     dim3 blocks(Nr/512+1, Nc/512+1);
 	matrix_sum_kernel<<<blocks,threads>>>(Nr,Nc,in1,in2);
+}
+
+template <class DataType>
+__global__ void matrix_prod_kernel(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
+{
+	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
+	long long int j = blockIdx.y*blockDim.y+threadIdx.y;
+	if(i<Nr && j<Nc)
+	{
+		in1[i*Nc+j] *= in2[i*Nc+j];
+	}
+}
+
+template <class DataType>
+void martrix_prod(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
+{
+	dim3 threads(512, 512);
+    dim3 blocks(Nr/512+1, Nc/512+1);
+	matrix_prod_kernel<<<blocks,threads>>>(Nr,Nc,in1,in2);
+}
+
+template <class DataType>
+__global__ void matrix_diff_kernel(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
+{
+	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
+	long long int j = blockIdx.y*blockDim.y+threadIdx.y;
+	if(i<Nr && j<Nc)
+	{
+		in1[i*Nc+j] -= in2[i*Nc+j];
+	}
+}
+
+template <class DataType>
+void martrix_diff(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
+{
+	dim3 threads(512, 512);
+    dim3 blocks(Nr/512+1, Nc/512+1);
+	matrix_diff_kernel<<<blocks,threads>>>(Nr,Nc,in1,in2);
+}
+
+template <class DataType>
+__global__ void matrix_div_kernel(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
+{
+	long long int i = blockIdx.x*blockDim.x+threadIdx.x;
+	long long int j = blockIdx.y*blockDim.y+threadIdx.y;
+	if(i<Nr && j<Nc)
+	{
+		in1[i*Nc+j] /= in2[i*Nc+j];
+	}
+}
+
+template <class DataType>
+void martrix_div(llint_t Nr, llint_t Nc, DataType* in1, DataType* in2)
+{
+	dim3 threads(512, 512);
+    dim3 blocks(Nr/512+1, Nc/512+1);
+	matrix_div_kernel<<<blocks,threads>>>(Nr,Nc,in1,in2);
 }
 
 template <class DataType>
