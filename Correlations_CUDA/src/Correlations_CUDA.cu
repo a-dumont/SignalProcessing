@@ -615,6 +615,7 @@ void completecorrelation_convert(long long int N, std::complex<float>* in1,
 					reinterpret_cast<float*>(in1),
 					reinterpret_cast<float*>(in2),
 					out1,out2,out3,out4,threads);
+<<<<<<< HEAD
 }
 
 __global__ void round_kernel(long long int N, double* in, int threads)
@@ -729,3 +730,7 @@ void mul<float>(long long int N, float* in, float m)
 	mul_kernelf<<<blocks+1,threads>>>(N,in,m,threads);
 }
 
+=======
+	cudaDeviceSynchronize();
+}
+>>>>>>> c8763438cb3c8b01d4083a26d1da491d24c5567d
