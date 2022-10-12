@@ -555,4 +555,3 @@ void completecorrelation_convert(long long int N, std::complex<float>* in1,
 					out1,out2,out3,out4,threads);
 	cudaDeviceSynchronize();
 }
-
