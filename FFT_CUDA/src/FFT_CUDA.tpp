@@ -411,3 +411,58 @@ void irFFT_CUDA<float>(int n, float* in)
 	}
 	cufftDestroy(plan);
 }
+
+template<class DataType>
+void makePlanInv(cufftHandle* plan,
+				long long int size, long long int batch){}
+
+template<>
+void makePlanInv<double>(cufftHandle* plan, 
+				long long int size, long long int batch)
+{
+	cufftResult_t res = cufftPlan1d(plan, size, CUFFT_Z2D, batch);
+	if (res != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation Failed");
+	}
+}
+
+template<>
+void makePlanInv<float>(cufftHandle* plan, 
+				long long int size, long long int batch)
+{
+	cufftResult_t res = cufftPlan1d(plan, size, CUFFT_C2R, batch);
+	if (res != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation Failed");
+	}
+}
+
+template<class DataType>
+void irFFT_Block_Async_CUDA(DataType* in, cufftHandle plan, cudaStream_t stream){}
+
+template<>
+void irFFT_Block_Async_CUDA<std::complex<double>>(std::complex<double>* in, cufftHandle plan, cudaStream_t stream)
+{
+	cufftSetStream(plan, stream);	
+	if (cufftExecZ2D(plan, reinterpret_cast<cufftDoubleComplex*>(in), 
+							reinterpret_cast<cufftDoubleReal*>(in)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecD2Z Forward failed");
+	}
+}
+
+template<>
+void irFFT_Block_Async_CUDA<std::complex<float>>(std::complex<float>* in, 
+				cufftHandle plan, cudaStream_t stream)
+{
+	cufftSetStream(plan, stream);	
+	if (cufftExecC2R(plan, reinterpret_cast<cufftComplex*>(in), 
+							reinterpret_cast<cufftReal*>(in)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecR2C Forward failed");
+	}
+}
+
