@@ -22,8 +22,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_sum<DataType>(n,gpu,gpu+n);
 	
@@ -59,13 +59,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_sum<DataType>(n,gpu,gpu+n);
 	
@@ -73,7 +73,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{n/2},
 		{2*sizeof(DataType)},
@@ -106,8 +106,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_product<DataType>(n,gpu,gpu+n);
 	
@@ -143,13 +143,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_product<DataType>(n,gpu,gpu+n);
 	
@@ -157,7 +157,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{n/2},
 		{2*sizeof(DataType)},
@@ -190,8 +190,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_diff<DataType>(n,gpu,gpu+n);
 	
@@ -227,13 +227,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_diff<DataType>(n,gpu,gpu+n);
 	
@@ -241,7 +241,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{n/2},
 		{2*sizeof(DataType)},
@@ -274,8 +274,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_div<DataType>(n,gpu,gpu+n);
 	
@@ -311,13 +311,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	vector_div<DataType>(n,gpu,gpu+n);
 	
@@ -325,7 +325,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{n/2},
 		{2*sizeof(DataType)},
@@ -364,8 +364,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_sum<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -407,13 +407,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_sum<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -421,7 +421,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{nr/2,nc/2},
 		{nc*sizeof(DataType),2*sizeof(DataType)},
@@ -460,8 +460,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_prod<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -503,13 +503,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_prod<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -517,7 +517,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{nr/2,nc/2},
 		{nc*sizeof(DataType),2*sizeof(DataType)},
@@ -556,8 +556,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_diff<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -599,13 +599,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_diff<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -613,7 +613,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{nr/2,nc/2},
 		{nc*sizeof(DataType),2*sizeof(DataType)},
@@ -652,8 +652,8 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_div<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -695,13 +695,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	DataType* in1 = (DataType*) buf_in1.ptr;
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
-	DataType* out = (DataType*) malloc(n*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) malloc(n*sizeof(DataType));
 
 	DataType* gpu;
 	cudaMalloc((void**)&gpu, 2*n*sizeof(DataType));
 	
-	cudaMemcpy(gpu,ptr_py_in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
-	cudaMemcpy(gpu+n,ptr_py_in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu,in1,sizeof(DataType)*n,cudaMemcpyHostToDevice);
+	cudaMemcpy(gpu+n,in2,sizeof(DataType)*n,cudaMemcpyHostToDevice);
 	
 	matrix_div<DataType>(nr,nc,gpu,gpu+n);
 	
@@ -709,7 +709,7 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	cudaFree(gpu);
 
 	py::capsule free_when_done(out, free);
-	return py::array_t<DataType, py::array::c_style> 
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{nr/2,nc/2},
 		{nc*sizeof(DataType),2*sizeof(DataType)},

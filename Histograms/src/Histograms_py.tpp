@@ -1086,6 +1086,47 @@ py::array_t<DataType,py::array::c_style> histogram_nth_order_derivative_py(
 }
 
 template<class DataType>
+py::array_t<DataType,py::array::c_style> detailed_balance_py(
+				py::array_t<DataType,py::array::c_style> p_density_py,
+				py::array_t<DataType,py::array::c_style> gamma_py,
+				long long int time_index)
+{
+	py::buffer_info buf_p = p_density_py.request();
+	py::buffer_info buf_g = gamma_py.request();
+	if(buf_p.ndim != 2)
+	{throw std::runtime_error("U dumbdumb p_density must be a matrix.");}
+	if(p_density_py.shape(0) != p_density_py.shape(1))
+	{throw std::runtime_error("U dumbdumb p_density must be square.");}
+	if(buf_g.ndim != 5)
+	{throw std::runtime_error("U dumbdumb gamma must have shape (N,bins,bins,bins,bins).");}
+	if(p_density_py.shape(0) != gamma_py.shape(1))
+	{throw std::runtime_error("U dumbdumb p_density and gamma shapes must match.");}
+	if(time_index >= gamma_py.shape(0))
+	{throw std::runtime_error("U dumbdumb time_index too large.");}
+	long long int bins = gamma_py.shape(1);
+	long long int size = bins*bins*bins*bins;
+	long long int offset = time_index*size;
+	uint64_t stride3 = bins*bins*bins*sizeof(DataType);
+	uint64_t stride2 = bins*bins*sizeof(DataType);
+	DataType* out;
+	out = (DataType*) malloc(sizeof(DataType)*size);
+
+	DataType* p_density = (DataType*) buf_p.ptr;
+	DataType* gamma = (DataType*) buf_g.ptr;
+
+	detailed_balance(bins,p_density,gamma+offset,out);
+	
+	py::capsule free_when_done(out,free);
+	return py::array_t<DataType,py::array::c_style>
+	(
+		{bins,bins,bins,bins},
+		std::vector<uint64_t>{stride3,stride2,bins*sizeof(DataType),sizeof(DataType)},
+		out,
+		free_when_done
+	);
+}
+
+template<class DataType>
 np_uint32 digitizer_histogram_py(py::array_t<DataType,py::array::c_style> data_in)
 {
 	uint64_t size = (1<<(8*sizeof(DataType)));

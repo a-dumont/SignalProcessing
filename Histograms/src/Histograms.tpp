@@ -442,6 +442,27 @@ void histogram_nth_order_derivative(long long int nbins, DataType* data_after, D
 }
 
 template<class DataType>
+void detailed_balance(long long int bins, DataType* p_density, DataType* gamma, DataType* out)
+{
+	#pragma omp parallel for
+	for(int i=0;i<bins;i++)
+	{
+		for(int j=0;j<bins;j++)
+		{
+			for(int k=0;k<bins;k++)
+			{
+				for(int l=0;l<bins;l++)
+				{
+					out[i*bins*bins*bins+j*bins*bins+k*bins+l] = 
+					p_density[i*bins+j]*gamma[i*bins*bins*bins+j*bins*bins+k*bins+l]-
+					p_density[k*bins+l]*gamma[k*bins*bins*bins+l*bins*bins+i*bins+j];
+				}
+			}
+		}
+	}
+}
+
+template<class DataType>
 void digitizer_histogram(uint32_t* hist, DataType* data, uint64_t N)
 {
 	uint64_t size = 1<<(sizeof(DataType)*8);

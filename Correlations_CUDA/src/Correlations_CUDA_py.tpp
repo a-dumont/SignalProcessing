@@ -1864,6 +1864,7 @@ class DigitizerAutoCorrelationPadCuda
 		DataType* gpu_raw;
 		std::complex<double>* gpu_data;
 		long long int* gpu_accumulate;
+		double* gpu_accumulate2;
 		cudaStream_t streams[2];
 		cufftHandle plan, plan2, plan3, plan_inv;
 
@@ -1874,7 +1875,9 @@ class DigitizerAutoCorrelationPadCuda
 			cudaMalloc((void**)&gpu_raw, howmany*(2*size+2)*sizeof(DataType));
 			cudaMalloc((void**)&gpu_data, howmany*(size+1)*sizeof(std::complex<double>));
 			cudaMalloc((void**)&gpu_accumulate,(2*size+2)*sizeof(long long int));
+			cudaMalloc((void**)&gpu_accumulate2,(2*size+2)*sizeof(double));
 			makePlan<double, long long int>(&plan,2*size,batch);
+			makePlan<double, long long int>(&plan3,2*size,1);
 			makePlanInv<double>(&plan_inv,2*size,1);
 			if(remaining != 0)
 			{
@@ -1888,7 +1891,9 @@ class DigitizerAutoCorrelationPadCuda
 			cudaFree(gpu_raw);
 			cudaFree(gpu_data);
 			cudaFree(gpu_accumulate);
+			cudaFree(gpu_accumulate2);
 			cufftDestroy(plan);
+			cufftDestroy(plan3);
 			cufftDestroy(plan_inv);
 			if(remaining!=0){cufftDestroy(plan2);}
 		}
@@ -2014,30 +2019,19 @@ class DigitizerAutoCorrelationPadCuda
 			count += 1;
 			cudaMemset(gpu_data,0,howmany*(2*size+2)*sizeof(double));
 		}
-		py::array_t<double,py::array::c_style> getResult()
-		{
-			if(count == 0){throw std::runtime_error("U dumbdumb accumulate first");}
-			double* out;
-			out = (double*) malloc((size+1)*sizeof(double));
-			cudaMemcpy(out,gpu_accumulate,(size+1)*sizeof(double),cudaMemcpyDeviceToHost);
-			for(long long int i=0;i<(size+1);i++){out[i] *= 1.0/count;}
-			py::capsule free_when_done1(out,free);
-			return py::array_t<double,py::array::c_style>
-			({size+1},{sizeof(double)},out,free_when_done1);
-		}
 		py::array_t<double,py::array::c_style> getResultTime()
 		{
 			if(count == 0){throw std::runtime_error("U dumbdumb accumulate first");}
 			long long int* out;
-			out = (long long int*) malloc(2*size*sizeof(long long int));
-			cudaMemcpy(out,gpu_accumulate,2*size*sizeof(long long int),cudaMemcpyDeviceToHost);
-			for(long long int i=0;i<(size*2);i++)
+			out = (long long int*) malloc(size*sizeof(long long int));
+			cudaMemcpy(out,gpu_accumulate,size*sizeof(long long int),cudaMemcpyDeviceToHost);
+			for(long long int i=0;i<(size);i++)
 			{
-					reinterpret_cast<double*>(out)[i] = out[i]/count;
+					reinterpret_cast<double*>(out)[i] = out[i]/count/(size-i);
 			}
 			py::capsule free_when_done1(out,free);
 			return py::array_t<double,py::array::c_style>
-			({2*size},{sizeof(double)},reinterpret_cast<double*>(out),free_when_done1);
+			({size},{sizeof(double)},reinterpret_cast<double*>(out),free_when_done1);
 		}
 		void clear()
 		{

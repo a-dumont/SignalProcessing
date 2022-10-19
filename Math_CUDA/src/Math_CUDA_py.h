@@ -10,7 +10,6 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-typedef std::complex<double> dbl_complex;
-typedef long long int llint_t;
+#include "Math_CUDA.h"
 
 #include "Math_CUDA_py.tpp"

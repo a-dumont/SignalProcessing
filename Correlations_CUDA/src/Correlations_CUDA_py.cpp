@@ -99,14 +99,12 @@ void init_correlations(py::module &m)
 			.def(py::init<llint_t,llint_t,float,llint_t>())
 			.def("accumulate",&DigitizerAutoCorrelationPadCuda<uint8_t>::accumulate)
 			.def("clear",&DigitizerAutoCorrelationPadCuda<uint8_t>::clear)
-			.def("getResult",&DigitizerAutoCorrelationPadCuda<uint8_t>::getResult)
 			.def("getResultTime",&DigitizerAutoCorrelationPadCuda<uint8_t>::getResultTime);
 
 	py::class_<DigitizerAutoCorrelationPadCuda<int16_t>>(m,"DigitizerAutoCorrelationPadCuda16")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
 			.def("accumulate",&DigitizerAutoCorrelationPadCuda<int16_t>::accumulate)
 			.def("clear",&DigitizerAutoCorrelationPadCuda<int16_t>::clear)
-			.def("getResult",&DigitizerAutoCorrelationPadCuda<int16_t>::getResult)
 			.def("getResultTime",&DigitizerAutoCorrelationPadCuda<int16_t>::getResultTime);
 
 	py::class_<DigitizerCrossCorrelationPadCuda<uint8_t>>(m,"DigitizerCrossCorrelationPadCuda")

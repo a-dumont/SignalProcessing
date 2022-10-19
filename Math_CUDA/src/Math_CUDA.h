@@ -6,31 +6,30 @@
 #include <cstdint>
 
 typedef std::complex<double> dbl_complex;
-typedef long long int llint_t;
 
 template <class DataType>
-void vector_sum(llint_t N, DataType in1, DataType in2);
+void vector_sum(long long int N, DataType* in1, DataType* in2);
 
 template <class DataType>
-void vector_product(llint_t N, DataType in1, DataType in2);
+void vector_product(long long int N, DataType* in1, DataType* in2);
 
 template <class DataType>
-void vector_diff(llint_t N, DataType in1, DataType in2);
+void vector_diff(long long int N, DataType* in1, DataType* in2);
 
 template <class DataType>
-void vector_div(llint_t N, DataType in1, DataType in2);
+void vector_div(long long int N, DataType* in1, DataType* in2);
 
 template <class DataType>
-void martrix_sum(llint_t Nr, llint_t Nc, DataType in1, DataType in2);
+void matrix_sum(long long int Nr, long long int Nc, DataType* in1, DataType* in2);
 
 template <class DataType>
-void martrix_prod(llint_t Nr, llint_t Nc, DataType in1, DataType in2);
+void matrix_prod(long long int Nr, long long int Nc, DataType* in1, DataType* in2);
 
 template <class DataType>
-void martrix_diff(llint_t Nr, llint_t Nc, DataType in1, DataType in2);
+void matrix_diff(long long int Nr, long long int Nc, DataType* in1, DataType* in2);
 
 template <class DataType>
-void martrix_div(llint_t Nr, llint_t Nc, DataType in1, DataType in2);
+void matrix_div(long long int Nr, long long int Nc, DataType* in1, DataType* in2);
 
 template <class DataType>
-void gradient(llint_t N, DataType* in, double* out, double h);
+void gradient(long long int N, DataType* in, double* out, double h);

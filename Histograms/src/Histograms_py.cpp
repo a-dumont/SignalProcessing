@@ -64,6 +64,8 @@ void init_histograms(py::module &m)
 	m.def("histogram_nth_order_derivative",&histogram_nth_order_derivative_py<double>,
 					"hist_after"_a,"hist_before"_a,"dt"_a,"n"_a,"m"_a);
 
+	m.def("detailed_balance",&detailed_balance_py<double>,"p_density"_a,"gamma"_a,"time_index"_a);
+
 	m.def("digitizer_histogram",&digitizer_histogram_py<uint8_t>,"data"_a.noconvert());
 	m.def("digitizer_histogram",&digitizer_histogram_py<uint16_t>,"data"_a.noconvert());
 
