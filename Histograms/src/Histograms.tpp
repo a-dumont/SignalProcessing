@@ -409,6 +409,8 @@ void histogram_vectorial_average(long long int nbins,
 			}
 		}
 	}
+	out[0] /= nbins*nbins;
+	out[1] /= nbins*nbins;
 }
 
 template<class DataType>
