@@ -396,6 +396,7 @@ void histogram_vectorial_average(long long int nbins,
 				DataType* hist, DataType* out, long long int row, long long int col)
 {
 	double norm;
+	double sign;
 	#pragma omp parallel for reduction(+:out[:2])
 	for(long long int i=0;i<nbins;i++)
 	{
@@ -403,9 +404,10 @@ void histogram_vectorial_average(long long int nbins,
 		{
 			if(i!=row && j!=col)
 			{
-				norm = sqrt(1.0*(i-row)*(i-row)+1.0*(j-col)*(j-col))*sqrt(abs(hist[i*nbins+j]));
-				out[0] += hist[i*nbins+j]*(i-row)/norm;
-				out[1] += hist[i*nbins+j]*(j-col)/norm;
+				sign = -1.0*std::signbit(hist[i*nbins+j]);
+				norm = sign*sqrt(1.0*(i-row)*(i-row)+1.0*(j-col)*(j-col));
+				out[0] += sqrt(abs(hist[i*nbins+j])*(i-row)/norm;
+				out[1] += sqrt(hist[i*nbins+j])*(j-col)/norm;
 			}
 		}
 	}
