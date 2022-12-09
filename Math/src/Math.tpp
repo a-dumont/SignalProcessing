@@ -425,37 +425,37 @@ DataType min(DataType* in, int n)
 	return _min;
 }
 
-template<class DataType>
-void block_max(int64_t N, int64_t block_size, DataType* in, DataType* out)
+template<class DataTypeIn, class DataTypeOut>
+void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
-	#pragma omp parallel for 
-	for(i = 0; i < n; i++)
+	//#pragma omp parallel for 
+	for(int i = 0; i < n; i++)
 	{
-		out[i] = std::max_element(in+i*block_size,in+(i+1)*block_size);
+		out[i] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
 	}
 }
 
-template<class DataType>
-void block_min(int64_t N, int64_t block_size, DataType* in, DataType* out)
+template<class DataTypeIn, class DataTypeOut>
+void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
 	#pragma omp parallel for 
-	for(i = 0; i < n; i++)
+	for(int i = 0; i < n; i++)
 	{
-		out[i] = std::min_element(in+i*block_size,in+(i+1)*block_size);
+		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
 	}
 }
 
-template<class DataType>
-void block_min_max(int64_t N, int64_t block_size, DataType* in, DataType* out)
+template<class DataTypeIn, class DataTypeOut>
+void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
 	#pragma omp parallel for 
-	for(i = 0; i < n; i++)
+	for(int i = 0; i < n; i++)
 	{
-		out[i] = std::min_element(in+i*block_size,in+(i+1)*block_size);
-		out[i+N] = std::max_element(in+i*block_size,in+(i+1)*block_size);
+		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
+		out[i+N] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
 	}
 }
 
@@ -464,22 +464,22 @@ class DigitizerBlockMax
 	protected:
 		int64_t N, max_size, min_size, n_max, n_min, resolution;
 		int64_t hist_size = 0;
-		uint64_t *buffer, *max_hists;
+		uint64_t* buffer;
+		uint64_t* buffer2;
+		uint64_t* max_hists;
 		int64_t count = 0;
 	
 	public:
-		DigitizerBlockMax(int64_t N_in, int64_t max_size_in, 
-		int64_t min_size_in, int64_t resolution)
+		DigitizerBlockMax(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in)
 		{
-			if (block_size_in%2 != 0 )
+			if (max_size_in%2 != 0 )
 			{
-				throw std::runtime_error
-				("U dumbdumb, block size must be power of 2.");
+				throw std::runtime_error("U dumbdumb, block size must be power of 2.");
 			}
 			if (min_size_in%2 != 0 )
 			{
-				throw std::runtime_error
-				("U dumbdumb, block size must be power of 2.");
+					throw std::runtime_error("U dumbdumb, block size must be power of 2.");
 			}
 			N = N_in;
 			resolution = resolution_in;
@@ -487,50 +487,264 @@ class DigitizerBlockMax
 			min_size = min_size_in;
 			n_max = N_in/min_size_in;
 			n_min = N_in/max_size_in;
-			hist_size = (int64_t) log2(n_max/n_min)*resolution_in;
+			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
 			buffer = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
+			buffer2 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
 			max_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+			std::memset(max_hists,0,sizeof(uint64_t)*hist_size);
 		}
 		
-		~BlockMaxDigitizer()
+		~DigitizerBlockMax()
 		{
 			free(buffer);
+			free(buffer2);
 			free(max_hists);
 		}
 		
 		template<class DataType>
 		void accumulate(DataType* in)
 		{
-			block_max<DataType>(N,min_size,in,buffer);
+			block_max<DataType,uint64_t>(N,min_size,in,buffer);
+			//#pragma omp parallel for reduction(+:max_hists[:1<<resolution])
 			for(int64_t i=0;i<n_max;i++)
 			{
 				max_hists[buffer[i]] += 1;
 			}
-			recursion(n_max,2*min_size,max_hists+(1<<resolution));
-			count += 1
+			recursion(n_max,2*min_size,max_hists+(1<<resolution),buffer,buffer2);
+			count += 1;
 		}
 		
-		void recursion(int64_t N_in, int64_t block_size, uint64_t* out)
+		void recursion(int64_t N_in, int64_t block_size, uint64_t* out, 
+						uint64_t* buf_in, uint64_t* buf_out)
 		{
 			if(block_size < max_size)
 			{
-				block_max(N_in,2,buffer,buffer);
-				for(int64_t i=0;i<n_max;i++)
+				block_max(N_in,2,buf_in,buf_out);
+				//#pragma omp parallel for reduction(+:out[:1<<resolution])
+				for(int64_t i=0;i<(N_in/2);i++)
 				{
-					out[buffer[i]] += 1;
+					out[buf_out[i]] += 1;
 				}
-				recursion(N_in/2,block_size*2,out+(1<<resolution));
+				recursion(N_in/2,block_size*2,out+(1<<resolution),buf_out,buf_in);
 			}
 			else 
 			{
-				out[std::max(buffer[0],buffer[1])] += 1;
+				out[std::max(buf_in[0],buf_in[1])] += 1;
 			}
 		}
 		
-		uint64_t* get_max_hists(){return max_hists*;}
+		uint64_t* get_max_hists(){return max_hists;}
 		int64_t get_resolution(){return resolution;}
 		int64_t get_N(){return N;}
 		int64_t get_min_size(){return min_size;}
 		int64_t get_max_size(){return max_size;}
 		int64_t get_count(){return count;}
-}
+		void clear()
+		{
+			std::memset(max_hists,0,sizeof(uint64_t)*hist_size);
+			std::memset(buffer,0,sizeof(uint64_t)*n_max);
+			std::memset(buffer2,0,sizeof(uint64_t)*n_max/2);
+			count = 0;
+		}
+};
+
+class DigitizerBlockMin
+{
+	protected:
+		int64_t N, max_size, min_size, n_max, n_min, resolution;
+		int64_t hist_size = 0;
+		uint64_t* buffer;
+		uint64_t* buffer2;
+		uint64_t* min_hists;
+		int64_t count = 0;
+	
+	public:
+		DigitizerBlockMin(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in)
+		{
+			if (max_size_in%2 != 0 )
+			{
+				throw std::runtime_error("U dumbdumb, block size must be power of 2.");
+			}
+			if (min_size_in%2 != 0 )
+			{
+					throw std::runtime_error("U dumbdumb, block size must be power of 2.");
+			}
+			N = N_in;
+			resolution = resolution_in;
+			max_size = max_size_in;
+			min_size = min_size_in;
+			n_max = N_in/min_size_in;
+			n_min = N_in/max_size_in;
+			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
+			buffer = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
+			buffer2 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
+			min_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+			std::memset(min_hists,0,sizeof(uint64_t)*hist_size);
+		}
+		
+		~DigitizerBlockMin()
+		{
+			free(buffer);
+			free(buffer2);
+			free(min_hists);
+		}
+		
+		template<class DataType>
+		void accumulate(DataType* in)
+		{
+			block_min<DataType,uint64_t>(N,min_size,in,buffer);
+			//#pragma omp parallel for reduction(+:max_hists[:1<<resolution])
+			for(int64_t i=0;i<n_max;i++)
+			{
+				min_hists[buffer[i]] += 1;
+			}
+			recursion(n_max,2*min_size,min_hists+(1<<resolution),buffer,buffer2);
+			count += 1;
+		}
+		
+		void recursion(int64_t N_in, int64_t block_size, uint64_t* out, 
+						uint64_t* buf_in, uint64_t* buf_out)
+		{
+			if(block_size < max_size)
+			{
+				block_min(N_in,2,buf_in,buf_out);
+				//#pragma omp parallel for reduction(+:out[:1<<resolution])
+				for(int64_t i=0;i<(N_in/2);i++)
+				{
+					out[buf_out[i]] += 1;
+				}
+				recursion(N_in/2,block_size*2,out+(1<<resolution),buf_out,buf_in);
+			}
+			else 
+			{
+				out[std::min(buf_in[0],buf_in[1])] += 1;
+			}
+		}
+		
+		uint64_t* get_min_hists(){return min_hists;}
+		int64_t get_resolution(){return resolution;}
+		int64_t get_N(){return N;}
+		int64_t get_min_size(){return min_size;}
+		int64_t get_max_size(){return max_size;}
+		int64_t get_count(){return count;}
+		void clear()
+		{
+			std::memset(min_hists,0,sizeof(uint64_t)*hist_size);
+			std::memset(buffer,0,sizeof(uint64_t)*n_max);
+			std::memset(buffer2,0,sizeof(uint64_t)*n_max/2);
+			count = 0;
+		}
+};
+
+class DigitizerBlockMinMax
+{
+	protected:
+		int64_t N, max_size, min_size, n_max, n_min, resolution;
+		int64_t hist_size = 0;
+		uint64_t* buffer;
+		uint64_t* buffer2;
+		uint64_t* buffer3;
+		uint64_t* buffer4;
+		uint64_t* min_hists;
+		uint64_t* max_hists;
+		int64_t count = 0;
+	
+	public:
+		DigitizerBlockMinMax(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in)
+		{
+			if (max_size_in%2 != 0 )
+			{
+				throw std::runtime_error("U dumbdumb, block size must be power of 2.");
+			}
+			if (min_size_in%2 != 0 )
+			{
+					throw std::runtime_error("U dumbdumb, block size must be power of 2.");
+			}
+			N = N_in;
+			resolution = resolution_in;
+			max_size = max_size_in;
+			min_size = min_size_in;
+			n_max = N_in/min_size_in;
+			n_min = N_in/max_size_in;
+			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
+			buffer = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
+			buffer2 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
+			buffer3 = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
+			buffer4 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
+			min_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+			max_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+			std::memset(min_hists,0,sizeof(uint64_t)*hist_size);
+			std::memset(max_hists,0,sizeof(uint64_t)*hist_size);
+		}
+		
+		~DigitizerBlockMinMax()
+		{
+			free(buffer);
+			free(buffer2);
+			free(buffer3);
+			free(buffer4);
+			free(min_hists);
+			free(max_hists);
+		}
+		
+		template<class DataType>
+		void accumulate(DataType* in)
+		{
+			block_min<DataType,uint64_t>(N,min_size,in,buffer);
+			block_max<DataType,uint64_t>(N,min_size,in,buffer3);
+			//#pragma omp parallel for reduction(+:max_hists[:1<<resolution])
+			for(int64_t i=0;i<n_max;i++)
+			{
+				min_hists[buffer[i]] += 1;
+				max_hists[buffer3[i]] += 1;
+			}
+			recursion(n_max,2*min_size,min_hists+(1<<resolution),max_hists+(1<<resolution),
+							buffer,buffer2,buffer3,buffer4);
+			count += 1;
+		}
+		
+		void recursion(int64_t N_in, int64_t block_size, uint64_t* out_min, uint64_t* out_max, 
+						uint64_t* buf_in_min, uint64_t* buf_out_min, uint64_t* buf_in_max, 
+						uint64_t* buf_out_max)
+		{
+			if(block_size < max_size)
+			{
+				block_min(N_in,2,buf_in_min,buf_out_min);
+				block_max(N_in,2,buf_in_max,buf_out_max);
+				//#pragma omp parallel for reduction(+:out[:1<<resolution])
+				for(int64_t i=0;i<(N_in/2);i++)
+				{
+					out_min[buf_out_min[i]] += 1;
+					out_max[buf_out_max[i]] += 1;
+				}
+				recursion(N_in/2,block_size*2,out_min+(1<<resolution),out_max+(1<<resolution), 
+								buf_out_min,buf_in_min,buf_out_max,buf_in_max);
+			}
+			else 
+			{
+				out_min[std::min(buf_in_min[0],buf_in_min[1])] += 1;
+				out_max[std::min(buf_in_max[0],buf_in_max[1])] += 1;
+			}
+		}
+		
+		uint64_t* get_min_hists(){return min_hists;}
+		uint64_t* get_max_hists(){return min_hists;}
+		int64_t get_resolution(){return resolution;}
+		int64_t get_N(){return N;}
+		int64_t get_min_size(){return min_size;}
+		int64_t get_max_size(){return max_size;}
+		int64_t get_count(){return count;}
+		void clear()
+		{
+			std::memset(min_hists,0,sizeof(uint64_t)*hist_size);
+			std::memset(max_hists,0,sizeof(uint64_t)*hist_size);
+			std::memset(buffer,0,sizeof(uint64_t)*n_max);
+			std::memset(buffer2,0,sizeof(uint64_t)*n_max/2);
+			std::memset(buffer3,0,sizeof(uint64_t)*n_max);
+			std::memset(buffer4,0,sizeof(uint64_t)*n_max/2);
+			count = 0;
+		}
+};
+
