@@ -725,7 +725,7 @@ class DigitizerBlockMinMax
 			else 
 			{
 				out_min[std::min(buf_in_min[0],buf_in_min[1])] += 1;
-				out_max[std::min(buf_in_max[0],buf_in_max[1])] += 1;
+				out_max[std::max(buf_in_max[0],buf_in_max[1])] += 1;
 			}
 		}
 		
