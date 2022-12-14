@@ -529,7 +529,12 @@ class DigitizerBlockMax
 			}
 			else 
 			{
-				out[std::max(buf_in[0],buf_in[1])] += 1;
+				//out[std::max(buf_in[0],buf_in[1])] += 1;
+				block_max(N_in,2,buf_in,buf_out);
+				for(int64_t i=0;i<(N_in/2);i++)
+				{
+					out[buf_out[i]] += 1;
+				}
 			}
 		}
 		
@@ -618,7 +623,12 @@ class DigitizerBlockMin
 			}
 			else 
 			{
-				out[std::min(buf_in[0],buf_in[1])] += 1;
+				//out[std::min(buf_in[0],buf_in[1])] += 1;
+				block_min(N_in,2,buf_in,buf_out);
+				for(int64_t i=0;i<(N_in/2);i++)
+				{
+					out[buf_out[i]] += 1;
+				}
 			}
 		}
 		
@@ -724,8 +734,15 @@ class DigitizerBlockMinMax
 			}
 			else 
 			{
-				out_min[std::min(buf_in_min[0],buf_in_min[1])] += 1;
-				out_max[std::max(buf_in_max[0],buf_in_max[1])] += 1;
+				//out_min[std::min(buf_in_min[0],buf_in_min[1])] += 1;
+				//out_max[std::max(buf_in_max[0],buf_in_max[1])] += 1;
+				block_min(N_in,2,buf_in_min,buf_out_min);
+				block_max(N_in,2,buf_in_max,buf_out_max);
+				for(int64_t i=0;i<(N_in/2);i++)
+				{
+					out_min[buf_out_min[i]] += 1;
+					out_max[buf_out_max[i]] += 1;
+				}
 			}
 		}
 		
