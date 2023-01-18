@@ -473,7 +473,7 @@ void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
         N_t = omp_get_max_threads();
 	#endif
 		
-	#pragma omp parallel for num_threads(N_t)
+	#pragma omp parallel for
 	for(int i = 0; i < n; i++)
 	{
 		manage_thread_affinity();
@@ -494,7 +494,7 @@ void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
         N_t = omp_get_max_threads();
 	#endif
 		
-	#pragma omp parallel for num_threads(N_t)
+	#pragma omp parallel for
 	for(int i = 0; i < n; i++)
 	{
 		manage_thread_affinity();
@@ -515,7 +515,7 @@ void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* o
         N_t = omp_get_max_threads();
 	#endif
 		
-	#pragma omp parallel for num_threads(N_t)
+	#pragma omp parallel for
 	for(int i = 0; i < n; i++)
 	{
 		manage_thread_affinity();
