@@ -480,7 +480,6 @@ void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 	#pragma omp parallel for
 	for(int i = 0; i < n; i++)
 	{
-		manage_thread_affinity();
 		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
 	}
 }
