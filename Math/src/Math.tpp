@@ -493,7 +493,6 @@ void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* o
 	#pragma omp parallel for
 	for(int i = 0; i < n; i++)
 	{
-		manage_thread_affinity();
 		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
 		out[i+N] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
 	}
