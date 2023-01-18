@@ -429,7 +429,7 @@ template<class DataTypeIn, class DataTypeOut>
 void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
-	//#pragma omp parallel for 
+	#pragma omp parallel for 
 	for(int i = 0; i < n; i++)
 	{
 		out[i] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
