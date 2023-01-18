@@ -472,7 +472,7 @@ void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
         N_t = omp_get_max_threads();
 	#endif
 	
-	int64_t N_chunks = N/N_t
+	int64_t N_chunks = N/N_t;
 	int64_t n = N_chunks/block_size;
 	//int64_t n = N/block_size;
 	
