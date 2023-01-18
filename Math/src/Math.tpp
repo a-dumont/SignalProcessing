@@ -1,3 +1,38 @@
+void manage_thread_affinity()
+{
+	//Shamelessly stolen from Jean-Olivier's code at
+	//https://github.com/JeanOlivier/Histograms-OTF/blob/master/histograms.c
+    #ifdef _WIN32_WINNT
+        int nbgroups = GetActiveProcessorGroupCount();
+        int *threads_per_groups = (int *) malloc(nbgroups*sizeof(int));
+        for (int i=0; i<nbgroups; i++)
+        {
+            threads_per_groups[i] = GetActiveProcessorCount(i);
+        }
+
+        // Fetching thread number and assigning it to cores
+        int tid = omp_get_thread_num(); // Internal omp thread number (0 -- OMP_NUM_THREADS)
+        HANDLE thandle = GetCurrentThread();
+        bool result;
+
+        // We change group for each thread
+        short unsigned int set_group = tid%nbgroups; 
+		
+		// Nb of threads in group for affinity mask.
+        int nbthreads = threads_per_groups[set_group]; 
+        
+		// nbcores amount of 1 in binary
+        GROUP_AFFINITY group = {((uint64_t)1<<nbthreads)-1, set_group};
+		
+		// Actually setting the affinity
+        result = SetThreadGroupAffinity(thandle, &group, NULL); 
+        if(!result) std::fprintf(stderr, "Failed setting output for tid=%i\n", tid);
+        free(threads_per_groups);
+    #else
+        //We let openmp and the OS manage the threads themselves
+    #endif
+	}
+
 // Gradient with full size x and t
 template<class DataType, class DataType2>
 void gradient(int n, DataType* x, DataType2* t, DataType* out)
@@ -429,9 +464,19 @@ template<class DataTypeIn, class DataTypeOut>
 void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
-	#pragma omp parallel for 
+	uint64_t N_t;
+	
+	#ifdef _WIN32_WINNT
+    	uint64_t nbgroups = GetActiveProcessorGroupCount();
+        N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+    #else
+        N_t = omp_get_max_threads();
+	#endif
+		
+	#pragma omp parallel for num_threads(N_t)
 	for(int i = 0; i < n; i++)
 	{
+		manage_thread_affinity();
 		out[i] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
 	}
 }
@@ -440,9 +485,19 @@ template<class DataTypeIn, class DataTypeOut>
 void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
-	#pragma omp parallel for 
+	uint64_t N_t;
+	
+	#ifdef _WIN32_WINNT
+    	uint64_t nbgroups = GetActiveProcessorGroupCount();
+        N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+    #else
+        N_t = omp_get_max_threads();
+	#endif
+		
+	#pragma omp parallel for num_threads(N_t)
 	for(int i = 0; i < n; i++)
 	{
+		manage_thread_affinity();
 		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
 	}
 }
@@ -451,9 +506,19 @@ template<class DataTypeIn, class DataTypeOut>
 void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
 	int64_t n = N/block_size;
-	#pragma omp parallel for 
+	uint64_t N_t;
+	
+	#ifdef _WIN32_WINNT
+    	uint64_t nbgroups = GetActiveProcessorGroupCount();
+        N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+    #else
+        N_t = omp_get_max_threads();
+	#endif
+		
+	#pragma omp parallel for num_threads(N_t)
 	for(int i = 0; i < n; i++)
 	{
+		manage_thread_affinity();
 		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
 		out[i+N] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
 	}
