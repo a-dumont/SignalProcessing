@@ -463,12 +463,33 @@ DataType min(DataType* in, int n)
 template<class DataTypeIn, class DataTypeOut>
 void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
-	int64_t n = N/block_size;;
-		
+	uint64_t N_t;
+	
+	#ifdef _WIN32_WINNT
+    	uint64_t nbgroups = GetActiveProcessorGroupCount();
+        N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+    #else
+        N_t = omp_get_max_threads();
+	#endif
+	
+	int64_t N_chunks = N/N_t
+	int64_t n = N_chunks/block_size;
+	//int64_t n = N/block_size;
+	
+	/*	
 	#pragma omp parallel for
 	for(int i = 0; i < n; i++)
 	{
 		out[i] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
+	}*/
+	#pragma omp parallel for num_threads(N_t)
+	for(int i = 0; i < N_t; i++)
+	{
+		manage_thread_affinity();
+		for(int j = 0; j < n; j++)
+		{
+			out[i*n+j] = (DataTypeOut) *std::max_element(in+i*n+j*block_size,in+i*n+(j+1)*block_size);
+		}
 	}
 }
 
