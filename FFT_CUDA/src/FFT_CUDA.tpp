@@ -466,6 +466,7 @@ void irFFT_Block_Async_CUDA<std::complex<float>>(std::complex<float>* in,
 	}
 }
 
+/*
 template<class DataType>
 void filter_single(int64_t N, DataType* data, float* filter, DataType offset)
 {
@@ -592,4 +593,4 @@ void filter_dual(int64_t N, DataType* data1, DataType* data2,
 	cudaStreamDestroy(streams[1]);
 	cudaFree(gpu);
 }
-
+*/
