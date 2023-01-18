@@ -4,5 +4,6 @@
 #include <numeric>
 #include <stdlib.h>
 #include <cmath>
+#include <omp.h>
 
 #include "Math.tpp"
