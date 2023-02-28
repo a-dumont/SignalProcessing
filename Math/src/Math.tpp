@@ -525,6 +525,32 @@ void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* o
 	}
 }
 
+template<class DataTypeIn, class DataTypeOut>
+void block_variance(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
+{
+	int N_t;
+	
+	#ifdef _WIN32_WINNT
+    	uint64_t nbgroups = GetActiveProcessorGroupCount();
+        N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+    #else
+        N_t = omp_get_max_threads();
+	#endif
+	
+	int64_t N_chunks = N/N_t;
+	int64_t n = N_chunks/block_size;
+	
+	#pragma omp parallel for num_threads(N_t)
+	for(int i = 0; i < N_t; i++)
+	{
+		manage_thread_affinity();
+		for(int j = 0; j < n; j++)
+		{
+			out[i*n+j] = (DataTypeOut) variance_pairwise(in+i*n+j*block_size,block_size);
+		}
+	}
+}
+
 class DigitizerBlockMax
 {
 	protected:
@@ -831,3 +857,81 @@ class DigitizerBlockMinMax
 		}
 };
 
+class DigitizerBlockVariance
+{
+	protected:
+		int64_t N, max_size, min_size, n_max, n_min, resolution, bin;
+		int64_t hist_size = 0;
+		uint64_t* buffer;
+		uint64_t* max_hists;
+		int64_t count = 0;
+		double min_var, max_var, step;
+	
+	public:
+		DigitizerBlockVariance(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in, int64_t min_var_in, int64_t max_var_int)
+		{
+			if (max_size_in%2 != 0 )
+			{
+				throw std::runtime_error("U dumbdumb, block size must be power of 2.");
+			}
+			if (min_size_in%2 != 0 )
+			{
+					throw std::runtime_error("U dumbdumb, block size must be power of 2.");
+			}
+			N = N_in;
+			resolution = resolution_in;
+			max_size = max_size_in;
+			min_size = min_size_in;
+			n_max = N_in/min_size_in;
+			n_min = N_in/max_size_in;
+			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
+			buffer = (double*) malloc(sizeof(double)*n_max);
+			var_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+			std::memset(var_hists,0,sizeof(uint64_t)*hist_size);
+			min_var = min_var_in;
+			max_var = max_var_in;
+			step = (max_var-min_var)/(1<<resolution);
+		}
+		
+		~DigitizerBlockVariance()
+		{
+			free(buffer);
+			free(var_hists);
+		}
+		
+		template<class DataType>
+		void accumulate(DataType* in)
+		{		
+			for(int64_t i=min_size;i<=max_size)
+			{
+				block_variance<DataType,double>(N,i,in,buffer);
+				
+				#pragma omp parallel for reduction(+:tmp_ptr[:1<<resolution])
+				for(int64_t j=0;i<N/i;j++)
+				{
+					bin = (int64_t) (buffer[i]-min)/step_inv;
+					if(bin >= min && bin < max){temp_ptr[bin] += 1;}
+				}
+				i *= 2;
+				temp_ptr += (1<<resolution);
+			}
+			count += 1;
+		}
+		
+		uint64_t* get_variances(){return var_hists;}
+		int64_t get_resolution(){return resolution;}
+		int64_t get_N(){return N;}
+		int64_t get_min_size(){return min_size;}
+		int64_t get_max_size(){return max_size;}
+		int64_t get_count(){return count;}
+		double get_min(){return min_variance;}
+		double get_max(){return max_variance;}
+		double get_step(){return step;}
+		void clear()
+		{
+			std::memset(var_hists,0,sizeof(uint64_t)*hist_size);
+			std::memset(buffer,0,sizeof(uint64_t)*n_max);
+			count = 0;
+		}
+};
