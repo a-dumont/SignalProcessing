@@ -22,12 +22,16 @@ void init_fft(py::module &m)
 	m.def("irfft",&irFFT_py<float>, "in"_a.noconvert());
 	m.def("digitizer_FFT",&digitizer_FFT_py<uint8_t>,"in"_a.noconvert(),"conv"_a,"offset"_a);
 	m.def("digitizer_FFT",&digitizer_FFT_py<uint16_t>,"in"_a.noconvert(),"conv"_a,"offset"_a);
+	m.def("digitizer_FFT",&digitizer_FFT_py<int16_t>,"in"_a.noconvert(),"conv"_a,"offset"_a);
 	m.def("digitizer_rFFT",&digitizer_rFFT_py<uint8_t>,"in"_a.noconvert(),"conv"_a,"offset"_a);
 	m.def("digitizer_rFFT",&digitizer_rFFT_py<uint16_t>,"in"_a.noconvert(),"conv"_a,"offset"_a);
+	m.def("digitizer_rFFT",&digitizer_rFFT_py<int16_t>,"in"_a.noconvert(),"conv"_a,"offset"_a);
 	m.def("digitizer_FFT",&digitizer_FFT_Block_py<uint8_t>,"in"_a.noconvert(),"N"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_FFT",&digitizer_FFT_Block_py<uint16_t>,"in"_a.noconvert(),"N"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_FFT",&digitizer_FFT_Block_py<int16_t>,"in"_a.noconvert(),"N"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_rFFT",&digitizer_rFFT_Block_py<uint8_t>,"in"_a.noconvert(),"N"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_rFFT",&digitizer_rFFT_Block_py<uint16_t>,"in"_a.noconvert(),"N"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rFFT",&digitizer_rFFT_Block_py<int16_t>,"in"_a.noconvert(),"N"_a,"conv"_a,"offset"_a);
 }
 
 PYBIND11_MODULE(libfft, m)
