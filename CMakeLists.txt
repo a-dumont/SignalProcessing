@@ -23,6 +23,7 @@ if($ENV{ENABLE_CUDA})
 		message(STATUS "Building the CUDA modules")
 		add_subdirectory(FFT_CUDA)
 		add_subdirectory(Correlations_CUDA)
+		add_subdirectory(Math_CUDA)
 endif($ENV{ENABLE_CUDA})
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT/obj/
@@ -45,4 +46,7 @@ if($ENV{ENABLE_CUDA})
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_CUDA/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
 		FILES_MATCHING PATTERN "libcorrelationscuda.*")
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math_CUDA/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
+		FILES_MATCHING PATTERN "libmathcuda.*")
 endif($ENV{ENABLE_CUDA})
