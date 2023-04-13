@@ -68,11 +68,15 @@ void init_histograms(py::module &m)
 
 	m.def("digitizer_histogram",&digitizer_histogram_py<uint8_t>,"data"_a.noconvert());
 	m.def("digitizer_histogram",&digitizer_histogram_py<uint16_t>,"data"_a.noconvert());
+	m.def("digitizer_histogram",&digitizer_histogram_py<int16_t>,"data"_a.noconvert());
 
 	m.def("digitizer_histogram",&digitizer_histogram_subbyte_py<uint8_t>,
 					"data"_a.noconvert(),"nbits"_a);
 	m.def("digitizer_histogram",&digitizer_histogram_subbyte_py<uint16_t>,
 					"data"_a.noconvert(),"nbits"_a);
+	m.def("digitizer_histogram",&digitizer_histogram_subbyte_py<int16_t>,
+					"data"_a.noconvert(),"nbits"_a);
+
 	
 	m.def("digitizer_histogram2D",&digitizer_histogram2D_py<uint8_t>,
 					"data_x"_a.noconvert(),"data_y"_a.noconvert());
@@ -81,6 +85,8 @@ void init_histograms(py::module &m)
 					"data_x"_a.noconvert(),"data_y"_a.noconvert(),"nbits"_a);
 
 	m.def("digitizer_histogram2D",&digitizer_histogram2D_subbyte_py<uint16_t>,
+					"data_x"_a.noconvert(),"data_y"_a.noconvert(),"nbits"_a);
+	m.def("digitizer_histogram2D",&digitizer_histogram2D_subbyte_py<int16_t>,
 					"data_x"_a.noconvert(),"data_y"_a.noconvert(),"nbits"_a);
 
 	m.def("digitizer_histogram2D_steps",&digitizer_histogram2D_steps_py<uint8_t>,
@@ -96,6 +102,7 @@ void init_histograms(py::module &m)
 			.def("resetHistogram",&cdigitizer_histogram2D_steps_py::resetHistogram)
 			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate_py<uint8_t>)
 			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate_py<uint16_t>)
+			.def("accumulate",&cdigitizer_histogram2D_steps_py::accumulate_py<int16_t>)
 			.def("getThreads",&cdigitizer_histogram2D_steps_py::getThreads);
 
 	py::class_<cHistogram2D_py<double>>(m,"Histogram2D")
