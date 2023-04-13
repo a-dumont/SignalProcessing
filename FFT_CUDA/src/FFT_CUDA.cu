@@ -45,6 +45,15 @@ void convertComplex<uint16_t,double>(long long int N, uint16_t* in, std::complex
 }
 
 template<>
+void convertComplex<int16_t,double>(long long int N, int16_t* in, std::complex<double>* out, 
+				double conv, int16_t offset, cudaStream_t stream)
+{
+	convertDoubleComplex_kernel<int16_t><<<(N/512)+1,512,0,stream>>>(
+					N,in,reinterpret_cast<cuDoubleComplex*>(out),conv,offset,512);
+	cudaDeviceSynchronize();
+}
+
+template<>
 void convertComplex<uint8_t,float>(long long int N, uint8_t* in, std::complex<float>* out, 
 				float conv, uint8_t offset, cudaStream_t stream)
 {
@@ -61,6 +70,16 @@ void convertComplex<uint16_t,float>(long long int N, uint16_t* in, std::complex<
 					N,in,reinterpret_cast<cuFloatComplex*>(out),conv,offset,512);
 	cudaDeviceSynchronize();
 }
+
+template<>
+void convertComplex<int16_t,float>(long long int N, int16_t* in, std::complex<float>* out, 
+				float conv, int16_t offset, cudaStream_t stream)
+{
+	convertFloatComplex_kernel<int16_t><<<(N/512)+1,512,0,stream>>>(
+					N,in,reinterpret_cast<cuFloatComplex*>(out),conv,offset,512);
+	cudaDeviceSynchronize();
+}
+
 
 template<class DataType>
 __global__ void convertDouble_kernel(long long int N, DataType* in, double* out, 
