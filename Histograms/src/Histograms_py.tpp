@@ -1174,8 +1174,8 @@ np_uint32 digitizer_histogram2D_py(
 				py::array_t<DataType,py::array::c_style> data_x_in,
 				py::array_t<DataType,py::array::c_style> data_y_in)
 {
-	uint32_t size = 1<<(sizeof(DataType)*8);
-	uint32_t size2 = size<<(sizeof(DataType)*8);
+	uint64_t size = 1<<(sizeof(DataType)*8);
+	uint64_t size2 = size<<(sizeof(DataType)*8);
 	uint32_t* hist = (uint32_t*) malloc(size2*sizeof(uint32_t));
 	std::memset(hist,0,size2*sizeof(uint32_t));
 
@@ -1184,11 +1184,35 @@ np_uint32 digitizer_histogram2D_py(
 	uint64_t N = (uint64_t) std::min(data_x_in.size(),data_y_in.size());
 	
 	digitizer_histogram2D<DataType>(hist,data_x,data_y,N);
+	
 	py::capsule free_when_done(hist,free);
 	return np_uint32
 	(
 		{size,size},
 		{size*sizeof(uint32_t),sizeof(uint32_t)},
+		hist,
+		free_when_done
+	);
+}
+
+template<class DataType>
+np_uint32 digitizer_histogram2D_10bits_py(
+				py::array_t<DataType,py::array::c_style> data_x_in,
+				py::array_t<DataType,py::array::c_style> data_y_in)
+{
+	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*(1<<20));
+	std::memset(hist,0,sizeof(uint32_t)*(1<<20));
+
+	DataType* data_x = (DataType*) data_x_in.request().ptr;
+	DataType* data_y = (DataType*) data_y_in.request().ptr;
+	uint64_t N = (uint64_t) std::min(data_x_in.size(),data_y_in.size());
+	
+	digitizer_histogram2D_10bits<DataType>(hist,data_x,data_y,N);
+	py::capsule free_when_done(hist,free);
+	return np_uint32
+	(
+		{1<<10,1<<10},
+		{sizeof(uint32_t)*(1<<10),sizeof(uint32_t)},
 		hist,
 		free_when_done
 	);
@@ -1215,6 +1239,37 @@ np_uint32 digitizer_histogram2D_subbyte_py(
 	(
 		{size,size},
 		{size*sizeof(uint32_t),sizeof(uint32_t)},
+		hist,
+		free_when_done
+	);
+}
+
+template<class DataType>
+np_uint32 digitizer_histogram2D_step_py(
+				py::array_t<DataType,py::array::c_style> data_x_in, 
+				py::array_t<DataType,py::array::c_style> data_y_in, 
+				uint8_t nbits)
+{
+	uint64_t size = 1<<nbits;
+	uint64_t size2 = size<<nbits;
+	uint64_t size4 = size2<<nbits<<nbits;
+	
+	DataType* data_x = (DataType*) data_x_in.request().ptr;
+	DataType* data_y = (DataType*) data_y_in.request().ptr;
+	
+	uint64_t N = (uint64_t) std::min(data_x_in.size(),data_y_in.size());
+
+	uint32_t* hist = (uint32_t*) malloc((size4+size2)*sizeof(uint32_t));
+	std::memset(hist,0,(size4+size2)*sizeof(uint32_t));
+
+	digitizer_histogram2D_step<DataType>(hist,data_x,data_y,N,nbits);
+
+	std::vector<uint64_t> out_size = {size2+1,size,size};
+	py::capsule free_when_done(hist,free);
+	return np_uint32
+	(
+		out_size,
+		{size2*sizeof(uint32_t),size*sizeof(uint32_t),sizeof(uint32_t)},
 		hist,
 		free_when_done
 	);
@@ -1253,6 +1308,48 @@ np_uint32 digitizer_histogram2D_steps_py(
 		free_when_done
 	);
 }
+
+class cdigitizer_histogram2D_step_py: public cdigitizer_histogram2D_step
+{
+	private:
+
+	public:
+		cdigitizer_histogram2D_step_py(uint64_t nbits_in)
+		: cdigitizer_histogram2D_step(nbits_in){}
+		
+		template<class DataType>
+		void accumulate_py(py::array_t<DataType,py::array::c_style> x_in,
+						py::array_t<DataType,py::array::c_style> y_in)
+		{
+			DataType* xdata = (DataType*) x_in.request().ptr; 
+			DataType* ydata = (DataType*) y_in.request().ptr;
+		   	uint64_t N = (uint64_t) std::min(x_in.size(),y_in.size());	
+			accumulate(xdata,ydata,N);
+		}
+
+		np_uint64 getHistogram()
+		{
+			uint64_t* hist_out_py = (uint64_t*) malloc(sizeof(uint64_t)*total_size);
+			std::memset(hist_out_py,0,total_size*sizeof(uint64_t));
+			#pragma omp parallel for num_threads(N_t)
+			for(uint64_t j=0;j<N_t;j++)
+			{
+				manage_thread_affinity();
+				for(uint64_t i=0;i<total_size;i++)
+				{
+					#pragma omp atomic
+					hist_out_py[i] += hist[j*total_size+i];
+				}
+			}
+			std::vector<uint64_t> out_size = {(uint64_t)(size*size+1),size,size};
+			py::capsule free_when_done(hist_out_py,free);
+			return np_uint64(
+				out_size,
+				{size*size*sizeof(uint64_t),size*sizeof(uint64_t),sizeof(uint64_t)},
+				hist_out_py,
+				free_when_done);
+		}
+};
 
 class cdigitizer_histogram2D_steps_py: public cdigitizer_histogram2D_steps
 {

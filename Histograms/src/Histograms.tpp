@@ -458,11 +458,18 @@ void digitizer_histogram_subbyte(uint32_t* hist, DataType* data, uint64_t N, int
 template<class DataType>
 void digitizer_histogram2D(uint32_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
 {
-	uint64_t size = 1<<(8*sizeof(DataType));
-	#pragma omp parallel for reduction(+:hist[:size*size])
-	for(uint64_t i=0; i<N; i++)
+	uint64_t n = 8*sizeof(DataType);
+	#pragma omp parallel for reduction(+:hist[:1<<(2*n)])
+	for(uint64_t i=0; i<(N-7); i+=8)
 	{
-		hist[data_y[i]+size*data_x[i]] += 1;
+		hist[data_y[ i ] ^ (data_x[ i ]<<n)] += 1;
+		hist[data_y[i+1] ^ (data_x[i+1]<<n)] += 1;
+		hist[data_y[i+2] ^ (data_x[i+2]<<n)] += 1;
+		hist[data_y[i+3] ^ (data_x[i+3]<<n)] += 1;
+		hist[data_y[i+4] ^ (data_x[i+4]<<n)] += 1;
+		hist[data_y[i+5] ^ (data_x[i+5]<<n)] += 1;
+		hist[data_y[i+6] ^ (data_x[i+6]<<n)] += 1;
+		hist[data_y[i+7] ^ (data_x[i+7]<<n)] += 1;
 	}
 }
 
@@ -473,9 +480,75 @@ void digitizer_histogram2D_subbyte(uint32_t* hist, DataType* data_x,
 	uint64_t size = 1<<nbits;
 	uint8_t shift = sizeof(DataType)*8-nbits;
 	#pragma omp parallel for reduction(+:hist[:size<<nbits])
-	for(uint64_t i=0; i<N; i++)
+	for(uint64_t i=0; i<(N-7); i+=8)
 	{
-		hist[(data_y[i]>>shift)+size*(data_x[i]>>shift)] += 1;
+		hist[(data_y[ i ]>>shift) ^ ((data_x[ i ]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+1]>>shift) ^ ((data_x[i+1]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+2]>>shift) ^ ((data_x[i+2]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+3]>>shift) ^ ((data_x[i+3]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+4]>>shift) ^ ((data_x[i+4]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+5]>>shift) ^ ((data_x[i+5]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+6]>>shift) ^ ((data_x[i+6]>>shift)<<nbits)] += 1;
+		hist[(data_y[i+7]>>shift) ^ ((data_x[i+7]>>shift)<<nbits)] += 1;
+	}
+}
+
+template<class DataType>
+void digitizer_histogram2D_10bits(uint32_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
+{
+	#pragma omp parallel for reduction(+:hist[:1<<20])
+	for(uint64_t i=0; i<(N-7); i+=8)
+	{
+		hist[data_y[ i ] ^ (data_x[ i ]<<10)] += 1;
+		hist[data_y[i+1] ^ (data_x[i+1]<<10)] += 1;
+		hist[data_y[i+2] ^ (data_x[i+2]<<10)] += 1;
+		hist[data_y[i+3] ^ (data_x[i+3]<<10)] += 1;
+		hist[data_y[i+4] ^ (data_x[i+4]<<10)] += 1;
+		hist[data_y[i+5] ^ (data_x[i+5]<<10)] += 1;
+		hist[data_y[i+6] ^ (data_x[i+6]<<10)] += 1;
+		hist[data_y[i+7] ^ (data_x[i+7]<<10)] += 1;
+	}
+}
+
+template<class DataType>
+void digitizer_histogram2D_step_10bit(uint32_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
+{
+	uint64_t bin_x, bin_y, bin_x2, bin_y2;
+	uint32_t* hist2 = hist+(1<<20);
+
+	for(uint64_t i=0; i<(N-1); i++)
+	{
+		bin_x = data_x[i];
+		bin_y = data_y[i];
+		bin_x2 = data_x[i+1];
+		bin_y2 = data_y[i+1];
+	
+		hist[bin_y ^ (bin_x<<10)] += 1;	
+		hist2[bin_y2 ^ (bin_x<<30) ^ (bin_y<<20) ^ (bin_x2<<10)] += 1;
+	}
+}
+
+template<class DataType>
+void digitizer_histogram2D_step(uint32_t* hist, DataType* data_x, 
+				DataType* data_y, uint64_t N, uint8_t nbits)
+{
+	uint8_t shift = sizeof(DataType)*8-nbits;
+   	uint64_t n2 = 2*nbits;
+   	uint64_t n3 = 3*nbits;
+	
+	uint32_t* hist2 = hist+(1<<n2);
+
+	uint64_t bin_x, bin_y, bin_x2, bin_y2;
+
+	for(uint64_t i=0; i<(N-1); i++)
+	{
+		bin_x = data_x[i] >> shift;
+		bin_y = data_y[i] >> shift;
+		bin_x2 = data_x[i+1] >> shift;
+		bin_y2 = data_y[i+1] >> shift;
+	
+		hist[bin_y ^ (bin_x<<nbits)] += 1;
+		hist2[bin_y2 ^ (bin_x<<n3) ^ (bin_y<<n2) ^ (bin_x2<<nbits)] += 1;
 	}
 }
 
@@ -509,6 +582,92 @@ void digitizer_histogram2D_steps(uint32_t* hist, DataType* data_x,
 		}
 	}
 }
+
+class cdigitizer_histogram2D_step
+{
+	protected:
+		uint32_t* hist;
+		uint64_t* hist_out;
+		bool hist_out_init;
+		uint64_t nbits;
+		uint64_t size;
+		uint64_t total_size;
+		uint64_t count;
+		uint64_t N_t;
+	public:
+		cdigitizer_histogram2D_step(uint64_t nbits_in)
+		{
+			if(nbits_in > (uint64_t) 8)
+			{throw std::runtime_error("U dumbdumb nbits to large.");}
+			nbits = nbits_in;
+			size = 1<<nbits;
+			total_size = (1<<(2*nbits))+(1<<(4*nbits));
+			count = 0;
+            #ifdef _WIN32_WINNT
+                uint64_t nbgroups = GetActiveProcessorGroupCount();
+                N_t = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+            #else
+                N_t = omp_get_max_threads();
+			#endif
+            
+			hist = (uint32_t*) malloc(N_t*sizeof(uint32_t)*total_size);
+
+			std::memset(hist,0,N_t*sizeof(uint32_t)*total_size);
+			hist_out_init = false;
+		}
+		
+		~cdigitizer_histogram2D_step(){free(hist);if(hist_out_init == true){free(hist_out);}}
+
+		template <class DataType>
+		void accumulate(DataType* xdata, DataType* ydata, uint64_t N)
+		{
+			N = N/N_t;
+			#pragma omp parallel for num_threads(N_t)
+			for(uint64_t i=0;i<N_t;i++)
+			{
+                manage_thread_affinity();
+				digitizer_histogram2D_step(hist+i*total_size,xdata+i*N,ydata+i*N,N,nbits);
+			}
+			count += 1;
+		}
+		void resetHistogram()
+		{
+			std::memset(hist,0,N_t*sizeof(uint32_t)*total_size);
+			if(hist_out_init == true)
+			{
+				std::memset(hist_out,0,sizeof(uint64_t)*total_size);
+			}
+			count = 0;
+		}
+		uint64_t* getHistogram()
+		{
+			if(hist_out_init == false)
+			{
+				hist_out = (uint64_t*) malloc(sizeof(uint64_t)*total_size);
+				std::memset(hist_out,0,sizeof(uint64_t)*total_size);
+				hist_out_init = true;
+			}
+			else
+			{
+				std::memset(hist_out,0,sizeof(uint64_t)*total_size);	
+			}
+			#pragma omp parallel for num_threads(N_t)
+			for(uint64_t j=0;j<N_t;j++)
+			{
+				manage_thread_affinity();
+				for(uint64_t i=0;i<total_size;i++)
+				{
+					#pragma omp atomic
+					hist_out[i] += hist[j*total_size+i];
+				}
+			}
+			return hist_out;
+		}
+		uint64_t getCount(){return count;}
+		uint64_t getNbits(){return nbits;}
+		uint64_t getSize(){return size;}
+		uint64_t getThreads(){return N_t;}
+};
 
 class cdigitizer_histogram2D_steps
 {
@@ -571,13 +730,13 @@ class cdigitizer_histogram2D_steps
 		{
 			if(hist_out_init == false)
 			{
-				hist_out = (uint64_t*) malloc(sizeof(uint32_t)*size*size*(2*steps*size*size+1));
-				std::memset(hist_out,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));
+				hist_out = (uint64_t*) malloc(sizeof(uint64_t)*size*size*(2*steps*size*size+1));
+				std::memset(hist_out,0,sizeof(uint64_t)*size*size*(2*steps*size*size+1));
 				hist_out_init = true;
 			}
 			else
 			{
-				std::memset(hist_out,0,sizeof(uint32_t)*size*size*(2*steps*size*size+1));	
+				std::memset(hist_out,0,sizeof(uint64_t)*size*size*(2*steps*size*size+1));	
 			}
 			uint64_t total_size = size*size*(2*steps*size*size+1);
 			#pragma omp parallel for num_threads(N_t)
