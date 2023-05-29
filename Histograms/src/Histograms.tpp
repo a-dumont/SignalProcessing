@@ -494,9 +494,9 @@ void digitizer_histogram2D_subbyte(uint32_t* hist, DataType* data_x,
 }
 
 template<class DataType>
-void digitizer_histogram2D_10bits(uint32_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
+void digitizer_histogram2D_10bits(uint16_t* hist, DataType* data_x, DataType* data_y, uint64_t N)
 {
-	#pragma omp parallel for reduction(+:hist[:1<<20])
+	//#pragma omp parallel for reduction(+:hist[:1<<20])
 	for(uint64_t i=0; i<(N-7); i+=8)
 	{
 		hist[data_y[ i ] ^ (data_x[ i ]<<10)] += 1;

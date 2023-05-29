@@ -1200,20 +1200,41 @@ np_uint32 digitizer_histogram2D_10bits_py(
 				py::array_t<DataType,py::array::c_style> data_x_in,
 				py::array_t<DataType,py::array::c_style> data_y_in)
 {
-	uint32_t* hist = (uint32_t*) malloc(sizeof(uint32_t)*(1<<20));
-	std::memset(hist,0,sizeof(uint32_t)*(1<<20));
+	#ifdef _WIN32_WINNT
+		uint64_t nbgroups = GetActiveProcessorGroupCount();
+		uint64_t N_t = std::min((uint64_t) 64, omp_get_max_threads()*nbgroups);
+	#else
+		uint64_t N_t = omp_get_max_threads();
+	#endif
+
+	uint16_t* hist = (uint16_t*) malloc(N_t*sizeof(uint16_t)*(1<<20));
+	uint32_t* hist_out = (uint32_t*) malloc(sizeof(uint32_t)*(1<<20));
+	std::memset(hist,0,N_t*sizeof(uint32_t)*(1<<20));
+	std::memset(hist_out,0,sizeof(uint32_t)*(1<<20));
 
 	DataType* data_x = (DataType*) data_x_in.request().ptr;
 	DataType* data_y = (DataType*) data_y_in.request().ptr;
 	uint64_t N = (uint64_t) std::min(data_x_in.size(),data_y_in.size());
-	
-	digitizer_histogram2D_10bits<DataType>(hist,data_x,data_y,N);
-	py::capsule free_when_done(hist,free);
+	N = N/N_t;
+
+	#pragma omp parallel for num_threads(N_t)
+	for(uint64_t i=0;i<N_t;i++)
+	{
+		manage_thread_affinity();
+		digitizer_histogram2D_10bits<DataType>(hist+(i<<20),data_x+(i*N),data_y+(i*N),N);
+		for(uint64_t j=0;j<(1<<20);j++)
+		{
+			#pragma omp atomic
+			hist_out[j] += hist[j+(i<<20)];
+		}
+	}
+	free(hist);
+	py::capsule free_when_done(hist_out,free);
 	return np_uint32
 	(
 		{1<<10,1<<10},
 		{sizeof(uint32_t)*(1<<10),sizeof(uint32_t)},
-		hist,
+		hist_out,
 		free_when_done
 	);
 }
