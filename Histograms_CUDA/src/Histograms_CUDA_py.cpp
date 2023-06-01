@@ -14,6 +14,11 @@ void init_histograms(py::module &m)
 	// 1D histograms sub-byte
 	m.def("digitizer_histogram_CUDA",&digitizer_histogram_subbyte_1d_py<uint8_t>,
 					"data"_a.noconvert(),"nbits"_a);
+
+
+	// 1D histograms step
+	m.def("digitizer_histogram_step_CUDA",&digitizer_histogram_step_1d_py<uint8_t>,
+					"data"_a.noconvert(),"nbits"_a);
 	
 	// 2D histograms
 	m.def("digitizer_histogram2D_CUDA",&digitizer_histogram_2d_py<uint8_t>,
@@ -27,6 +32,10 @@ void init_histograms(py::module &m)
 
 	// 2D histograms sub-byte
 	m.def("digitizer_histogram2D_CUDA",&digitizer_histogram_subbyte_2d_py<uint8_t>,
+					"data_x"_a.noconvert(),"data_y"_a.noconvert(),"nbits"_a);
+
+	// 2D histograms step
+	m.def("digitizer_histogram2D_step_CUDA",&digitizer_histogram_step_2d_py<uint8_t>,
 					"data_x"_a.noconvert(),"data_y"_a.noconvert(),"nbits"_a);
 }
 

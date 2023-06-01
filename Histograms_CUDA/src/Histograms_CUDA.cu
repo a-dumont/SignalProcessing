@@ -481,7 +481,7 @@ void reduction_general<int64_t>(uint64_t N, int64_t* in, uint64_t size)
 	reduction<int64_t>(n,in,size);
 }
 
-///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 //  _     _   _   _ _     _                                   //
 // / | __| | | | | (_)___| |_ ___   __ _ _ __ __ _ _ __ ___   //
 // | |/ _` | | |_| | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \  //
@@ -589,20 +589,20 @@ void digitizer_histogram_1d<int64_t>(uint64_t N, int64_t* in, uint32_t* hist, cu
 	digitizer_histogram_1d_int64<<<(N/512+1),512,0,stream>>>(N,in,hist);
 }
 
-////////////////////////////////////////////////////////////////////
-//    _     _   _   _ _     _                                     //
-//   / | __| | | | | (_)___| |_ ___   __ _ _ __ __ _ _ __ ___     //
-//   | |/ _` | | |_| | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \    //
-//   | | (_| | |  _  | \__ \ || (_) | (_| | | | (_| | | | | | |   //
-//   |_|\__,_| |_| |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|   //
-//	                                 |___/                        //
-//                         _     _           _                    //  
-//               ___ _   _| |__ | |__  _   _| |_ ___              //
-//              / __| | | | '_ \| '_ \| | | | __/ _ \             //
-//              \__ \ |_| | |_) | |_) | |_| | ||  __/             //
-//              |___/\__,_|_.__/|_.__/ \__, |\__\___|             //
-//                                     |___/                      //
-////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+//    _     _   _   _ _     _                                    //
+//   / | __| | | | | (_)___| |_ ___   __ _ _ __ __ _ _ __ ___    //
+//   | |/ _` | | |_| | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \   //
+//   | | (_| | |  _  | \__ \ || (_) | (_| | | | (_| | | | | | |  //
+//   |_|\__,_| |_| |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|  //
+//	                                 |___/                       //
+//                         _     _           _                   //
+//               ___ _   _| |__ | |__  _   _| |_ ___             //
+//              / __| | | | '_ \| '_ \| | | | __/ _ \            //
+//              \__ \ |_| | |_) | |_) | |_| | ||  __/            //
+//              |___/\__,_|_.__/|_.__/ \__, |\__\___|            //
+//                                     |___/                     //
+///////////////////////////////////////////////////////////////////
 
 __global__ void digitizer_histogram_subbyte_1d_uint8(uint64_t N, uint8_t* in, 
 				uint32_t* hist, uint8_t shift)
@@ -620,6 +620,43 @@ void digitizer_histogram_subbyte_1d<uint8_t>(uint64_t N, uint8_t* in, uint32_t* 
 				uint8_t nbits, cudaStream_t stream)
 {
 	digitizer_histogram_subbyte_1d_uint8<<<(N/512+1),512,0,stream>>>(N,in,hist,8-nbits);
+}
+
+///////////////////////////////////////////////////////////////////
+//    _     _   _   _ _     _                                    //
+//   / | __| | | | | (_)___| |_ ___   __ _ _ __ __ _ _ __ ___    //
+//   | |/ _` | | |_| | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \   //
+//   | | (_| | |  _  | \__ \ || (_) | (_| | | | (_| | | | | | |  //
+//   |_|\__,_| |_| |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_|  //
+//	                                 |___/                       //
+//                             _                                 //
+//	                       ___| |_ ___ _ __                      //
+//	                      / __| __/ _ \ '_ \                     //
+//	                      \__ \ ||  __/ |_) |                    //
+//	                      |___/\__\___| .__/                     //
+//	                                  |_|                        //
+///////////////////////////////////////////////////////////////////
+
+__global__ void digitizer_histogram_step_1d_uint8(uint64_t N, uint8_t* in, 
+				uint32_t* hist, uint8_t shift)
+{
+	uint64_t i = threadIdx.x+blockIdx.x*blockDim.x;
+	if(i<(N-1))
+	{
+		atomicAdd(&hist[in[i]>>shift],1);
+		atomicAdd(&(hist+(1<<(8-shift)))[(in[i]>>shift)<<(8-shift) ^ (in[i+1]>>shift)],1);
+	}
+}
+
+template<class DataType>
+void digitizer_histogram_step_1d(uint64_t N, DataType* in, uint32_t* hist, 
+				uint8_t nbits, cudaStream_t stream){}
+
+template<>
+void digitizer_histogram_step_1d<uint8_t>(uint64_t N, uint8_t* in, uint32_t* hist, 
+				uint8_t nbits, cudaStream_t stream)
+{
+	digitizer_histogram_step_1d_uint8<<<(N/512+1),512,0,stream>>>(N,in,hist,8-nbits);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -697,7 +734,7 @@ void digitizer_histogram_2d<int16_t>(uint64_t N, int16_t* in_x, int16_t* in_y, u
 //  / __/ (_| | |  _  | \__ \ || (_) | (_| | | | (_| | | | | | | //
 // |_____\__,_| |_| |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_| //
 //					                  |___/                      //
-//                         _     _           _                   //  
+//                         _     _           _                   // 
 //               ___ _   _| |__ | |__  _   _| |_ ___             //
 //              / __| | | | '_ \| '_ \| | | | __/ _ \            //
 //              \__ \ |_| | |_) | |_) | |_| | ||  __/            //
@@ -721,4 +758,50 @@ void digitizer_histogram_subbyte_2d<uint8_t>(uint64_t N, uint8_t* in_x, uint8_t*
 				uint32_t* hist, uint8_t nbits, cudaStream_t stream)
 {
 	digitizer_histogram_subbyte_2d_uint8<<<(N/512+1),512,0,stream>>>(N,in_x,in_y,hist,8-nbits);
+}
+
+///////////////////////////////////////////////////////////////////
+//  ____     _   _   _ _     _                                   //
+// |___ \ __| | | | | (_)___| |_ ___   __ _ _ __ __ _ _ __ ___   //
+//   __) / _` | | |_| | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \  //
+//  / __/ (_| | |  _  | \__ \ || (_) | (_| | | | (_| | | | | | | //
+// |_____\__,_| |_| |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_| //
+//					                  |___/                      //
+//                             _                                 //
+//	                       ___| |_ ___ _ __                      //
+//	                      / __| __/ _ \ '_ \                     //
+//	                      \__ \ ||  __/ |_) |                    //
+//	                      |___/\__\___| .__/                     //
+//	                                  |_|                        //
+///////////////////////////////////////////////////////////////////
+
+__global__ void digitizer_histogram_step_2d_uint8(uint64_t N, uint8_t* in_x, uint8_t* in_y, 
+				uint32_t* hist, uint8_t shift, uint8_t nbits)
+{
+	uint64_t i = threadIdx.x+blockIdx.x*blockDim.x;
+	uint64_t bin_x, bin_y, bin_x2, bin_y2;
+	if(i<(N-1))
+	{
+		bin_x = in_x[i]>>shift;
+		bin_y = in_y[i]>>shift;
+		bin_x2 = in_x[i+1]>>shift;
+		bin_y2 = in_y[i+1]>>shift;
+		atomicAdd(&hist[(bin_x<<nbits) ^ bin_y],1);
+		atomicAdd(
+		&(hist+(1<<nbits<<nbits))
+		[(bin_x<<nbits<<nbits<<nbits) ^ (bin_y<<nbits<<nbits) ^ (bin_x2<<nbits) ^ (bin_y2)]
+		,1);
+	}
+}
+
+template<class DataType>
+void digitizer_histogram_step_2d(uint64_t N, DataType* in_x, DataType* in_y, uint32_t* hist, 
+				uint8_t nbits, cudaStream_t stream){}
+
+template<>
+void digitizer_histogram_step_2d<uint8_t>(uint64_t N, uint8_t* in_x, uint8_t* in_y, 
+				uint32_t* hist, 
+				uint8_t nbits, cudaStream_t stream)
+{
+	digitizer_histogram_step_2d_uint8<<<(N/512+1),512,0,stream>>>(N,in_x,in_y,hist,8-nbits,nbits);
 }
