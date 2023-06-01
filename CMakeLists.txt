@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(SignalProcessing VERSION 2.2.0 DESCRIPTION "C++ and CUDA routines wrapped with pybind11")
+project(SignalProcessing VERSION 4.0.0 DESCRIPTION "C++ and CUDA routines wrapped with pybind11")
 
 # Cygwin stuff
 if(CYGWIN)
@@ -24,6 +24,7 @@ if($ENV{ENABLE_CUDA})
 		add_subdirectory(FFT_CUDA)
 		add_subdirectory(Correlations_CUDA)
 		add_subdirectory(Math_CUDA)
+		add_subdirectory(Histograms_CUDA)
 endif($ENV{ENABLE_CUDA})
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT/obj/
@@ -49,4 +50,7 @@ if($ENV{ENABLE_CUDA})
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math_CUDA/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
 		FILES_MATCHING PATTERN "libmathcuda.*")
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_CUDA/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
+		FILES_MATCHING PATTERN "libhistogramscuda.*")
 endif($ENV{ENABLE_CUDA})
