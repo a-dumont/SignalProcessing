@@ -805,3 +805,35 @@ void digitizer_histogram_step_2d<uint8_t>(uint64_t N, uint8_t* in_x, uint8_t* in
 {
 	digitizer_histogram_step_2d_uint8<<<(N/512+1),512,0,stream>>>(N,in_x,in_y,hist,8-nbits,nbits);
 }
+
+///////////////////////////////////////////////////////////////////
+//  ____     _   _   _ _     _                                   //
+// |___ \ __| | | | | (_)___| |_ ___   __ _ _ __ __ _ _ __ ___   //
+//   __) / _` | | |_| | / __| __/ _ \ / _` | '__/ _` | '_ ` _ \  //
+//  / __/ (_| | |  _  | \__ \ || (_) | (_| | | | (_| | | | | | | //
+// |_____\__,_| |_| |_|_|___/\__\___/ \__, |_|  \__,_|_| |_| |_| //
+//                   _  ___    _     _ _                         //
+//                  / |/ _ \  | |__ (_) |_ ___                   //
+//                  | | | | | | '_ \| | __/ __|                  //
+//                  | | |_| | | |_) | | |_\__ \                  //
+//                  |_|\___/  |_.__/|_|\__|___/                  //
+///////////////////////////////////////////////////////////////////
+
+__global__ void digitizer_histogram_10bits_2d_uint16(uint64_t N, uint16_t* in_x, uint16_t* in_y, 
+				uint32_t* hist)
+{
+	uint64_t i = threadIdx.x+blockIdx.x*blockDim.x;
+	if(i<N){atomicAdd(&hist[in_y[i] ^ in_x[i]<<10],1);}
+}
+
+template<class DataType>
+void digitizer_histogram_10bits_2d(uint64_t N, DataType* in_x, DataType* in_y, uint32_t* hist, 
+				cudaStream_t stream){}
+
+template<>
+void digitizer_histogram_10bits_2d<uint16_t>(uint64_t N, uint16_t* in_x, uint16_t* in_y, uint32_t* hist, 
+				cudaStream_t stream)
+{
+	digitizer_histogram_10bits_2d_uint16<<<(N/512+1),512,0,stream>>>(N,in_x,in_y,hist);
+}
+

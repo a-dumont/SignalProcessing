@@ -1228,6 +1228,7 @@ np_uint32 digitizer_histogram2D_10bits_py(
 			hist_out[j] += hist[j+(i<<20)];
 		}
 	}
+
 	free(hist);
 	py::capsule free_when_done(hist_out,free);
 	return np_uint32
