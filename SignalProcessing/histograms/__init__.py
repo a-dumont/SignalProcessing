@@ -6,6 +6,14 @@ if os.name == "nt" and s not in os.environ["PATH"]:
 
 from .libhistograms import *
 
+try:
+    from .libhistogramscuda import *
+    del libfftcuda
+except ImportError:
+        print("No CUDA support")
+except ModuleNotFoundError:
+        print("No CUDA support")
+
 del s
 del os
 del libhistograms
