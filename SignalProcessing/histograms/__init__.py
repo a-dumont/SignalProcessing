@@ -8,7 +8,7 @@ from .libhistograms import *
 
 try:
     from .libhistogramscuda import *
-    del libfftcuda
+    del libhistogramscuda
 except ImportError:
         print("No CUDA support")
 except ModuleNotFoundError:
