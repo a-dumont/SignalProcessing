@@ -1,6 +1,7 @@
 #pragma once
 #include <tuple>
 #include <cmath>
+#include <cstdint>
 #include <stdio.h>
 #include <algorithm>
 #include <cstdint>
