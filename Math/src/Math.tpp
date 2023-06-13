@@ -31,7 +31,7 @@ void manage_thread_affinity()
     #else
         //We let openmp and the OS manage the threads themselves
     #endif
-	}
+}
 
 // Gradient with full size x and t
 template<class DataType, class DataType2>

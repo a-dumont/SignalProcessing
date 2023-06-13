@@ -62,6 +62,7 @@ elseif(MSVC)
 	target_link_libraries(histogramscuda ${CUDA})
 elseif(UNIX)
     target_link_libraries(histogramscuda -L/opt/cuda/lib64 -lcudart -lcuda)
+    target_link_libraries(histogramscuda -fopenmp -fopenmp-simd)
 endif()
 
 # pybind11 includes

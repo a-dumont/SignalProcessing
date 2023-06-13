@@ -49,6 +49,18 @@ void init_histograms(py::module &m)
 					"data_x"_a.noconvert(),"data_y"_a.noconvert());
 	m.def("digitizer_histogram2D_10bits_CUDA",&digitizer_histogram_10bits_2d_py<int16_t>,
 					"data_x"_a.noconvert(),"data_y"_a.noconvert());
+
+	// Class
+	py::class_<Digitizer_histogram2D_step_CUDA_py>(m,"Digitizer_Step2D_mixed")
+		.def(py::init<uint64_t,uint64_t>())
+		.def("getHistogram",&Digitizer_histogram2D_step_CUDA_py::getHistogram)
+		.def("getCount",&Digitizer_histogram2D_step_CUDA_py::getCount)
+		.def("getNbits",&Digitizer_histogram2D_step_CUDA_py::getNbits)
+		.def("getSize",&Digitizer_histogram2D_step_CUDA_py::getSize)
+		.def("resetHistogram",&Digitizer_histogram2D_step_CUDA_py::resetHistogram)
+		.def("accumulate",&Digitizer_histogram2D_step_CUDA_py::accumulate)
+		.def("getThreads",&Digitizer_histogram2D_step_CUDA_py::getThreads);
+
 }
 
 PYBIND11_MODULE(libhistogramscuda, m)
