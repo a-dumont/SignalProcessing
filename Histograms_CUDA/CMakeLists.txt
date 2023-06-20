@@ -25,15 +25,23 @@ file(GLOB CUDA_SRC_FILES "src/*.cu")
 # Compiler options
 if(CYGWIN)
     add_compile_options(-Wall -O3 -fopenmp -fopenmp-simd -march=native -MMD -MP-DMS_WIN64 -D_hypot=hypot)
-elseif(MSVC)
-    #add_compile_options(/Wall /openmp /arch:AVX2)
 elseif(UNIX)
     add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd)
 endif()
 
 # Target library
-add_library(histogramscuda ${SRC_FILES} ${CUDA_SRC_FILES})
-set_target_properties(histogramscuda PROPERTIES CUDA_ARCHITECTURES 60)
+if(CYGWIN)
+	add_library(histogramscuda ${SRC_FILES})
+	SET(OBJS ${CMAKE_CURRENT_SOURCE_DIR}/libs/obj.o)
+	ADD_EXECUTABLE(histogramscuda ${OBJS} <other-sources>)
+	SET_SOURCE_FILES_PROPERTIES(${OBJS} PROPERTIES EXTERNAL_OBJECT true GENERATED true)
+elseif(MSVC)
+	add_library(histogramscuda ${SRC_FILES} ${CUDA_SRC_FILES})
+	set_target_properties(histogramscuda PROPERTIES CUDA_ARCHITECTURES 60)
+elseif(UNIX)
+	add_library(histogramscuda ${SRC_FILES} ${CUDA_SRC_FILES})
+	set_target_properties(histogramscuda PROPERTIES CUDA_ARCHITECTURES 60)
+endif()
 
 # Dependencies
 find_package(Python COMPONENTS Interpreter REQUIRED)
@@ -42,20 +50,34 @@ include_directories(${CUDAToolkit_INCLUDE_DIRS})
 
 # Cygwin stuff
 if(CYGWIN)
-    set_target_properties(histogramscuda PROPERTIES SUFFIX ".pyd")
+	# Renaming CUDA toolkit directory
+	string(REGEX REPLACE "C\:" "/c" CUDAToolkit_INCLUDE_DIRS ${CUDAToolkit_INCLUDE_DIRS})
+    
+	# Force naming scheme
+	set_target_properties(histogramscuda PROPERTIES SUFFIX ".pyd")
     set_target_properties(histogramscuda PROPERTIES PREFIX "lib")
+	
+	# Set python executable
 	set(Python_EXECUTABLE "/c/Anaconda2/python")
+	
+	# Linking 
 	target_link_libraries(histogramscuda -L/c/Anaconda2/ -lpython27)
     target_link_libraries(histogramscuda -DMS_WIN64 -D_hypot=hypot)
-    target_link_libraries(histogramscuda -L/opt/cuda/lib64 -lcudart -lcuda)
+    find_library(CUDART NAMES cudart HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
+	target_link_libraries(histogramscuda ${CUDART})
+    find_library(CUDA NAMES cuda HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
+	target_link_libraries(histogramscuda ${CUDA})
 elseif(MSVC)
+	# Force naming scheme
     set_target_properties(histogramscuda PROPERTIES SUFFIX ".pyd")
     set_target_properties(histogramscuda PROPERTIES PREFIX "lib")
+	
+	# Set python executable
 	set(Python_EXECUTABLE "C:/Anaconda2/python")
-    find_library(PYLIB NAMES python27 HINTS "C:/Anaconda2/libs")
+    
+	# Linking
+	find_library(PYLIB NAMES python27 HINTS "C:/Anaconda2/libs")
 	target_link_libraries(histogramscuda ${PYLIB})
-    find_library(CUFFT NAMES cufft HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
-	target_link_libraries(histogramscuda ${CUFFT})
     find_library(CUDART NAMES cudart HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
 	target_link_libraries(histogramscuda ${CUDART})
     find_library(CUDA NAMES cuda HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")

@@ -755,7 +755,7 @@ np_uint32 digitizer_histogram_10bits_2d_py(py::array_t<DataType,py::array::c_sty
 class Digitizer_histogram2D_step_CUDA_py
 {
 	protected:
-		uint32_t *hist_cpu, *hist_gpu, *hist_merged;
+		uint32_t *hist_cpu, *hist_gpu;
 		uint8_t *x_gpu, *y_gpu;
 		uint64_t nbits, size, total_size, count;
 		uint64_t N_t, N, N_cpu, N_gpu, N_p, data_size;
@@ -895,9 +895,6 @@ class Digitizer_histogram2D_step_CUDA_py
 			hist_cpu = (uint32_t*) malloc(N_t*sizeof(uint32_t)*total_size);
 			std::memset(hist_cpu,0,N_t*sizeof(uint32_t)*total_size);
 			
-			hist_merged = (uint32_t*) malloc(sizeof(uint32_t)*total_size);
-			std::memset(hist_merged,0,sizeof(uint32_t)*total_size);
-
 			cudaMalloc((void**)&hist_gpu, total_size*sizeof(uint32_t));
 			cudaMemset(hist_gpu,0,total_size*sizeof(uint32_t));
 			
@@ -911,7 +908,6 @@ class Digitizer_histogram2D_step_CUDA_py
 		~Digitizer_histogram2D_step_CUDA_py()
 		{
 			free(hist_cpu);
-			free(hist_merged);
 			cudaFree(hist_gpu);
 			cudaFree(x_gpu);
 			cudaFree(y_gpu);
@@ -925,9 +921,9 @@ class Digitizer_histogram2D_step_CUDA_py
 			uint8_t* ydata_cpu = (uint8_t*) ydata_py.request().ptr;
 
 			uint8_t* xdata_gpu = xdata_cpu+N_cpu;	
-			uint8_t* ydata_gpu = ydata_cpu+N_cpu;	
-			
-			#pragma omp sections
+			uint8_t* ydata_gpu = ydata_cpu+N_cpu;
+
+			#pragma omp parallel sections
 			{
 				#pragma omp section 
 				{
@@ -938,13 +934,13 @@ class Digitizer_histogram2D_step_CUDA_py
 					accumulate_gpu(xdata_gpu,ydata_gpu);	
 				}
 			}
+			#pragma omp barrier
 			count += 1;
 		}
 		
 		void resetHistogram()
 		{
 			std::memset(hist_cpu,0,N_t*sizeof(uint32_t)*total_size);
-			std::memset(hist_merged,0,sizeof(uint32_t)*total_size);
 			cudaMemset(hist_gpu,0,sizeof(uint32_t)*total_size);
 
 			count = 0;
