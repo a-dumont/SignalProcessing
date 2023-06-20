@@ -6,7 +6,6 @@
 #include <cmath>
 #include <cstdint>
 #include <omp.h>
-#include <future>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

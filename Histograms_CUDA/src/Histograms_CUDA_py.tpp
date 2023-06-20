@@ -1,3 +1,4 @@
+#include <chrono>
 #include <future>
 #include <stdexcept>
 
@@ -903,6 +904,8 @@ class Digitizer_histogram2D_step_CUDA_py
 
 			cudaStreamCreate(&streams[0]);
 			cudaStreamCreate(&streams[1]);
+
+			omp_set_nested(1);
 		}
 		
 		~Digitizer_histogram2D_step_CUDA_py()
