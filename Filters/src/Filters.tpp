@@ -34,6 +34,25 @@ void manage_thread_affinity()
     #endif
 }
 
+template <class DataType>
+DataType getThreads()
+{
+	DataType threads;
+    #ifdef _WIN32_WINNT
+		DataType nbgroups = GetActiveProcessorGroupCount();
+	    threads = std::min((DataType) 64,(DataType) (omp_get_max_threads()*nbgroups));
+	#else
+    #ifdef _WIN32_WINNT
+		uint64_t nbgroups = GetActiveProcessorGroupCount();
+	    threads = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
+	#else
+		threads = omp_get_max_threads();
+	#endif
+		threads = (DataType) omp_get_max_threads();
+	#endif
+	return threads;
+}
+
 template<class DataTypeIn, class DataTypeOut>
 void filterAVX(uint64_t N, uint64_t Nfilter, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
 
@@ -267,41 +286,35 @@ template<class DataTypeIn, class DataTypeOut>
 void applyFilter(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data, 
 				DataTypeOut* out, DataTypeIn* filter)
 {
-	uint64_t threads;
-    #ifdef _WIN32_WINNT
-		uint64_t nbgroups = GetActiveProcessorGroupCount();
-	    threads = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
-	#else
-		threads = omp_get_max_threads();
-	#endif
-	
-	uint64_t Nskip = Nfilter/2;
-	uint64_t Nthreads = (Ndata-2*Nskip)/threads;
+	uint64_t threads = getThreads<uint64_t>();
+	uint64_t shift = Nfilter/2;
+	uint64_t Nthreads = (Ndata-2*shift)/threads;
 	DataTypeIn zero = (DataTypeIn) 0;
-	if(Nthreads < 1<<14){threads = 1; Nthreads = Ndata-2*Nskip;}
+	
+	if(Nthreads < 1<<14){threads = 1; Nthreads = Ndata-2*shift;}
 	
 	#pragma omp parallel for num_threads(threads)
 	for(uint64_t i=0;i<threads;i++)
 	{
 		manage_thread_affinity();
-		for(uint64_t j=(i*Nthreads+Nskip);j<((i+1)*Nthreads+Nskip);j++)
+		for(uint64_t j=(i*Nthreads+shift);j<((i+1)*Nthreads+shift);j++)
 		{
-			out[j] = std::inner_product(filter,filter+Nfilter,data+j-Nskip,zero);
+			out[j] = std::inner_product(filter,filter+Nfilter,data+j-shift,zero);
 		}
 	}
 	
-	for(uint64_t i=0;i<Nskip;i++)
+	for(uint64_t i=0;i<shift;i++)
 	{
-		for(uint64_t j=(Nskip-i);j<Nfilter;j++)
+		for(uint64_t j=(shift-i);j<Nfilter;j++)
 		{
-			out[i] += data[j-(Nskip-i)]*filter[j];
+			out[i] += data[j-(shift-i)]*filter[j];
 		}
 	}
-	for(uint64_t i=(Nskip+threads*Nthreads);i<Ndata;i++)
+	for(uint64_t i=(shift+threads*Nthreads);i<Ndata;i++)
 	{
-		for(uint64_t j=0;j<(Ndata-i+Nskip);j++)
+		for(uint64_t j=0;j<(Ndata-i+shift);j++)
 		{
-			out[i] += data[i-Nskip+j]*filter[j];
+			out[i] += data[i-shift+j]*filter[j];
 		}
 	}
 }
@@ -310,16 +323,10 @@ template<class DataTypeIn, class DataTypeOut>
 void applyFilterAVX2(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data, 
 				DataTypeOut* out, DataTypeIn* filter)
 {
-	uint64_t threads;
-    #ifdef _WIN32_WINNT
-		uint64_t nbgroups = GetActiveProcessorGroupCount();
-	    threads = std::min((uint64_t) 64,omp_get_max_threads()*nbgroups);
-	#else
-		threads = omp_get_max_threads();
-	#endif
-	
+	uint64_t threads = getThreads<uint64_t>();
 	uint64_t shift = Nfilter/2;
 	uint64_t Nthreads = (Ndata-2*shift)/threads;
+
 	if(Nthreads < 1<<14){threads = 1; Nthreads = Ndata-2*shift;}
 	
 	#pragma omp parallel for num_threads(threads)
@@ -340,7 +347,6 @@ void applyFilterAVX2(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	}
 	for(uint64_t i=(shift+threads*Nthreads);i<Ndata;i++)
 	{
-		out[i] = 0;
 		for(uint64_t j=0;j<(Ndata-i+shift);j++)
 		{
 			out[i] += data[i-shift+j]*filter[j];
