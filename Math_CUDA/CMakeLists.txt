@@ -18,18 +18,17 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 
-# Sources
-file(GLOB SRC_FILES "src/*.cpp")
-file(GLOB SRC_CUDA "src/*.cu")
 
 # Compiler options
-if(CYGWIN)
-    add_compile_options(-Wall -O3 -march=native -MMD -MP-DMS_WIN64 -D_hypot=hypot)
-elseif(MSVC)
+if(MSVC)
 	#add_compile_options(/Wall /openmp /arch:AVX2)
 elseif(UNIX)
     add_compile_options(-Wall -O3 -march=native -MMD -MP)
 endif()
+
+# Sources
+file(GLOB SRC_FILES "src/*.cpp")
+file(GLOB SRC_CUDA "src/*.cu")
 
 # Target library
 add_library(mathcuda ${SRC_FILES} ${SRC_CUDA})
@@ -40,15 +39,7 @@ find_package(Python COMPONENTS Interpreter REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 include_directories(${CUDAToolkit_INCLUDE_DIRS})
 
-# Cygwin stuff
-if(CYGWIN)
-    set_target_properties(mathcuda PROPERTIES SUFFIX ".pyd")
-    set_target_properties(mathcuda PROPERTIES PREFIX "lib")
-	set(Python_EXECUTABLE "/c/Anaconda2/python")
-	target_link_libraries(mathcuda -L/c/Anaconda2/ -lpython27)
-    target_link_libraries(mathcuda -DMS_WIN64 -D_hypot=hypot)
-    target_link_libraries(mathcuda -L/opt/cuda/lib64 -lcufft -lcudart)
-elseif(MSVC)
+if(MSVC)
     set_target_properties(mathcuda PROPERTIES SUFFIX ".pyd")
     set_target_properties(mathcuda PROPERTIES PREFIX "lib")
 	set(Python_EXECUTABLE "C:/Anaconda2/python")
@@ -66,8 +57,6 @@ endif()
 execute_process(COMMAND ${Python_EXECUTABLE} -m pybind11 --includes OUTPUT_VARIABLE PY_INCL)
 string(REGEX REPLACE "-I" "" PY_INCL ${PY_INCL})
 string(REGEX REPLACE "\n" "" PY_INCL ${PY_INCL})
-if(CYGWIN)
-string(REGEX REPLACE "C\:" "/c" PY_INCL ${PY_INCL})
-endif(CYGWIN)
+
 separate_arguments(PY_INCL)
 include_directories(${PY_INCL})

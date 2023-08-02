@@ -18,6 +18,7 @@ add_subdirectory(FFT)
 add_subdirectory(Correlations)
 add_subdirectory(Histograms)
 add_subdirectory(Math)
+add_subdirectory(Filters)
 
 if($ENV{ENABLE_CUDA})
 		message(STATUS "Building the CUDA modules")
