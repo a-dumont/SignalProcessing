@@ -40,6 +40,9 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms/obj/
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
 		FILES_MATCHING PATTERN "libmath.*")
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/Filters/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/filters
+		FILES_MATCHING PATTERN "libfilters.*")
 
 if($ENV{ENABLE_CUDA})
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_CUDA/obj/
