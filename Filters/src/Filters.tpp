@@ -54,6 +54,54 @@ DataType getThreads()
 }
 
 template<class DataTypeIn, class DataTypeOut>
+DataTypeOut dotProductAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2){}
+
+template<>
+double dotProductAVX<double,double>(uint64_t N, double* in1, double* in2)
+{
+	__m256d ymm0,ymm1;
+	double out = 0;
+	double* res = (double*)&ymm0;
+	uint64_t N2 = N/4;
+	uint64_t k = 0;
+	for(uint64_t j=0;j<N2;j++)
+	{
+		k = 4*j;
+		ymm0 = _mm256_loadu_pd(in1+k);
+		ymm1 = _mm256_loadu_pd(in2+k);
+		ymm0 = _mm256_mul_pd(ymm0,ymm1);
+		ymm0 = _mm256_add_pd(ymm0,_mm256_permute2f128_pd(ymm0,ymm0,1));
+		ymm0 = _mm256_hadd_pd(ymm0,ymm0);
+		out += res[0];
+	}
+	out += std::inner_product(in1+4*N2,in1+N,in2,0.0);
+	return out;
+}
+
+template<>
+float dotProductAVX<float,float>(uint64_t N, float* in1, float* in2)
+{
+	__m256 ymm0,ymm1;
+	float out = 0;
+	float* res = (float*)&ymm0;
+	uint64_t N2 = N/8;
+	uint64_t k = 0;
+	for(uint64_t j=0;j<N2;j++)
+	{
+		k = 8*j;
+		ymm0 = _mm256_loadu_ps(in1+k);
+		ymm1 = _mm256_loadu_ps(in2+k);
+		ymm0 = _mm256_mul_ps(ymm0,ymm1);
+		ymm0 = _mm256_add_ps(ymm0,_mm256_permute2f128_ps(ymm0,ymm0,1));
+		ymm0 = _mm256_hadd_ps(ymm0,ymm0);
+		ymm0 = _mm256_hadd_ps(ymm0,ymm0);
+		out += res[0];
+	}
+	out += std::inner_product(in1+8*N2,in1+N,in2,0.0);
+	return out;
+}
+
+template<class DataTypeIn, class DataTypeOut>
 void filterAVX(uint64_t N, uint64_t Nfilter, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
 
 template<>
@@ -305,22 +353,16 @@ void applyFilter(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	
 	for(uint64_t i=0;i<shift;i++)
 	{
-		for(uint64_t j=(shift-i);j<Nfilter;j++)
-		{
-			out[i] += data[j-(shift-i)]*filter[j];
-		}
+		out[i] = std::inner_product(filter+(shift-i),filter+Nfilter,data,zero);
 	}
 	for(uint64_t i=(shift+threads*Nthreads);i<Ndata;i++)
 	{
-		for(uint64_t j=0;j<(Ndata-i+shift);j++)
-		{
-			out[i] += data[i-shift+j]*filter[j];
-		}
+		out[i] = std::inner_product(filter,filter+Ndata-i+shift,data+i-shift,zero);
 	}
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void applyFilterAVX2(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data, 
+void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data, 
 				DataTypeOut* out, DataTypeIn* filter)
 {
 	uint64_t threads = getThreads<uint64_t>();
@@ -334,22 +376,18 @@ void applyFilterAVX2(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	{
 		manage_thread_affinity();
 		DataTypeIn* sData = data+i*Nthreads;
-		DataTypeOut* sOut = out+i*Nthreads+shift;
+		DataTypeOut* sOut = out+i*Nthreads+(Nfilter-1);
 		filterAVX<DataTypeIn,DataTypeOut>(Nthreads,Nfilter,sData,filter,sOut);
 	}
 	
-	for(uint64_t i=0;i<shift;i++)
+	#pragma omp parallel for	
+	for(uint64_t i=0;i<(Nfilter-1);i++)
 	{
-		for(uint64_t j=(shift-i);j<Nfilter;j++)
-		{
-			out[i] += data[j-(shift-i)]*filter[j];
-		}
+		out[i] = dotProductAVX<DataTypeIn,DataTypeOut>(i+1,data,filter+(Nfilter-i-1));
 	}
-	for(uint64_t i=(shift+threads*Nthreads);i<Ndata;i++)
+	#pragma omp parallel for
+	for(uint64_t i=(shift+threads*Nthreads);i<(Ndata+shift);i++)
 	{
-		for(uint64_t j=0;j<(Ndata-i+shift);j++)
-		{
-			out[i] += data[i-shift+j]*filter[j];
-		}
+		out[i+(Nfilter-1)/2] = dotProductAVX<DataTypeIn,DataTypeOut>(Ndata-i+shift,data+i-shift,filter);
 	}
 }
