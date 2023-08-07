@@ -54,54 +54,6 @@ DataType getThreads()
 }
 
 template<class DataTypeIn, class DataTypeOut>
-DataTypeOut dotProductAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2){}
-
-template<>
-double dotProductAVX<double,double>(uint64_t N, double* in1, double* in2)
-{
-	__m256d ymm0,ymm1;
-	double out = 0;
-	double* res = (double*)&ymm0;
-	uint64_t N2 = N/4;
-	uint64_t k = 0;
-	for(uint64_t j=0;j<N2;j++)
-	{
-		k = 4*j;
-		ymm0 = _mm256_loadu_pd(in1+k);
-		ymm1 = _mm256_loadu_pd(in2+k);
-		ymm0 = _mm256_mul_pd(ymm0,ymm1);
-		ymm0 = _mm256_add_pd(ymm0,_mm256_permute2f128_pd(ymm0,ymm0,1));
-		ymm0 = _mm256_hadd_pd(ymm0,ymm0);
-		out += res[0];
-	}
-	out += std::inner_product(in1+4*N2,in1+N,in2,0.0);
-	return out;
-}
-
-template<>
-float dotProductAVX<float,float>(uint64_t N, float* in1, float* in2)
-{
-	__m256 ymm0,ymm1;
-	float out = 0;
-	float* res = (float*)&ymm0;
-	uint64_t N2 = N/8;
-	uint64_t k = 0;
-	for(uint64_t j=0;j<N2;j++)
-	{
-		k = 8*j;
-		ymm0 = _mm256_loadu_ps(in1+k);
-		ymm1 = _mm256_loadu_ps(in2+k);
-		ymm0 = _mm256_mul_ps(ymm0,ymm1);
-		ymm0 = _mm256_add_ps(ymm0,_mm256_permute2f128_ps(ymm0,ymm0,1));
-		ymm0 = _mm256_hadd_ps(ymm0,ymm0);
-		ymm0 = _mm256_hadd_ps(ymm0,ymm0);
-		out += res[0];
-	}
-	out += std::inner_product(in1+8*N2,in1+N,in2,0.0);
-	return out;
-}
-
-template<class DataTypeIn, class DataTypeOut>
 void filterEdgeLeftAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
 
 template<>
@@ -178,35 +130,6 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
 template<class DataTypeIn, class DataTypeOut>
 void filterEdgeRightAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
 
-/*
-template<>
-void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
-{
-	__m256d ymm0,ymm1,ymm2;
-	uint64_t N2,k;
-	double f;
-	for(uint64_t j=0;j<N;j++)
-	{
-		f = in2[N-1-j];
-		ymm0 = _mm256_broadcast_sd(&f);
-		N2 = (N-j)/4;
-		#pragma omp parallel for
-		for(uint64_t i=0;i<N2;i++)
-		{
-			k = 4*i;
-			
-			ymm1 = _mm256_loadu_pd(in1-k-3);
-			ymm2 = _mm256_loadu_pd(out-j-k-3);
-			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
-			_mm256_storeu_pd(out-j-k-3,ymm2);	
-		}
-		for(uint64_t i=4*N2;i<(N-j);i++)
-		{
-			(out-j-i)[0] += f*(in1-i)[0];
-		}
-	}
-}*/
-
 template<>
 void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
 {
@@ -241,31 +164,41 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
 	}
 }
 
-
 template<>
 void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* out)
 {
-	__m256 ymm0,ymm1,ymm2;
-	uint64_t N2,k;
-	float f;
-	for(uint64_t j=0;j<N;j++)
+	uint64_t N2 = N/8;
+
+	#pragma omp parallel for schedule(dynamic,1)
+	for(uint64_t j=0;j<N2;j++)
 	{
-		f = in2[N-1-j];
-		ymm0 = _mm256_broadcast_ss(&f);
-		N2 = (N-j)/8;
-		#pragma omp parallel for
-		for(uint64_t i=0;i<N2;i++)
+		__m256 ymm0,ymm1,ymm2;
+		__m256i ymm3,ymm4;
+		ymm3 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
+		ymm4 = _mm256_set_epi32(0,7,6,5,4,3,2,1);
+		uint64_t k;
+		float* res = (float*)&ymm2;
+		k = 8*j;
+		ymm2 = _mm256_setzero_ps();
+		for(uint64_t i=0;i<k;i++)
 		{
-			k = 8*i;
-			ymm1 = _mm256_loadu_ps(out-j-k-7);
-			ymm2 = _mm256_loadu_ps(in1-k-7);
-			ymm1 = _mm256_add_ps(ymm1,_mm256_mul_ps(ymm0,ymm2));
-			_mm256_storeu_ps(out-j-k-7,ymm1);
+			ymm0 = _mm256_broadcast_ss(in1-i);
+			ymm1 = _mm256_loadu_ps(in2+N-8-i);
+			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
 		}
-		for(uint64_t i=8*N2;i<(N-j);i++)
+		ymm0 = _mm256_loadu_ps(in1-7-k); 
+		ymm0 = _mm256_permutevar8x32_ps(ymm0,ymm3);
+		for(uint64_t i=k;i<(k+8);i++)
 		{
-			(out-j-i)[0] += f*(in1-i)[0];
+			ymm1 = _mm256_broadcast_ss(in2+i-k);
+			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
+			(out-i)[0] = res[0];
+			ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm4);
 		}
+	}
+	for(uint64_t j=(8*N2);j<N;j++)
+	{
+		(out-j)[0] = std::inner_product(in2,in2+j+1,in1-j,0.0);
 	}
 }
 
@@ -551,7 +484,6 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	}
 	
 	filterEdgeLeftAVX<DataTypeIn,DataTypeOut>(Nfilter,data,filter,out);
-	//filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-1,filter,out+Ndata+Nfilter-2);
 	filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-1,filter,out+Ndata+Nfilter-2);
 	
 	free(Nthreads_arr);	
