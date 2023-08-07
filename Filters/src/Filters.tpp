@@ -107,87 +107,78 @@ void filterEdgeLeftAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut
 template<>
 void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
 {
-	__m256d ymm0,ymm1,ymm2;
-	uint64_t N2,k;
-	double f;
-	for(uint64_t j=0;j<(N-1);j++)
-	{
-		f = in2[N-1-j];
-		N2 = (N-1-j)/4;
-		ymm0 = _mm256_broadcast_sd(&f);
-		#pragma omp parallel for
-		for(uint64_t i=0;i<N2;i++)
-		{
-			k = 4*i;
-			ymm1 = _mm256_loadu_pd(in1+k);
-			ymm2 = _mm256_loadu_pd(out+j+k);
-			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
-			_mm256_storeu_pd(out+j+k,ymm2);
-		}
-		for(uint64_t i=4*N2;i<(N-1-j);i++)
-		{
-			out[j+i] += f*in1[i];
-		}
-	}
-}
-/*
-template<>
-void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
-{
-	__m256d ymm0,ymm1,ymm2;
-	uint64_t N2,k;
-	double* res = (double*)&ymm2;
-	N2 = (N-1)/4;
+	uint64_t N2 = (N-1)/4;
+	#pragma omp parallel for schedule(dynamic,1)
 	for(uint64_t j=0;j<N2;j++)
 	{
+		__m256d ymm0,ymm1,ymm2;
+		uint64_t k;
+		double* res = (double*)&ymm2;
 		k = 4*j;
 		ymm2 = _mm256_setzero_pd();
-		for(uint64_t i=0;i<(k+4);i++)
+		for(uint64_t i=0;i<k;i++)
 		{
-			ymm0 = _mm256_loadu_pd(in1); 
+			ymm0 = _mm256_broadcast_sd(in1+i);
+			ymm1 = _mm256_loadu_pd(in2+N-4-k+i);
+			ymm1 = _mm256_permute4x64_pd(ymm1,0b00011011);
+			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
+		}
+		ymm0 = _mm256_loadu_pd(in1+k); 
+		for(uint64_t i=k;i<(k+4);i++)
+		{
 			ymm1 = _mm256_broadcast_sd(in2+N-1-i);
 			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
-			out[i+k] = res[0];
-			res[0] = 0.0;
+			out[i] = res[0];
 			ymm2 = _mm256_permute4x64_pd(ymm2,0b00111001);
 		}
 	}
 	for(uint64_t j=(4*N2);j<(N-1);j++)
 	{
-		out[j] = std::inner_product(in2+N-j,in2+N,in1+j,0.0);
+		out[j] = std::inner_product(in2+N-j-1,in2+N,in1,0.0);
 	}
-}*/
+}
 
 template<>
 void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* out)
 {
-	__m256 ymm0,ymm1,ymm2;
-	uint64_t N2,k;
-	float f;
-	for(uint64_t j=0;j<(N-1);j++)
+	uint64_t N2 = (N-1)/8;
+	#pragma omp parallel for schedule(dynamic,1)
+	for(uint64_t j=0;j<N2;j++)
 	{
-		f = in2[N-1-j];
-		N2 = (N-1-j)/8;
-		ymm0 = _mm256_broadcast_ss(&f);
-		#pragma omp parallel for
-		for(uint64_t i=0;i<N2;i++)
+		__m256 ymm0,ymm1,ymm2;
+		__m256i ymm3,ymm4;
+		ymm3 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
+		ymm4 = _mm256_set_epi32(0,7,6,5,4,3,2,1);
+		uint64_t k;
+		float* res = (float*)&ymm2;
+		k = 8*j;
+		ymm2 = _mm256_setzero_ps();
+		for(uint64_t i=0;i<k;i++)
 		{
-			k = 8*i;
-			ymm1 = _mm256_loadu_ps(in1+k);
-			ymm2 = _mm256_loadu_ps(out+j+k);
+			ymm0 = _mm256_broadcast_ss(in1+i);
+			ymm1 = _mm256_loadu_ps(in2+N-8-k+i);
+			ymm1 = _mm256_permutevar8x32_ps(ymm1,ymm3);
 			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
-			_mm256_storeu_ps(out+j+k,ymm2);
 		}
-		for(uint64_t i=8*N2;i<(N-1-j);i++)
+		ymm0 = _mm256_loadu_ps(in1+k); 
+		for(uint64_t i=k;i<(k+8);i++)
 		{
-			out[j+i] += f*in1[i];
+			ymm1 = _mm256_broadcast_ss(in2+N-1-i);
+			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
+			out[i] = res[0];
+			ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm4);
 		}
+	}
+	for(uint64_t j=(8*N2);j<(N-1);j++)
+	{
+		out[j] = std::inner_product(in2+N-j-1,in2+N,in1,0.0);
 	}
 }
 
 template<class DataTypeIn, class DataTypeOut>
 void filterEdgeRightAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
 
+/*
 template<>
 void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
 {
@@ -214,7 +205,42 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
 			(out-j-i)[0] += f*(in1-i)[0];
 		}
 	}
+}*/
+
+template<>
+void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
+{
+	uint64_t N2 = N/4;
+	#pragma omp parallel for schedule(dynamic,1)
+	for(uint64_t j=0;j<N2;j++)
+	{
+		__m256d ymm0,ymm1,ymm2;
+		uint64_t k;
+		double* res = (double*)&ymm2;
+		k = 4*j;
+		ymm2 = _mm256_setzero_pd();
+		for(uint64_t i=0;i<k;i++)
+		{
+			ymm0 = _mm256_broadcast_sd(in1-i);
+			ymm1 = _mm256_loadu_pd(in2+N-4-i);
+			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
+		}
+		ymm0 = _mm256_loadu_pd(in1-3-k); 
+		ymm0 = _mm256_permute4x64_pd(ymm0,0b00011011);
+		for(uint64_t i=k;i<(k+4);i++)
+		{
+			ymm1 = _mm256_broadcast_sd(in2+i-k);
+			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
+			(out-i)[0] = res[0];
+			ymm2 = _mm256_permute4x64_pd(ymm2,0b00111001);
+		}
+	}
+	for(uint64_t j=(4*N2);j<N;j++)
+	{
+		(out-j)[0] = std::inner_product(in2,in2+j+1,in1-j,0.0);
+	}
 }
+
 
 template<>
 void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* out)
@@ -525,6 +551,7 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	}
 	
 	filterEdgeLeftAVX<DataTypeIn,DataTypeOut>(Nfilter,data,filter,out);
+	//filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-1,filter,out+Ndata+Nfilter-2);
 	filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-1,filter,out+Ndata+Nfilter-2);
 	
 	free(Nthreads_arr);	
