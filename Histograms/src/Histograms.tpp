@@ -457,7 +457,7 @@ void histogram_vectorial_average(uint64_t nbins,
 				DataType* hist, DataType* out, uint64_t row, uint64_t col)
 {
 	double norm;
-	#pragma omp parallel for reduction(+:out[:2])
+	//#pragma omp parallel for reduction(+:out[:2])
 	for(uint64_t i=0;i<nbins;i++)
 	{
 		for(uint64_t j=0;j<nbins;j++)
@@ -470,8 +470,8 @@ void histogram_vectorial_average(uint64_t nbins,
 			}
 		}
 	}
-	out[0] /= nbins*nbins;
-	out[1] /= nbins*nbins;
+	out[0] /= 1.0*nbins*nbins;
+	out[1] /= 1.0*nbins*nbins;
 }
 
 template<class DataType>

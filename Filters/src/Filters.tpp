@@ -54,7 +54,7 @@ DataType getThreads()
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void filterEdgeLeftAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
+void filterEdgeLeftAVX(uint64_t N, DataTypeIn* in1, DataTypeOut* in2, DataTypeOut* out){}
 
 template<>
 void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
@@ -128,7 +128,7 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void filterEdgeRightAVX(uint64_t N, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
+void filterEdgeRightAVX(uint64_t N, DataTypeIn* in1, DataTypeOut* in2, DataTypeOut* out){}
 
 template<>
 void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
@@ -412,6 +412,85 @@ void filterAVX<float,float>(uint64_t N, uint64_t Nfilter, float* data, float* fi
 		out[j] = std::inner_product(filter,filter+Nfilter,data+j,0.0);
 	}
 }
+
+template<>
+void filterAVX<uint8_t,uint32_t>(uint64_t N, uint64_t Nfilter, uint8_t* data, uint8_t* filter, uint32_t* out)
+{
+	__m256i ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm15;
+	uint32_t *res1,*res2,*res3,*res4,*res5,*res6,*res7,*res8;
+	uint64_t N2 = N/64;
+	uint64_t k = 0;
+	ymm15 = _mm256_set1_epi16(0);
+	for(uint64_t j=0;j<N2;j++)
+	{
+		k = 64*j;
+		res1 = out+k;
+		res2 = out+k+8;
+		res3 = out+k+16;
+		res4 = out+k+24;
+		res5 = out+k+32;
+		res6 = out+k+40;
+		res7 = out+k+48;
+		res8 = out+k+56;
+		ymm4 = _mm256_set1_epi16(0);
+		ymm5 = _mm256_set1_epi16(0);
+		ymm6 = _mm256_set1_epi16(0);
+		ymm7 = _mm256_set1_epi16(0);
+		ymm8 = _mm256_set1_epi16(0);
+		ymm9 = _mm256_set1_epi16(0);
+		ymm10 = _mm256_set1_epi16(0);
+		ymm11 = _mm256_set1_epi16(0);
+		for(uint64_t i=0;i<Nfilter;i++)
+		{
+			ymm0 = _mm256_set1_epi16(filter[i]);
+			
+			ymm1 = _mm256_loadu_si256((const __m256i*)(data+k+i));
+			ymm2 = _mm256_unpacklo_epi8(ymm1,ymm15);	
+			ymm3 = _mm256_mullo_epi16(ymm0,ymm2);
+			ymm2 = _mm256_mulhi_epi16(ymm0,ymm2);
+			ymm4 = _mm256_add_epi32(ymm4,_mm256_unpacklo_epi16(ymm3,ymm2));
+			ymm5 = _mm256_add_epi32(ymm5,_mm256_unpackhi_epi16(ymm3,ymm2));
+			ymm2 = _mm256_unpackhi_epi8(ymm1,ymm15);	
+			ymm3 = _mm256_mullo_epi16(ymm0,ymm2);
+			ymm2 = _mm256_mulhi_epi16(ymm0,ymm2);
+			ymm6 = _mm256_add_epi32(ymm6,_mm256_unpacklo_epi16(ymm3,ymm2));
+			ymm7 = _mm256_add_epi32(ymm7,_mm256_unpackhi_epi16(ymm3,ymm2));
+
+			ymm1 = _mm256_loadu_si256((const __m256i*)(data+k+i+32));
+			ymm2 = _mm256_unpacklo_epi8(ymm1,ymm15);	
+			ymm3 = _mm256_mullo_epi16(ymm0,ymm2);
+			ymm2 = _mm256_mulhi_epi16(ymm0,ymm2);
+			ymm8 = _mm256_add_epi32(ymm8,_mm256_unpacklo_epi16(ymm3,ymm2));
+			ymm9 = _mm256_add_epi32(ymm9,_mm256_unpackhi_epi16(ymm3,ymm2));
+			ymm2 = _mm256_unpackhi_epi8(ymm1,ymm15);	
+			ymm3 = _mm256_mullo_epi16(ymm0,ymm2);
+			ymm2 = _mm256_mulhi_epi16(ymm0,ymm2);
+			ymm10 = _mm256_add_epi32(ymm10,_mm256_unpacklo_epi16(ymm3,ymm2));
+			ymm11 = _mm256_add_epi32(ymm11,_mm256_unpackhi_epi16(ymm3,ymm2));
+		}
+		ymm1 = _mm256_permute2x128_si256(ymm4, ymm5,0b00100000);
+		ymm4 = _mm256_permute2x128_si256(ymm4, ymm5,0b00110001);
+		ymm5 = _mm256_permute2x128_si256(ymm6, ymm7,0b00100000);
+		ymm6 = _mm256_permute2x128_si256(ymm6, ymm7,0b00110001);
+		ymm3 = _mm256_permute2x128_si256(ymm8, ymm9,0b00100000);
+		ymm8 = _mm256_permute2x128_si256(ymm8, ymm9,0b00110001);
+		ymm9 = _mm256_permute2x128_si256(ymm10, ymm11,0b00100000);
+		ymm10 = _mm256_permute2x128_si256(ymm10, ymm11,0b00110001);
+		_mm256_storeu_si256((__m256i*)res1,ymm1);
+		_mm256_storeu_si256((__m256i*)res2,ymm4);
+		_mm256_storeu_si256((__m256i*)res3,ymm5);
+		_mm256_storeu_si256((__m256i*)res4,ymm6);
+		_mm256_storeu_si256((__m256i*)res5,ymm3);
+		_mm256_storeu_si256((__m256i*)res6,ymm8);
+		_mm256_storeu_si256((__m256i*)res7,ymm9);
+		_mm256_storeu_si256((__m256i*)res8,ymm10);
+	}
+	for(uint64_t j=(64*N2);j<N;j++)
+	{
+		out[j] = std::inner_product(filter,filter+Nfilter,data+j,0);
+	}
+}
+
 
 template<class DataType>
 void generateBoxcar(uint64_t order, DataType* out)
