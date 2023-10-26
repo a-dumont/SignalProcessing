@@ -60,7 +60,7 @@ customFilterAVX_py(py::array_t<DataTypeIn,py::array::c_style> data_py,
 
 	py::buffer_info filter_buf = filter_py.request();
 	DataTypeIn* filter = (DataTypeIn*) filter_buf.ptr;
-	uint64_t Nfilter = data_buf.size;
+	uint64_t Nfilter = filter_buf.size;
 	
 	DataTypeOut* out = (DataTypeOut*) malloc((Ndata+Nfilter-1)*sizeof(DataTypeOut));
 	std::memset(out,0,(Ndata+Nfilter-1)*sizeof(DataTypeOut));
