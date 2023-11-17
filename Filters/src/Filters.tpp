@@ -567,3 +567,63 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	
 	free(Nthreads_arr);	
 }
+
+template<class DataType>
+void overlap_discard(uint64_t Ndata, uint64_t Nfilter, DataType* data, 
+				DataType* out, DataType* filter){}
+
+template<>
+void overlap_discard(uint64_t Ndata, uint64_t Nfilter, double* data, double* out, double* filter)
+{
+	// Import FFTW wisdom
+	fftw_import_wisdom_from_filename(&wisdom_path[0]);
+
+	// Define parameters
+	uint64_t Nfft = std::min(Ndata,std::max(2048,1<<((uint64_t)(3+std::log2(Nfilter))));
+	uint64_t step = Nfft-Nfilter+1;
+	
+	// Initialize the filter
+	double* filter_freq = (double*) malloc((Nfft+2)*sizeof(double));
+	std::memcpy(filter,filter_freq,Nfilter*sizeof(double));
+
+	// Compute the filter's FFT
+	fftw_plan plan;
+	plan = fftw_plan_dft_r2c_1d(
+					Nfft, 
+					reinterpret_cast<double*>(filter_freq), 
+					reinterpret_cast<fftw_complex*>(filter_freq), 
+					FFTW_EXHAUSTIVE);
+	fftw_execute(plan); fftw_destroy_plan(plan);
+
+	// Compute the first edge
+	std::memset(0,out,(Nfft+2)*sizeof(double));
+	std::memcpy(data,out,(Nfft/2)*sizeof(double));
+	
+	fftw_plan plan;
+	plan = fftw_plan_dft_r2c_1d(
+					Nfft, 
+					out, 
+					reinterpret_cast<fftw_complex*>(out), 
+					FFTW_EXHAUSTIVE);
+	fftw_execute(plan); fftw_destroy_plan(plan);
+
+	for(uint64_t i=0;i<(Nfft+2);i++)
+	{
+		out[i] *= filter_freq[i];
+	}
+
+	fftw_plan plan;
+	plan = fftw_plan_dft_c2r_1d(
+					Nfft, 
+					reinterpret_cast<fftw_complex*>(out), 
+					out, 
+					FFTW_EXHAUSTIVE);
+	fftw_execute(plan); fftw_destroy_plan(plan);
+
+	// Free the temporary buffer
+	free(filter_freq);
+
+	// Export and forget the wisdom
+    fftw_export_wisdom_to_filename(&wisdom_path[0]);	
+	fftw_forget_wisdom();
+}
