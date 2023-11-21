@@ -5,6 +5,7 @@
 //						|  _| |  _|   | |                        //
 //						|_|   |_|     |_|                        //
 ///////////////////////////////////////////////////////////////////
+#include <complex>
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
 fft_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
@@ -63,6 +64,72 @@ fft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 	);
 }
 
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+fftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Npad = size*howmany;
+
+	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
+	std::memcpy(out,in,2*N*sizeof(DataType));
+
+	fftBlock((int) Npad,(int) size, out, out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{Npad},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+fftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Npad = size*howmany;
+
+	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
+	std::memcpy(out,in,2*N*sizeof(DataType));
+
+	fftBlock_training((int) Npad,(int) size, out, out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{Npad},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
 class FFT_py
 {
 	public:
@@ -113,8 +180,13 @@ class FFT_py
 			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
 			auto timef2 = Clock::now();
 			
-			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
-			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			double time;
+			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+
+			double timef;
+			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for double precision FFT of size ",N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision FFT of size ",N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -238,6 +310,80 @@ rfft_training_py(py::array_t<DataType,py::array::c_style> py_in)
 	);
 }
 
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+rfftBlock_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Npad = size*howmany;
+	uint64_t Nout = 2*(size/2+1)*howmany;
+
+	DataType* py_ptr = (DataType*) buf_in.ptr;
+	DataType* in = (DataType*) fftw_malloc(Npad*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(Nout*sizeof(DataType));
+	std::memset(in+N,0.0,(Npad-N)*sizeof(DataType));
+	std::memcpy(in,py_ptr,N*sizeof(DataType));
+
+	rfftBlock((int) Npad,(int) size, in, out);
+
+	free(in);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{Nout/2},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+rfftBlock_training_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Npad = size*howmany;
+	uint64_t Nout = 2*(size/2+1)*howmany;
+
+	DataType* py_ptr = (DataType*) buf_in.ptr;
+	DataType* in = (DataType*) fftw_malloc(Npad*sizeof(DataType));
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(Nout*sizeof(DataType));
+	std::memset(in+N,0.0,(Npad-N)*sizeof(DataType));
+	std::memcpy(in,py_ptr,N*sizeof(DataType));
+
+	rfftBlock_training((int) Npad,(int) size, in, out);
+
+	free(in);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{Nout/2},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
 class RFFT_py
 {
 	public:
@@ -277,8 +423,13 @@ class RFFT_py
 			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
 			auto timef2 = Clock::now();
 			
-			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
-			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			double time;
+			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+
+			double timef;
+			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for double precision rFFT of size ",N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision rFFT of size ",N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -404,6 +555,74 @@ ifft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 	);
 }
 
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+ifftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Npad = size*howmany;
+	DataType norm = 1.0/size;
+
+	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
+	for(uint64_t i=0;i<N;i++){out[i]=in[i]*norm;}
+
+	ifftBlock((int) Npad,(int) size, out, out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{Npad},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+ifftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Npad = size*howmany;
+	DataType norm = 1.0/size;
+
+	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
+	for(uint64_t i=0;i<N;i++){out[i]=in[i]*norm;}
+
+	ifftBlock_training((int) Npad,(int) size, out, out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{Npad},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
 class IFFT_py
 {
 	public:
@@ -458,8 +677,13 @@ class IFFT_py
 			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
 			auto timef2 = Clock::now();
 			
-			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
-			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			double time;
+			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+
+			double timef;
+			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for double precision iFFT of size ",N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision iFFT of size ",N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -592,6 +816,43 @@ irfft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 	);
 }
 
+template<class DataType>
+py::array_t<DataType,py::array::c_style>
+irfftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/(size/2+1);
+	if(howmany*(size/2+1) != N){howmany += 1;}
+	uint64_t Nout = size*howmany;
+	uint64_t Npad = howmany*(size/2+1);
+
+	std::complex<DataType>* py_ptr = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* in = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	DataType* out = (DataType*) fftw_malloc(Nout*sizeof(DataType));
+	std::memset((void*)(in+N),0.0,(Npad-N)*sizeof(DataType));
+	std::memcpy(in,py_ptr,N*sizeof(DataType));
+
+	irfftBlock((int) Nout,(int) size, in, out);
+
+	free(in);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<DataType, py::array::c_style> 
+	(
+		{Nout},
+		{sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
 class IRFFT_py
 {
 	public:
@@ -641,8 +902,13 @@ class IRFFT_py
 			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
 			auto timef2 = Clock::now();
 			
-			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
-			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			double time;
+			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+
+			double timef;
+			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for double precision irFFT of size ",N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision irFFT of size ",N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 

@@ -7,6 +7,10 @@ void init_fft(py::module &m)
 	m.def("fft",&fft_py<float>,"In"_a.noconvert());
 	m.def("fft_training",&fft_training_py<double>,"In"_a.noconvert());
 	m.def("fft_training",&fft_training_py<float>,"In"_a.noconvert());
+	m.def("fftBlock",&fftBlock_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("fftBlock",&fftBlock_py<float>,"In"_a.noconvert(),"size"_a);
+	m.def("fftBlock_training",&fftBlock_training_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("fftBlock_training",&fftBlock_training_py<float>,"In"_a.noconvert(),"size"_a);
 
 	py::class_<FFT_py>(m,"FFT")
 			.def(py::init<uint64_t>())
@@ -20,6 +24,10 @@ void init_fft(py::module &m)
 	m.def("ifft",&ifft_py<float>,"In"_a.noconvert());
 	m.def("ifft_training",&ifft_training_py<double>,"In"_a.noconvert());
 	m.def("ifft_training",&ifft_training_py<float>,"In"_a.noconvert());
+	m.def("ifftBlock",&ifftBlock_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("ifftBlock",&ifftBlock_py<float>,"In"_a.noconvert(),"size"_a);
+	m.def("ifftBlock_training",&ifftBlock_training_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("ifftBlock_training",&ifftBlock_training_py<float>,"In"_a.noconvert(),"size"_a);
 
 	py::class_<IFFT_py>(m,"IFFT")
 			.def(py::init<uint64_t>())
@@ -33,6 +41,10 @@ void init_fft(py::module &m)
 	m.def("rfft",&rfft_py<float>,"In"_a.noconvert());
 	m.def("rfft_training",&rfft_training_py<double>,"In"_a.noconvert());
 	m.def("rfft_training",&rfft_training_py<float>,"In"_a.noconvert());
+	m.def("rfftBlock",&rfftBlock_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("rfftBlock",&rfftBlock_py<float>,"In"_a.noconvert(),"size"_a);
+	m.def("rfftBlock_training",&rfftBlock_training_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("rfftBlock_training",&rfftBlock_training_py<float>,"In"_a.noconvert(),"size"_a);
 
 	py::class_<RFFT_py>(m,"RFFT")
 			.def(py::init<uint64_t>())
@@ -46,6 +58,8 @@ void init_fft(py::module &m)
 	m.def("irfft",&irfft_py<float>,"In"_a.noconvert());
 	m.def("irfft_training",&irfft_training_py<double>,"In"_a.noconvert());
 	m.def("irfft_training",&irfft_training_py<float>,"In"_a.noconvert());
+	m.def("irfftBlock",&irfftBlock_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("irfftBlock",&irfftBlock_py<float>,"In"_a.noconvert(),"size"_a);
 
 	py::class_<IRFFT_py>(m,"IRFFT")
 			.def(py::init<uint64_t>())
@@ -58,6 +72,9 @@ void init_fft(py::module &m)
 	// Load wisdom
 	fftw_import_wisdom_from_filename(&wisdom_path[0]);
 	//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
+	
+	// Set max plan time in seconds
+	fftw_set_timelimit(3000);	
 }
 
 PYBIND11_MODULE(libfft, m)

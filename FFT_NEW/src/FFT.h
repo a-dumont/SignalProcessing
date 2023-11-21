@@ -23,6 +23,9 @@ template<class DataType>
 void fft_training(uint64_t N, std::complex<DataType>* in, std::complex<DataType>* out);
 
 template<class DataType>
+void fftBlock(int N, int size, std::complex<DataType>* in, std::complex<DataType>* out);
+
+template<class DataType>
 void rfft(uint64_t N, DataType* in, std::complex<DataType>* out);
 
 template<class DataType>
@@ -33,6 +36,9 @@ void ifft(uint64_t N, std::complex<DataType>* in, std::complex<DataType>* out);
 
 template<class DataType>
 void ifft_training(uint64_t N, std::complex<DataType>* in, std::complex<DataType>* out);
+
+template<class DataType>
+void ifftBlock(int N, int size, std::complex<DataType>* in, std::complex<DataType>* out);
 
 template<class DataType>
 void irfft(uint64_t N, std::complex<DataType>* in, DataType* out);
