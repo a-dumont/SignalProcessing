@@ -69,6 +69,68 @@ void fft_training<float>(uint64_t N, std::complex<float>* in, std::complex<float
 	fftwf_destroy_plan(plan);
 }
 
+template<class DataType>
+fftBlock(uint64_t N, uint64_t size, std::complex<DataType>* in, std::complex<DataType>* out){}
+
+template<>
+fftBlock<double>(uint64_t N, uint64_t size, std::complex<double>* in, std::complex<double>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int dist = size;
+	int stride = 1;
+
+	fftw_plan plan = fftw_plan_many_dft(
+					rank,
+					length,
+					howmany,
+					reinterpret_cast<fftw_complex*>(in),
+					NULL,
+					stride,
+					dist,
+					reinterpret_cast<fftw_complex*>(out),
+					NULL,
+					stride,
+					dist,
+					1,
+					FFTW_ESTIMATE);
+
+    //fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+}
+
+template<>
+fftBlock<float>(uint64_t N, uint64_t size, std::complex<float>* in, std::complex<float>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int dist = size;
+	int stride = 1;
+
+	fftwf_plan plan = fftwf_plan_many_dft(
+					rank,
+					length,
+					howmany,
+					reinterpret_cast<fftwf_complex*>(in),
+					NULL,
+					stride,
+					dist,
+					reinterpret_cast<fftwf_complex*>(out),
+					NULL,
+					stride,
+					dist,
+					1,
+					FFTW_ESTIMATE);
+
+    //fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftwf_execute(plan);
+	fftwf_destroy_plan(plan);
+}
 ///////////////////////////////////////////////////////////////////
 //						      _____ _____ _____                  //
 //						 _ __|  ___|  ___|_   _|                 //
@@ -207,7 +269,68 @@ void ifft_training<float>(uint64_t N, std::complex<float>* in, std::complex<floa
 	fftwf_destroy_plan(plan);
 }
 
+template<class DataType>
+ifftBlock(uint64_t N, uint64_t size, std::complex<DataType>* in, std::complex<DataType>* out){}
 
+template<>
+ifftBlock<double>(uint64_t N, uint64_t size, std::complex<double>* in, std::complex<double>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int dist = size;
+	int stride = 1;
+
+	fftw_plan plan = fftw_plan_many_dft(
+					rank,
+					length,
+					howmany,
+					reinterpret_cast<fftw_complex*>(in),
+					NULL,
+					stride,
+					dist,
+					reinterpret_cast<fftw_complex*>(out),
+					NULL,
+					stride,
+					dist,
+					-1,
+					FFTW_ESTIMATE);
+
+    //fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+}
+
+template<>
+ifftBlock<float>(uint64_t N, uint64_t size, std::complex<float>* in, std::complex<float>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int dist = size;
+	int stride = 1;
+
+	fftwf_plan plan = fftwf_plan_many_dft(
+					rank,
+					length,
+					howmany,
+					reinterpret_cast<fftwf_complex*>(in),
+					NULL,
+					stride,
+					dist,
+					reinterpret_cast<fftwf_complex*>(out),
+					NULL,
+					stride,
+					dist,
+					-1,
+					FFTW_ESTIMATE);
+
+    //fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftwf_execute(plan);
+	fftwf_destroy_plan(plan);
+}
 ///////////////////////////////////////////////////////////////////
 //					 _      _____ _____ _____                    //
 //					(_)_ __|  ___|  ___|_   _|                   //
