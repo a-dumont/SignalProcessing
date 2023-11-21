@@ -102,6 +102,21 @@ class FFT_py
 		}
 
 		uint64_t getN(){return N;}
+		
+		std::tuple<double,double> benchmark(uint64_t n)
+		{
+			auto time1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			auto time2 = Clock::now();
+			
+			auto timef1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			auto timef2 = Clock::now();
+			
+			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			return std::make_tuple<double,double>(time/n,timef/n);
+		}
 
 		py::array_t<std::complex<double>,1> 
 		fft(py::array_t<std::complex<double>,1> py_in)
@@ -251,6 +266,21 @@ class RFFT_py
 		}
 
 		uint64_t getN(){return N;}
+		
+		std::tuple<double,double> benchmark(uint64_t n)
+		{
+			auto time1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			auto time2 = Clock::now();
+			
+			auto timef1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			auto timef2 = Clock::now();
+			
+			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			return std::make_tuple<double,double>(time/n,timef/n);
+		}
 
 		py::array_t<std::complex<double>,1> 
 		rfft(py::array_t<double,1> py_in)
@@ -417,6 +447,21 @@ class IFFT_py
 		}
 
 		uint64_t getN(){return N;}
+		
+		std::tuple<double,double> benchmark(uint64_t n)
+		{
+			auto time1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			auto time2 = Clock::now();
+			
+			auto timef1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			auto timef2 = Clock::now();
+			
+			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			return std::make_tuple<double,double>(time/n,timef/n);
+		}
 
 		py::array_t<std::complex<double>,1> 
 		ifft(py::array_t<std::complex<double>,1> py_in)
@@ -585,6 +630,21 @@ class IRFFT_py
 		}
 
 		uint64_t getN(){return N;}
+		
+		std::tuple<double,double> benchmark(uint64_t n)
+		{
+			auto time1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			auto time2 = Clock::now();
+			
+			auto timef1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			auto timef2 = Clock::now();
+			
+			double time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+			double timef = std::chrono::duration_cast<std::chrono::microseconds>(time2f-time1f).count();
+			return std::make_tuple<double,double>(time/n,timef/n);
+		}
 
 		py::array_t<double,1> 
 		irfft(py::array_t<std::complex<double>,1> py_in)

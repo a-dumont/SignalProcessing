@@ -12,7 +12,8 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("fft",&FFT_py::fft,"In"_a.noconvert())
 			.def("fft",&FFT_py::fftf,"In"_a.noconvert())
-			.def("getN",&FFT_py::getN);
+			.def("getN",&FFT_py::getN)
+			.def("benchmark",&FFT_py::benchmark);
 	
 	// iFFT
 	m.def("ifft",&ifft_py<double>,"In"_a.noconvert());
@@ -24,7 +25,8 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("ifft",&IFFT_py::ifft,"In"_a.noconvert())
 			.def("ifft",&IFFT_py::ifftf,"In"_a.noconvert())
-			.def("getN",&IFFT_py::getN);
+			.def("getN",&IFFT_py::getN)
+			.def("benchmark",&IFFT_py::benchmark);
 
 	// rFFT
 	m.def("rfft",&rfft_py<double>,"In"_a.noconvert());
@@ -36,7 +38,8 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("rfft",&RFFT_py::rfft,"In"_a.noconvert())
 			.def("rfft",&RFFT_py::rfftf,"In"_a.noconvert())
-			.def("getN",&RFFT_py::getN);
+			.def("getN",&RFFT_py::getN)
+			.def("benchmark",&RFFT_py::benchmark);
 
 	// irFFT
 	m.def("irfft",&irfft_py<double>,"In"_a.noconvert());
@@ -48,7 +51,8 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("irfft",&IRFFT_py::irfft,"In"_a.noconvert())
 			.def("irfft",&IRFFT_py::irfftf,"In"_a.noconvert())
-			.def("getN",&IRFFT_py::getN);
+			.def("getN",&IRFFT_py::getN)
+			.def("benchmark",&IRFFT_py::benchmark);
 
 
 	// Load wisdom

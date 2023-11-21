@@ -6,6 +6,7 @@
 #include <complex>
 #include <omp.h>
 #include <type_traits>
+#include <chrono>
 
 #ifdef _WIN64
 	std::string wisdom_path = "FFTW_Wisdom";
@@ -13,6 +14,8 @@
 	std::string wisdom_path = "/etc/FFTW/FFTW_Wisdom";
 #endif
 
+typedef std::chrono::steady_clock Clock;
+	
 template<class DataType>
 void fft(uint64_t N, std::complex<DataType>* in, std::complex<DataType>* out);
 
