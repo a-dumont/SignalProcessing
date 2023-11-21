@@ -29,6 +29,35 @@ FFT_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 
 template< class DataType >
 py::array_t<std::complex<DataType>,py::array::c_style> 
+FFT_train_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+	
+	std::complex<DataType>* ptr_py_in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*n);
+
+	FFT_train<std::complex<DataType>>(n, ptr_py_in, result);
+
+	py::capsule free_when_done( result, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{n},
+		{sizeof(std::complex<DataType>)},
+		result,
+		free_when_done	
+	);
+}
+
+template< class DataType >
+py::array_t<std::complex<DataType>,py::array::c_style> 
 FFT_Parallel_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, int nthreads)
 {
 	py::buffer_info buf_in = py_in.request();
@@ -81,6 +110,42 @@ FFT_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, DataType2 N
 					sizeof(std::complex<DataType>)*N*howmany);
 
 	FFT_Block<std::complex<DataType>>(n, N, ptr_py_in, result);
+
+	py::capsule free_when_done( result, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{N*howmany},
+		{sizeof(std::complex<DataType>)},
+		result,
+		free_when_done	
+	);
+}
+
+template< class DataType, class DataType2>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+FFT_train_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, DataType2 N)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+
+	if (N > 4096 )
+	{
+		throw std::runtime_error("U dumbdumb N too big, can't optimize");
+	}
+
+	int howmany = n/N;
+
+	std::complex<DataType>* ptr_py_in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*N*howmany);
+
+	FFT_Block_train<std::complex<DataType>>(n, N, ptr_py_in, result);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<std::complex<DataType>, py::array::c_style> 
@@ -160,7 +225,66 @@ iFFT_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 
 template< class DataType >
 py::array_t<std::complex<DataType>,py::array::c_style> 
+iFFT_train_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+
+	std::complex<DataType>* ptr_py_in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*n);
+
+	iFFT_train<std::complex<DataType>>(n, ptr_py_in, result);
+
+	py::capsule free_when_done( result, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{n},
+		{sizeof(std::complex<DataType>)},
+		result,
+		free_when_done	
+	);
+}
+
+
+template< class DataType >
+py::array_t<std::complex<DataType>,py::array::c_style> 
 rFFT_py(py::array_t<DataType,py::array::c_style> py_in)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+
+	DataType* ptr_py_in = (DataType*) buf_in.ptr;
+	std::complex<DataType>* result = (std::complex<DataType>*) malloc(
+					sizeof(std::complex<DataType>)*(n/2+1));
+
+	rFFT<DataType>(n, ptr_py_in, result);
+
+	py::capsule free_when_done( result, free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{n/2+1},
+		{sizeof(std::complex<DataType>)},
+		result,
+		free_when_done	
+	);
+}
+
+template< class DataType >
+py::array_t<std::complex<DataType>,py::array::c_style> 
+rFFT_train_py(py::array_t<DataType,py::array::c_style> py_in)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -175,7 +299,10 @@ rFFT_py(py::array_t<DataType,py::array::c_style> py_in)
 	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
 					sizeof(std::complex<DataType>)*(n/2+1));
 
-	rFFT<DataType>(n, ptr_py_in, result);
+	std::memcpy((void*) result,ptr_py_in,n*sizeof(double));
+	result[n] = 0.0;
+
+	rFFT_train<DataType>(n, (DataType*) result, result);
 
 	py::capsule free_when_done( result, fftw_free );
 	return py::array_t<std::complex<DataType>, py::array::c_style> 
@@ -185,7 +312,6 @@ rFFT_py(py::array_t<DataType,py::array::c_style> py_in)
 		result,
 		free_when_done	
 	);
-
 }
 
 template< class DataType ,class DataType2>
@@ -223,9 +349,44 @@ rFFT_py(py::array_t<DataType,py::array::c_style> py_in, DataType2 N)
 	);
 }
 
+template< class DataType ,class DataType2>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+rFFT_train_py(py::array_t<DataType,py::array::c_style> py_in, DataType2 N)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+
+	if (N > 4096 )
+	{
+		throw std::runtime_error("U dumbdumb N too big, can't optimize");
+	}
+	int howmany = n/N;
+	
+	DataType* ptr_py_in = (DataType*) buf_in.ptr;
+	std::complex<DataType>* result = (std::complex<DataType>*) fftw_malloc(
+					sizeof(std::complex<DataType>)*(N/2+1)*howmany);
+
+	rFFT_Block_train<DataType>(n, N, ptr_py_in, result);
+
+	py::capsule free_when_done( result, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{(N/2+1)*howmany},
+		{sizeof(std::complex<DataType>)},
+		result,
+		free_when_done	
+	);
+}
+
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
-rFFT_Block_Parallel_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in,
+rFFT_Block_Parallel_py(py::array_t<DataType,py::array::c_style> py_in,
 				uint64_t N, uint64_t nthreads)
 {
 	py::buffer_info buf_in = py_in.request();
@@ -285,7 +446,34 @@ irFFT_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 		result, //Pointer
 		free_when_done //mem clear
 	);
+}
 
+template< class DataType >
+py::array_t<DataType,py::array::c_style> 
+irFFT_train_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	int n = buf_in.size;
+
+	std::complex<DataType>* ptr_py_in = (std::complex<DataType>*) buf_in.ptr;
+	DataType* result = (DataType*) fftw_malloc(sizeof(DataType)*2*(n-1));
+
+	irFFT_train<DataType>(2*(n-1), ptr_py_in, result);
+
+	py::capsule free_when_done( result, fftw_free );
+	return py::array_t<DataType, py::array::c_style> 
+	(
+		{2*(n-1)}, //Shape
+		{sizeof(DataType)}, //Stride
+		result, //Pointer
+		free_when_done //mem clear
+	);
 }
 
 template< class DataType >
