@@ -5,7 +5,6 @@
 //						|  _| |  _|   | |                        //
 //						|_|   |_|     |_|                        //
 ///////////////////////////////////////////////////////////////////
-#include <complex>
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
 fft_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
@@ -836,10 +835,47 @@ irfftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint
 	std::complex<DataType>* py_ptr = (std::complex<DataType>*) buf_in.ptr;
 	std::complex<DataType>* in = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
 	DataType* out = (DataType*) fftw_malloc(Nout*sizeof(DataType));
-	std::memset((void*)(in+N),0.0,(Npad-N)*sizeof(DataType));
-	std::memcpy(in,py_ptr,N*sizeof(DataType));
+	std::memset((void*)(in+N),0.0,2*(Npad-N)*sizeof(DataType));
+	std::memcpy(in,py_ptr,2*N*sizeof(DataType));
 
 	irfftBlock((int) Nout,(int) size, in, out);
+
+	free(in);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<DataType, py::array::c_style> 
+	(
+		{Nout},
+		{sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+py::array_t<DataType,py::array::c_style>
+irfftBlock_training_py(py::array_t<std::complex<DataType>,1> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/(size/2+1);
+	if(howmany*(size/2+1) != N){howmany += 1;}
+	uint64_t Nout = size*howmany;
+	uint64_t Npad = howmany*(size/2+1);
+
+	std::complex<DataType>* py_ptr = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* in = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	DataType* out = (DataType*) fftw_malloc(Nout*sizeof(DataType));
+	std::memset((void*)(in+N),0.0,2*(Npad-N)*sizeof(DataType));
+	std::memcpy(in,py_ptr,2*N*sizeof(DataType));
+
+	irfftBlock_training((int) Nout,(int) size, in, out);
 
 	free(in);
 
