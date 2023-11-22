@@ -5,6 +5,8 @@ void init_fft(py::module &m)
 	// FFT
 	m.def("fft",&fft_py<double>,"In"_a.noconvert());
 	m.def("fft",&fft_py<float>,"In"_a.noconvert());
+	m.def("fft",&fft_pad_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("fft",&fft_pad_py<float>,"In"_a.noconvert(),"size"_a);
 	m.def("fft_training",&fft_training_py<double>,"In"_a.noconvert());
 	m.def("fft_training",&fft_training_py<float>,"In"_a.noconvert());
 	m.def("fftBlock",&fftBlock_py<double>,"In"_a.noconvert(),"size"_a);
@@ -16,8 +18,17 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("fft",&FFT_py::fft,"In"_a.noconvert())
 			.def("fft",&FFT_py::fftf,"In"_a.noconvert())
-			.def("getN",&FFT_py::getN)
+			.def("getSize",&FFT_py::getSize)
 			.def("benchmark",&FFT_py::benchmark);
+
+	py::class_<FFT_Block_py>(m,"FFT_Block")
+			.def(py::init<uint64_t,uint64_t>())
+			.def("fftBlock",&FFT_Block_py::fftBlock,"In"_a.noconvert())
+			.def("fftBlock",&FFT_Block_py::fftBlockf,"In"_a.noconvert())
+			.def("getSize",&FFT_Block_py::getSize)
+			.def("getN",&FFT_Block_py::getN)
+			.def("getHowmany",&FFT_Block_py::getHowmany)
+			.def("benchmark",&FFT_Block_py::benchmark);
 	
 	// iFFT
 	m.def("ifft",&ifft_py<double>,"In"_a.noconvert());
@@ -33,7 +44,7 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("ifft",&IFFT_py::ifft,"In"_a.noconvert())
 			.def("ifft",&IFFT_py::ifftf,"In"_a.noconvert())
-			.def("getN",&IFFT_py::getN)
+			.def("getSize",&IFFT_py::getSize)
 			.def("benchmark",&IFFT_py::benchmark);
 
 	// rFFT
@@ -50,7 +61,7 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("rfft",&RFFT_py::rfft,"In"_a.noconvert())
 			.def("rfft",&RFFT_py::rfftf,"In"_a.noconvert())
-			.def("getN",&RFFT_py::getN)
+			.def("getSize",&RFFT_py::getSize)
 			.def("benchmark",&RFFT_py::benchmark);
 
 	// irFFT
@@ -65,7 +76,7 @@ void init_fft(py::module &m)
 			.def(py::init<uint64_t>())
 			.def("irfft",&IRFFT_py::irfft,"In"_a.noconvert())
 			.def("irfft",&IRFFT_py::irfftf,"In"_a.noconvert())
-			.def("getN",&IRFFT_py::getN)
+			.def("getSize",&IRFFT_py::getSize)
 			.def("benchmark",&IRFFT_py::benchmark);
 
 

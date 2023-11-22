@@ -20,6 +20,10 @@ py::array_t<std::complex<DataType>,py::array::c_style>
 fft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in);
 
 template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+fft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size);
+
+template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
 fftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size);
 

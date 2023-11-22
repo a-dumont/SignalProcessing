@@ -64,6 +64,33 @@ fft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 }
 
 template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+fft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}		
+
+	uint64_t N = std::min((uint64_t) buf_in.size, size);
+	
+	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*size*sizeof(DataType));
+	std::memset((void*) out,0,2*size*sizeof(DataType));
+	std::memcpy(out,in,2*N*sizeof(DataType));
+
+	fft<DataType>(size, out, out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{size},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
 fftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
 {
@@ -163,11 +190,13 @@ class FFT_py
 		
 		~FFT_py()
 		{
+			fftw_free(in);
+			fftwf_free(inf);
 			fftw_destroy_plan(plan);
 			fftwf_destroy_plan(planf);
 		}
 
-		uint64_t getN(){return N;}
+		uint64_t getSize(){return N;}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -235,6 +264,161 @@ class FFT_py
 			return py::array_t<std::complex<float>,1>
 			(
 			{N},
+			{2*sizeof(float)},
+			out,
+			free_when_done	
+			);
+		}
+};
+
+class FFT_Block_py
+{
+	public:
+
+		fftw_plan plan, plan2;
+		fftwf_plan planf, plan2f;
+		fftw_plan** plans;
+		fftwf_plan** plansf;
+		std::complex<double> *in, *out_temp;
+		std::complex<float> *inf, *out_tempf;
+		uint64_t N, size, howmany, Npad, threads;
+		int length[1];
+
+		FFT_Block_py(uint64_t N_in, uint64_t size_in)
+		{
+			N = N_in;
+			size = size_in;
+			howmany = N/size;
+			if(howmany*size != N){howmany += 1;}
+			Npad = size*howmany;
+			length[0] = (int) size;
+
+			#ifdef _WIN32_WINNT
+				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+			#else
+				threads = omp_get_max_threads();
+			#endif
+
+			threads = std::min(threads,(uint64_t) 64);
+
+			in = (std::complex<double>*) fftw_malloc(2*Npad*sizeof(double));
+			inf = (std::complex<float>*) fftwf_malloc(2*Npad*sizeof(float));
+			
+			plan = fftw_plan_many_dft(
+							1,
+							length,
+							howmany,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL,
+							1,
+							(int) size,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL,
+							1,
+							(int) size,
+							1,
+							FFTW_ESTIMATE);
+
+			planf = fftwf_plan_many_dft(
+							1,
+							length,
+							howmany,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL,
+							1,
+							(int) size,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL,
+							1,
+							(int) size,
+							1,
+							FFTW_ESTIMATE);
+			
+		}
+		
+		~FFT_Block_py()
+		{
+			fftw_free(in);
+			fftwf_free(inf);
+			fftw_destroy_plan(plan);
+			fftwf_destroy_plan(planf);
+		}
+
+		uint64_t getSize(){return size;}
+		uint64_t getN(){return Npad;}
+		uint64_t getHowmany(){return Npad;}
+		
+		std::tuple<double,double> benchmark(uint64_t n)
+		{
+			auto time1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			auto time2 = Clock::now();
+			
+			auto timef1 = Clock::now();
+			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			auto timef2 = Clock::now();
+			
+			double time;
+			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+
+			double timef;
+			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for ",howmany,
+							" double precision FFT of size ",N,": ",time/n," us","sep"_a="");
+			py::print("Time for ",howmany,
+							" single precision FFT of size ",N,": ",timef/n," us","sep"_a="");
+			return std::make_tuple<double,double>(time/n,timef/n);
+		}
+
+		py::array_t<std::complex<double>,1> 
+		fftBlock(py::array_t<std::complex<double>,1> py_in)
+		{
+			py::buffer_info buf_in = py_in.request();
+
+			if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
+			if ((uint64_t) buf_in.size > Npad)
+			{throw std::runtime_error("U dumbdumb input too long.");}
+
+			std::complex<double>* out = (std::complex<double>*) malloc(2*Npad*sizeof(double));
+			
+			std::memset((double*)(out+N),0.0,2*(Npad-N)*sizeof(double));
+			std::memcpy(out,(std::complex<double>*) buf_in.ptr, 2*N*sizeof(double));
+			
+			fftw_execute_dft(plan,reinterpret_cast<fftw_complex*>(out),
+							reinterpret_cast<fftw_complex*>(out));
+			//fftw_execute(plan);
+			//std::memcpy(out,in,2*Npad*sizeof(double));
+
+			py::capsule free_when_done( out, fftw_free );
+			return py::array_t<std::complex<double>,1>
+			(
+			{Npad},
+			{2*sizeof(double)},
+			out,
+			free_when_done	
+			);
+		}
+
+		py::array_t<std::complex<float>,1> 
+		fftBlockf(py::array_t<std::complex<float>,1> py_in)
+		{
+			py::buffer_info buf_in = py_in.request();
+
+			if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}
+			if ((uint64_t) buf_in.size > Npad)
+			{throw std::runtime_error("U dumbdumb input too long.");}
+
+			std::memset((float*)(inf+N),0.0,2*(Npad-N)*sizeof(float));
+			std::memcpy(inf,(std::complex<float>*) buf_in.ptr, 2*N*sizeof(float));
+			fftwf_execute(planf);
+		
+			std::complex<float>* out = (std::complex<float>*) malloc(2*N*sizeof(float));
+			std::memcpy(out,inf,2*N*sizeof(float));
+
+			py::capsule free_when_done( out, free );
+			return py::array_t<std::complex<float>,1>
+			(
+			{Npad},
 			{2*sizeof(float)},
 			out,
 			free_when_done	
@@ -406,11 +590,13 @@ class RFFT_py
 		
 		~RFFT_py()
 		{
+			fftw_free(in);
+			fftwf_free(inf);
 			fftw_destroy_plan(plan);
 			fftwf_destroy_plan(planf);
 		}
 
-		uint64_t getN(){return N;}
+		uint64_t getSize(){return N;}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -660,11 +846,13 @@ class IFFT_py
 		
 		~IFFT_py()
 		{
+			fftw_free(in);
+			fftwf_free(inf);
 			fftw_destroy_plan(plan);
 			fftwf_destroy_plan(planf);
 		}
 
-		uint64_t getN(){return N;}
+		uint64_t getSize(){return N;}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -922,11 +1110,13 @@ class IRFFT_py
 		
 		~IRFFT_py()
 		{
+			fftw_free(in);
+			fftwf_free(inf);
 			fftw_destroy_plan(plan);
 			fftwf_destroy_plan(planf);
 		}
 
-		uint64_t getN(){return N;}
+		uint64_t getSize(){return N;}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
