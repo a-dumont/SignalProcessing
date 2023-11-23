@@ -73,6 +73,16 @@ void init_fft(py::module &m)
 			.def("getSize",&RFFT_py::getSize)
 			.def("benchmark",&RFFT_py::benchmark);
 
+
+	py::class_<RFFT_Block_py>(m,"RFFT_Block")
+			.def(py::init<uint64_t,uint64_t>())
+			.def("rfftBlock",&RFFT_Block_py::rfftBlock,"In"_a.noconvert())
+			.def("rfftBlock",&RFFT_Block_py::rfftBlockf,"In"_a.noconvert())
+			.def("getSize",&RFFT_Block_py::getSize)
+			.def("getN",&RFFT_Block_py::getN)
+			.def("getHowmany",&RFFT_Block_py::getHowmany)
+			.def("benchmark",&RFFT_Block_py::benchmark);
+
 	// irFFT
 	m.def("irfft",&irfft_py<double>,"In"_a.noconvert());
 	m.def("irfft",&irfft_py<float>,"In"_a.noconvert());
