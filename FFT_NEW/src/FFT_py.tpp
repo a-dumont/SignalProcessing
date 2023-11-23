@@ -862,7 +862,7 @@ class RFFT_Block_py
 				{
 					temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
 				}
-				fftw_execute_dft_r2c(plan,
+				fftwf_execute_dft_r2c(planf,
 								temp_out,
 								reinterpret_cast<fftwf_complex*>(temp_out));
 			}
