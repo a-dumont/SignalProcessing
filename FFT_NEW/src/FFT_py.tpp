@@ -384,9 +384,9 @@ class FFT_Block_py
 			double timef;
 			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
 			py::print("Time for ",howmany,
-							" double precision FFT of size ",N,": ",time/n," us","sep"_a="");
+							" double precision FFT of size ",size,": ",time/n," us","sep"_a="");
 			py::print("Time for ",howmany,
-							" single precision FFT of size ",N,": ",timef/n," us","sep"_a="");
+							" single precision FFT of size ",size,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -825,9 +825,9 @@ class RFFT_Block_py
 			double timef;
 			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
 			py::print("Time for ",howmany,
-							" double precision FFT of size ",N,": ",time/n," us","sep"_a="");
+							" double precision rFFT of size ",size,": ",time/n," us","sep"_a="");
 			py::print("Time for ",howmany,
-							" single precision FFT of size ",N,": ",timef/n," us","sep"_a="");
+							" single precision rFFT of size ",size,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -1284,9 +1284,9 @@ class iFFT_Block_py
 			double timef;
 			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
 			py::print("Time for ",howmany,
-							" double precision FFT of size ",N,": ",time/n," us","sep"_a="");
+							" double precision iFFT of size ",size,": ",time/n," us","sep"_a="");
 			py::print("Time for ",howmany,
-							" single precision FFT of size ",N,": ",timef/n," us","sep"_a="");
+							" single precision iFFT of size ",size,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
