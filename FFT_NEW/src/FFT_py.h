@@ -33,6 +33,8 @@ fftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_i
 
 class FFT_py;
 
+class FFT_Block_py;
+
 // rFFT
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
@@ -70,6 +72,8 @@ py::array_t<std::complex<DataType>,py::array::c_style>
 ifftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size);
 
 class IFFT_py;
+
+class IFFT_Block_py;
 
 // irFFT
 template<class DataType>
