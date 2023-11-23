@@ -811,7 +811,7 @@ class RFFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t j=0;i<threads;j++)
+				for(uint64_t j=0;j<threads;j++)
 				{
 					manage_thread_affinity();
 					fftwf_execute(planf);
