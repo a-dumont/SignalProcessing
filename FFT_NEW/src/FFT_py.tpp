@@ -881,7 +881,7 @@ class RFFT_Block_py
 			{throw std::runtime_error("U dumbdumb input too long.");}
 
 			std::complex<float>* out;
-			out = (std::complex<float>*) fftw_malloc(howmany*(size+2)*sizeof(float));
+			out = (std::complex<float>*) fftwf_malloc(howmany*(size+2)*sizeof(float));
 			std::memset((float*)(out+N),0.0,(howmany*(size+2)-N)*sizeof(float));
 
 			#pragma omp parallel for
