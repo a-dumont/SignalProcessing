@@ -721,8 +721,8 @@ class RFFT_Block_py
 
 		fftw_plan plan, plan2;
 		fftwf_plan planf, plan2f;
-		double *in, *out;
-		float *inf, *outf;
+		double *in, *out_temp;
+		float *inf, *out_tempf;
 		uint64_t N, size, howmany, Npad, threads;
 		int length[1];
 		uint64_t* transfer_size;
@@ -747,8 +747,8 @@ class RFFT_Block_py
 			in = (double*) fftw_malloc(size*howmany*sizeof(double));
 			inf = (float*) fftwf_malloc(size*howmany*sizeof(float));
 			
-			out = (double*) fftw_malloc((size+2)*howmany*sizeof(double));
-			outf = (float*) fftwf_malloc((size+2)*howmany*sizeof(float));
+			out_temp = (double*) fftw_malloc((size+2)*howmany*sizeof(double));
+			out_tempf = (float*) fftwf_malloc((size+2)*howmany*sizeof(float));
 			
 			plan = fftw_plan_many_dft_r2c(
 							1,
@@ -758,7 +758,7 @@ class RFFT_Block_py
 							NULL,
 							1,
 							(int) size,
-							reinterpret_cast<fftw_complex*>(out),
+							reinterpret_cast<fftw_complex*>(out_temp),
 							NULL,
 							1,
 							(int) size/2+1,
@@ -772,7 +772,7 @@ class RFFT_Block_py
 							NULL,
 							1,
 							(int) size,
-							reinterpret_cast<fftwf_complex*>(outf),
+							reinterpret_cast<fftwf_complex*>(out_tempf),
 							NULL,
 							1,
 							(int) size/2+1,
