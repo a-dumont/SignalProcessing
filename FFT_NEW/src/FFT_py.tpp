@@ -358,8 +358,9 @@ class FFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t=0;i<threads;i++)
+				for(uint64_t j=0;j<threads;j++)
 				{
+					manage_thread_affinity();
 					fftw_execute(plan);
 				}
 			}
@@ -369,8 +370,9 @@ class FFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t=0;i<threads;i++)
+				for(uint64_t j=0;j<threads;j++)
 				{
+					manage_thread_affinity();
 					fftwf_execute(planf);
 				}
 			}
@@ -797,8 +799,9 @@ class RFFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t=0;i<threads;i++)
+				for(uint64_t j=0;j<threads;j++)
 				{
+					manage_thread_affinity();
 					fftw_execute(plan);
 				}
 			}
@@ -808,8 +811,9 @@ class RFFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t=0;i<threads;i++)
+				for(uint64_t j=0;i<threads;j++)
 				{
+					manage_thread_affinity();
 					fftwf_execute(planf);
 				}
 			}
@@ -1254,8 +1258,9 @@ class iFFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t=0;i<threads;i++)
+				for(uint64_t j=0;j<threads;j++)
 				{
+					manage_thread_affinity();
 					fftw_execute(plan);
 				}
 			}
@@ -1265,8 +1270,9 @@ class iFFT_Block_py
 			for(uint64_t i=0;i<n;i++)
 			{
 				#pragma omp parallel for
-				for(uint64_t=0;i<threads;i++)
+				for(uint64_t j=0;j<threads;j++)
 				{
+					manage_thread_affinity();
 					fftwf_execute(planf);
 				}
 			}
