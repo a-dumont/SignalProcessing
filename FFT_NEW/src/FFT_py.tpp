@@ -822,9 +822,9 @@ class RFFT_Block_py
 				{
 					temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
 				}
-				//fftw_execute_dft_r2c(plan,
-				//				temp_out,
-				//				reinterpret_cast<fftw_complex*>(temp_out));
+				fftw_execute_dft_r2c(plan,
+								temp_out,
+								reinterpret_cast<fftw_complex*>(temp_out));
 			}
 
 			//if(N!=Npad){::rfftBlock<double>(Npad-N,size,py_ptr,out);}
