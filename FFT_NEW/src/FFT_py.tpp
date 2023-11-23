@@ -870,7 +870,7 @@ class RFFT_Block_py
 			if(N!=Npad){::rfftBlock<float>(Npad-N,size,py_ptr,out);}
 
 			py::capsule free_when_done( out, fftwf_free );
-			return py::array_t<std::complex<double>,py::array::c_style>
+			return py::array_t<std::complex<float>,py::array::c_style>
 			(
 			{howmany*(size/2+1)},
 			{2*sizeof(float)},
