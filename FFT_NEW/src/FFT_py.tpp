@@ -788,6 +788,8 @@ class RFFT_Block_py
 			free(transfer_size);
 			fftw_free(in);
 			fftwf_free(inf);
+			fftw_free(out_temp);
+			fftwf_free(out_tempf);
 			fftw_destroy_plan(plan);
 			fftwf_destroy_plan(planf);
 		}
