@@ -860,7 +860,7 @@ class RFFT_Block_py
 				std::memcpy(in+i*transfer_size[0],py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(double));
 				fftw_execute_dft_r2c(plan,
 								in+i*transfer_size[0],
-								reinterpret_cast<fftw_complex*>(out+(transfer_size[i]/size)*(size/2+1)));
+								reinterpret_cast<fftw_complex*>(out+i*(transfer_size[0]/size)*(size/2+1)));
 			}
 
 			if(N!=Npad){::rfftBlock<double>(Npad-N,size,py_ptr,out);}
