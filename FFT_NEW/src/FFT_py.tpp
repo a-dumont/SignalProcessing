@@ -852,11 +852,6 @@ class RFFT_Block_py
 			for(uint64_t i=0;i<threads;i++)
 			{
 				manage_thread_affinity();
-				//double* temp_out = ((double*) out)+i*(size+2)*(transfer_size[0]/size);
-				//for(uint64_t j=0;j<transfer_size[i];j++)
-				//{
-					//temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
-				//}
 				std::memcpy(in+i*transfer_size[0],py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(double));
 				fftw_execute_dft_r2c(plan,
 								in+i*transfer_size[0],
@@ -886,21 +881,17 @@ class RFFT_Block_py
 			{throw std::runtime_error("U dumbdumb input too long.");}
 
 			std::complex<float>* out;
-			out = (std::complex<float>*) fftwf_malloc(howmany*(size+2)*sizeof(float));
+			out = (std::complex<float>*) fftw_malloc(howmany*(size+2)*sizeof(float));
 			std::memset((float*)(out+N),0.0,(howmany*(size+2)-N)*sizeof(float));
 
 			#pragma omp parallel for
 			for(uint64_t i=0;i<threads;i++)
 			{
 				manage_thread_affinity();
-				float* temp_out = ((float*) out)+i*(size+2)*(transfer_size[0]/size);
-				for(uint64_t j=0;j<transfer_size[i];j++)
-				{
-					temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
-				}
+				std::memcpy(inf+i*transfer_size[0],py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(float));
 				fftwf_execute_dft_r2c(planf,
-								temp_out,
-								reinterpret_cast<fftwf_complex*>(temp_out));
+								inf+i*transfer_size[0],
+								reinterpret_cast<fftwf_complex*>(out+i*(transfer_size[0]/size)*(size/2+1)));
 			}
 
 			if(N!=Npad){::rfftBlock<float>(Npad-N,size,py_ptr,out);}
