@@ -355,11 +355,25 @@ class FFT_Block_py
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
 			auto time1 = Clock::now();
-			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t=0;i<threads;i++)
+				{
+					fftw_execute(plan);
+				}
+			}
 			auto time2 = Clock::now();
 			
 			auto timef1 = Clock::now();
-			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t=0;i<threads;i++)
+				{
+					fftwf_execute(planf);
+				}
+			}
 			auto timef2 = Clock::now();
 			
 			double time;
@@ -780,11 +794,25 @@ class RFFT_Block_py
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
 			auto time1 = Clock::now();
-			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t=0;i<threads;i++)
+				{
+					fftw_execute(plan);
+				}
+			}
 			auto time2 = Clock::now();
 			
 			auto timef1 = Clock::now();
-			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t=0;i<threads;i++)
+				{
+					fftwf_execute(planf);
+				}
+			}
 			auto timef2 = Clock::now();
 			
 			double time;
@@ -1223,11 +1251,25 @@ class iFFT_Block_py
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
 			auto time1 = Clock::now();
-			for(uint64_t i=0;i<n;i++){fftw_execute(plan);}
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t=0;i<threads;i++)
+				{
+					fftw_execute(plan);
+				}
+			}
 			auto time2 = Clock::now();
 			
 			auto timef1 = Clock::now();
-			for(uint64_t i=0;i<n;i++){fftwf_execute(planf);}
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t=0;i<threads;i++)
+				{
+					fftwf_execute(planf);
+				}
+			}
 			auto timef2 = Clock::now();
 			
 			double time;
