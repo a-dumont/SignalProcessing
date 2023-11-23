@@ -752,7 +752,7 @@ class RFFT_Block_py
 							inf,
 							NULL,
 							1,
-							(int) size,
+							(int) size+2,
 							reinterpret_cast<fftwf_complex*>(inf),
 							NULL,
 							1,
@@ -827,7 +827,7 @@ class RFFT_Block_py
 								reinterpret_cast<fftw_complex*>(temp_out));
 			}
 
-			//if(N!=Npad){::rfftBlock<double>(Npad-N,size,py_ptr,out);}
+			if(N!=Npad){::rfftBlock<double>(Npad-N,size,py_ptr,out);}
 
 			py::capsule free_when_done( out, fftw_free );
 			return py::array_t<std::complex<double>,py::array::c_style>
@@ -839,38 +839,40 @@ class RFFT_Block_py
 			);
 		}
 
-		py::array_t<std::complex<float>,py::array::c_style> 
-		rfftBlockf(py::array_t<std::complex<float>,py::array::c_style> py_in)
+		py::array_t<std::complex<float>,1> 
+		rfftBlockf(py::array_t<float,1> py_in)
 		{
 			py::buffer_info buf_in = py_in.request();
-			std::complex<float>* py_ptr = (std::complex<float>*) buf_in.ptr;
+			float* py_ptr = (float*) buf_in.ptr;
 
 			if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
 			if ((uint64_t) buf_in.size > Npad)
 			{throw std::runtime_error("U dumbdumb input too long.");}
 
 			std::complex<float>* out;
-			out = (std::complex<float>*) fftwf_malloc(2*Npad*sizeof(float));
-			std::memset((float*)(out+N),0.0,2*(Npad-N)*sizeof(float));
+			out = (std::complex<float>*) fftwf_malloc(howmany*(size+2)*sizeof(float));
+			std::memset((float*)(out+N),0.0,(howmany*(size+2)-N)*sizeof(float));
 
 			#pragma omp parallel for
 			for(uint64_t i=0;i<threads;i++)
 			{
 				manage_thread_affinity();
-				std::memcpy(out+i*size*(howmany/threads),
-								py_ptr+i*size*(howmany/threads), 
-								2*transfer_size[i]*sizeof(float));
-				fftwf_execute_dft(planf,
-								reinterpret_cast<fftwf_complex*>(out+i*size*(howmany/threads)),
-								reinterpret_cast<fftwf_complex*>(out+i*size*howmany/threads));
+				float* temp_out = ((float*) out)+i*(size+2)*(transfer_size[0]/size);
+				for(uint64_t j=0;j<transfer_size[i];j++)
+				{
+					temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
+				}
+				fftw_execute_dft_r2c(plan,
+								temp_out,
+								reinterpret_cast<fftwf_complex*>(temp_out));
 			}
 
-			//if(N!=Npad){::rfftBlock<float>(Npad-N,size,py_ptr,out);}
+			if(N!=Npad){::rfftBlock<float>(Npad-N,size,py_ptr,out);}
 
-			py::capsule free_when_done( out, fftw_free );
-			return py::array_t<std::complex<float>,py::array::c_style>
+			py::capsule free_when_done( out, fftwf_free );
+			return py::array_t<std::complex<double>,py::array::c_style>
 			(
-			{Npad},
+			{howmany*(size/2+1)},
 			{2*sizeof(float)},
 			out,
 			free_when_done	
