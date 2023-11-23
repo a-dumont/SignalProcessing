@@ -721,8 +721,8 @@ class RFFT_Block_py
 
 		fftw_plan plan, plan2;
 		fftwf_plan planf, plan2f;
-		double *in;
-		float *inf;
+		double *in, *out;
+		float *inf, *outf;
 		uint64_t N, size, howmany, Npad, threads;
 		int length[1];
 		uint64_t* transfer_size;
@@ -744,8 +744,11 @@ class RFFT_Block_py
 
 			threads = std::min(threads,(uint64_t) 64);
 
-			in = (double*) fftw_malloc((size+2)*howmany*sizeof(double));
-			inf = (float*) fftwf_malloc((size+2)*howmany*sizeof(float));
+			in = (double*) fftw_malloc(size*howmany*sizeof(double));
+			inf = (float*) fftwf_malloc(size*howmany*sizeof(float));
+			
+			out = (double*) fftw_malloc((size+2)*howmany*sizeof(double));
+			outf = (float*) fftwf_malloc((size+2)*howmany*sizeof(float));
 			
 			plan = fftw_plan_many_dft_r2c(
 							1,
@@ -754,8 +757,8 @@ class RFFT_Block_py
 							in,
 							NULL,
 							1,
-							(int) size+2,
-							reinterpret_cast<fftw_complex*>(in),
+							(int) size,
+							reinterpret_cast<fftw_complex*>(out),
 							NULL,
 							1,
 							(int) size/2+1,
@@ -768,8 +771,8 @@ class RFFT_Block_py
 							inf,
 							NULL,
 							1,
-							(int) size+2,
-							reinterpret_cast<fftwf_complex*>(inf),
+							(int) size,
+							reinterpret_cast<fftwf_complex*>(outf),
 							NULL,
 							1,
 							(int) size/2+1,
@@ -849,14 +852,15 @@ class RFFT_Block_py
 			for(uint64_t i=0;i<threads;i++)
 			{
 				manage_thread_affinity();
-				double* temp_out = ((double*) out)+i*(size+2)*(transfer_size[0]/size);
-				for(uint64_t j=0;j<transfer_size[i];j++)
-				{
-					temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
-				}
+				//double* temp_out = ((double*) out)+i*(size+2)*(transfer_size[0]/size);
+				//for(uint64_t j=0;j<transfer_size[i];j++)
+				//{
+					//temp_out[j+2*(j/size)] = py_ptr[j+i*transfer_size[0]];
+				//}
+				std::memcpy(in,py_ptr,transfer_size[i]*sizeof(double));
 				fftw_execute_dft_r2c(plan,
-								temp_out,
-								reinterpret_cast<fftw_complex*>(temp_out));
+								in,
+								reinterpret_cast<fftw_complex*>(out));
 			}
 
 			if(N!=Npad){::rfftBlock<double>(Npad-N,size,py_ptr,out);}
