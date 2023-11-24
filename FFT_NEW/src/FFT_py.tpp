@@ -5,7 +5,6 @@
 //						|  _| |  _|   | |                        //
 //						|_|   |_|     |_|                        //
 ///////////////////////////////////////////////////////////////////
-#include <complex>
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
 fft_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
@@ -75,7 +74,8 @@ fft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_
 	uint64_t N = std::min((uint64_t) buf_in.size, size);
 	
 	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*size*sizeof(DataType));
+	std::complex<DataType>* out;
+    out	= (std::complex<DataType>*) fftw_malloc(2*size*sizeof(DataType));
 	std::memset((void*) out,0,2*size*sizeof(DataType));
 	std::memcpy(out,in,2*N*sizeof(DataType));
 
@@ -108,7 +108,8 @@ fftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64
 	uint64_t Npad = size*howmany;
 
 	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::complex<DataType>* out; 
+	out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
 	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
 	std::memcpy(out,in,2*N*sizeof(DataType));
 
@@ -126,7 +127,7 @@ fftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64
 
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
-fftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+fftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in,uint64_t size)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -141,7 +142,8 @@ fftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_i
 	uint64_t Npad = size*howmany;
 
 	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::complex<DataType>* out;
+    out	= (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
 	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
 	std::memcpy(out,in,2*N*sizeof(DataType));
 
@@ -174,19 +176,15 @@ class FFT_py
 			in = (std::complex<double>*) fftw_malloc(2*N*sizeof(double));
 			inf = (std::complex<float>*) fftwf_malloc(2*N*sizeof(float));
 			
-			plan = fftw_plan_dft_1d(
-							N,
+			plan = fftw_plan_dft_1d(N,
 							reinterpret_cast<fftw_complex*>(in),
 							reinterpret_cast<fftw_complex*>(in),
-							FFTW_FORWARD,
-							FFTW_ESTIMATE);
+							FFTW_FORWARD,FFTW_ESTIMATE);
 
-			planf = fftwf_plan_dft_1d(
-							N,
+			planf = fftwf_plan_dft_1d(N,
 							reinterpret_cast<fftwf_complex*>(inf),
 							reinterpret_cast<fftwf_complex*>(inf),
-							FFTW_FORWARD,
-							FFTW_ESTIMATE);
+							FFTW_FORWARD,FFTW_ESTIMATE);
 		}
 		
 		~FFT_py()
@@ -198,6 +196,28 @@ class FFT_py
 		}
 
 		uint64_t getSize(){return N;}
+
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_dft_1d(N,
+							reinterpret_cast<fftw_complex*>(in),
+							reinterpret_cast<fftw_complex*>(in),
+							FFTW_FORWARD,FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf = fftwf_plan_dft_1d(N,
+							reinterpret_cast<fftwf_complex*>(inf),
+							reinterpret_cast<fftwf_complex*>(inf),
+							FFTW_FORWARD,FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -213,7 +233,7 @@ class FFT_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			timef =std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
 			py::print("Time for double precision FFT of size ",N,": ",time/n," us","sep"_a="");
 			py::print("Time for single precision FFT of size ",N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
@@ -304,35 +324,17 @@ class FFT_Block_py
 			in = (std::complex<double>*) fftw_malloc(2*Npad*sizeof(double));
 			inf = (std::complex<float>*) fftwf_malloc(2*Npad*sizeof(float));
 			
-			plan = fftw_plan_many_dft(
-							1,
-							length,
-							howmany/threads,
+			plan = fftw_plan_many_dft(1, length, howmany/threads,
 							reinterpret_cast<fftw_complex*>(in),
-							NULL,
-							1,
-							(int) size,
+							NULL, 1, (int) size,
 							reinterpret_cast<fftw_complex*>(in),
-							NULL,
-							1,
-							(int) size,
-							1,
-							FFTW_ESTIMATE);
+							NULL, 1, (int) size, 1, FFTW_ESTIMATE);
 
-			planf = fftwf_plan_many_dft(
-							1,
-							length,
-							howmany/threads,
+			planf = fftwf_plan_many_dft(1, length, howmany/threads,
 							reinterpret_cast<fftwf_complex*>(inf),
-							NULL,
-							1,
-							(int) size,
+							NULL, 1, (int) size,
 							reinterpret_cast<fftwf_complex*>(inf),
-							NULL,
-							1,
-							(int) size,
-							1,
-							FFTW_ESTIMATE);
+							NULL, 1, (int) size, 1, FFTW_ESTIMATE);
 
 			transfer_size = (uint64_t*) malloc(threads*sizeof(uint64_t));
 			for(uint64_t i=0;i<(threads-1);i++){transfer_size[i]=size*(howmany/threads);}
@@ -351,6 +353,30 @@ class FFT_Block_py
 		uint64_t getSize(){return size;}
 		uint64_t getN(){return Npad;}
 		uint64_t getHowmany(){return Npad;}
+
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_many_dft(1, length, howmany/threads,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL, 1, (int) size,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL, 1, (int) size, 1, FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf = fftwf_plan_many_dft(1, length, howmany/threads,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL, 1, (int) size,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL, 1, (int) size, 1, FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -382,11 +408,13 @@ class FFT_Block_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			timef =std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
 			py::print("Time for ",howmany,
-							" double precision FFT of size ",size,": ",time/n," us","sep"_a="");
+							" double precision FFT of size ",
+							size,": ",time/n," us","sep"_a="");
 			py::print("Time for ",howmany,
-							" single precision FFT of size ",size,": ",timef/n," us","sep"_a="");
+							" single precision FFT of size ",
+							size,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -521,7 +549,8 @@ rfft_training_py(py::array_t<DataType,py::array::c_style> py_in)
 	uint64_t N = buf_in.size;
 	
 	DataType* in = (DataType*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*(N+2)*sizeof(DataType));
+	std::complex<DataType>* out;
+    out = (std::complex<DataType>*) fftw_malloc(2*(N+2)*sizeof(DataType));
 	std::memcpy((void*) out,in,2*N*sizeof(DataType));
 	out[N] = 0.0;
 
@@ -628,8 +657,10 @@ class RFFT_py
 			in = (double*) fftw_malloc((N+2)*sizeof(double));
 			inf = (float*) fftwf_malloc((N+2)*sizeof(float));
 			
-			plan = fftw_plan_dft_r2c_1d(N,in,reinterpret_cast<fftw_complex*>(in),FFTW_ESTIMATE);
-			planf=fftwf_plan_dft_r2c_1d(N,inf,reinterpret_cast<fftwf_complex*>(inf),FFTW_ESTIMATE);
+			plan = fftw_plan_dft_r2c_1d(N,in,
+							reinterpret_cast<fftw_complex*>(in),FFTW_ESTIMATE);
+			planf=fftwf_plan_dft_r2c_1d(N,inf,
+							reinterpret_cast<fftwf_complex*>(inf),FFTW_ESTIMATE);
 		}
 		
 		~RFFT_py()
@@ -642,6 +673,23 @@ class RFFT_py
 
 		uint64_t getSize(){return N;}
 		
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_dft_r2c_1d(N,in,
+							reinterpret_cast<fftw_complex*>(in),FFTW_EXHAUSTIVE);
+			fftwf_destroy_plan(planf);
+			planf=fftwf_plan_dft_r2c_1d(N,inf,
+							reinterpret_cast<fftwf_complex*>(inf),FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
+
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
 			auto time1 = Clock::now();
@@ -656,9 +704,11 @@ class RFFT_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
-			py::print("Time for double precision rFFT of size ",N,": ",time/n," us","sep"_a="");
-			py::print("Time for single precision rFFT of size ",N,": ",timef/n," us","sep"_a="");
+			timef=std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for double precision rFFT of size ",
+							N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision rFFT of size ",
+							N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -750,33 +800,13 @@ class RFFT_Block_py
 			out_temp = (double*) fftw_malloc((size+2)*howmany*sizeof(double));
 			out_tempf = (float*) fftwf_malloc((size+2)*howmany*sizeof(float));
 			
-			plan = fftw_plan_many_dft_r2c(
-							1,
-							length,
-							howmany/threads,
-							in,
-							NULL,
-							1,
-							(int) size,
-							reinterpret_cast<fftw_complex*>(out_temp),
-							NULL,
-							1,
-							(int) size/2+1,
-							FFTW_ESTIMATE);
+			plan = fftw_plan_many_dft_r2c(1, length, howmany/threads, in, NULL,
+							1, (int) size, reinterpret_cast<fftw_complex*>(out_temp),
+							NULL, 1, (int) size/2+1, FFTW_ESTIMATE);
 
-			planf = fftwf_plan_many_dft_r2c(
-							1,
-							length,
-							howmany/threads,
-							inf,
-							NULL,
-							1,
-							(int) size,
-							reinterpret_cast<fftwf_complex*>(out_tempf),
-							NULL,
-							1,
-							(int) size/2+1,
-							FFTW_ESTIMATE);
+			planf = fftwf_plan_many_dft_r2c(1, length, howmany/threads, inf,
+							NULL, 1, (int) size, reinterpret_cast<fftwf_complex*>(out_tempf),
+							NULL, 1, (int) size/2+1, FFTW_ESTIMATE);
 
 			transfer_size = (uint64_t*) malloc(threads*sizeof(uint64_t));
 			for(uint64_t i=0;i<(threads-1);i++){transfer_size[i]=size*(howmany/threads);}
@@ -797,6 +827,26 @@ class RFFT_Block_py
 		uint64_t getSize(){return size;}
 		uint64_t getN(){return Npad;}
 		uint64_t getHowmany(){return Npad;}
+
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_many_dft_r2c(1, length, howmany/threads, in, NULL,
+							1, (int) size, reinterpret_cast<fftw_complex*>(out_temp),
+							NULL, 1, (int) size/2+1, FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf = fftwf_plan_many_dft_r2c(1, length, howmany/threads, inf,
+							NULL, 1, (int) size, reinterpret_cast<fftwf_complex*>(out_tempf),
+							NULL, 1, (int) size/2+1, FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -828,11 +878,15 @@ class RFFT_Block_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			timef=std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			
 			py::print("Time for ",howmany,
-							" double precision rFFT of size ",size,": ",time/n," us","sep"_a="");
+							" double precision rFFT of size ",
+							size,": ",time/n," us","sep"_a="");
 			py::print("Time for ",howmany,
-							" single precision rFFT of size ",size,": ",timef/n," us","sep"_a="");
+							" single precision rFFT of size ",
+							size,": ",timef/n," us","sep"_a="");
+
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -998,10 +1052,12 @@ ifftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint6
 	DataType norm = 1.0/size;
 
 	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::complex<DataType>* out;
+   	out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
 	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
+	
 	for(uint64_t i=0;i<N;i++){out[i]=in[i]*norm;}
-
+	
 	ifftBlock((int) Npad,(int) size, out, out);
 
 	py::capsule free_when_done( out, fftw_free );
@@ -1016,7 +1072,7 @@ ifftBlock_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint6
 
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
-ifftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+ifftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style>py_in,uint64_t size)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -1032,11 +1088,13 @@ ifftBlock_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_
 	DataType norm = 1.0/size;
 
 	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
+	std::complex<DataType>* out;
+   	out = (std::complex<DataType>*) fftw_malloc(2*Npad*sizeof(DataType));
 	std::memset((DataType*)(out+N),0.0,2*(Npad-N)*sizeof(DataType));
+	
 	for(uint64_t i=0;i<N;i++){out[i]=in[i]*norm;}
-
-	ifftBlock_training((int) Npad,(int) size, out, out);
+	
+	ifftBlock((int) Npad,(int) size, out, out);
 
 	py::capsule free_when_done( out, fftw_free );
 	return py::array_t<std::complex<DataType>, py::array::c_style> 
@@ -1069,19 +1127,15 @@ class IFFT_py
 			in = (std::complex<double>*) fftw_malloc(2*N*sizeof(double));
 			inf = (std::complex<float>*) fftwf_malloc(2*N*sizeof(float));
 			
-			plan = fftw_plan_dft_1d(
-							N,
+			plan = fftw_plan_dft_1d(N,
 							reinterpret_cast<fftw_complex*>(in),
 							reinterpret_cast<fftw_complex*>(in),
-							FFTW_BACKWARD,
-							FFTW_ESTIMATE);
+							FFTW_BACKWARD, FFTW_ESTIMATE);
 
-			planf = fftwf_plan_dft_1d(
-							N,
+			planf = fftwf_plan_dft_1d(N,
 							reinterpret_cast<fftwf_complex*>(inf),
 							reinterpret_cast<fftwf_complex*>(inf),
-							FFTW_BACKWARD,
-							FFTW_ESTIMATE);
+							FFTW_BACKWARD, FFTW_ESTIMATE);
 		}
 		
 		~IFFT_py()
@@ -1094,6 +1148,28 @@ class IFFT_py
 
 		uint64_t getSize(){return N;}
 		
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_dft_1d(N,
+							reinterpret_cast<fftw_complex*>(in),
+							reinterpret_cast<fftw_complex*>(in),
+							FFTW_BACKWARD, FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf = fftwf_plan_dft_1d(N,
+							reinterpret_cast<fftwf_complex*>(inf),
+							reinterpret_cast<fftwf_complex*>(inf),
+							FFTW_BACKWARD, FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
+
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
 			auto time1 = Clock::now();
@@ -1108,9 +1184,11 @@ class IFFT_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
-			py::print("Time for double precision iFFT of size ",N,": ",time/n," us","sep"_a="");
-			py::print("Time for single precision iFFT of size ",N,": ",timef/n," us","sep"_a="");
+			timef=std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			py::print("Time for double precision iFFT of size ",
+							N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision iFFT of size ",
+							N,": ",timef/n," us","sep"_a="");
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -1171,7 +1249,7 @@ class IFFT_py
 		}
 };
 
-class iFFT_Block_py
+class IFFT_Block_py
 {
 	public:
 
@@ -1181,11 +1259,13 @@ class iFFT_Block_py
 		fftwf_plan** plansf;
 		std::complex<double> *in, *out_temp;
 		std::complex<float> *inf, *out_tempf;
+		double norm;
+		float normf;
 		uint64_t N, size, howmany, Npad, threads;
 		int length[1];
 		uint64_t* transfer_size;
 
-		iFFT_Block_py(uint64_t N_in, uint64_t size_in)
+		IFFT_Block_py(uint64_t N_in, uint64_t size_in)
 		{
 			N = N_in;
 			size = size_in;
@@ -1193,6 +1273,8 @@ class iFFT_Block_py
 			if(howmany*size != N){howmany += 1;}
 			Npad = size*howmany;
 			length[0] = (int) size;
+			norm = 1.0/size;
+			normf = 1.0/size;
 
 			#ifdef _WIN32_WINNT
 				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
@@ -1205,42 +1287,24 @@ class iFFT_Block_py
 			in = (std::complex<double>*) fftw_malloc(2*Npad*sizeof(double));
 			inf = (std::complex<float>*) fftwf_malloc(2*Npad*sizeof(float));
 			
-			plan = fftw_plan_many_dft(
-							1,
-							length,
-							howmany/threads,
+			plan = fftw_plan_many_dft(1, length, howmany/threads,
 							reinterpret_cast<fftw_complex*>(in),
-							NULL,
-							1,
-							(int) size,
+							NULL, 1, (int) size,
 							reinterpret_cast<fftw_complex*>(in),
-							NULL,
-							1,
-							(int) size,
-							-1,
-							FFTW_ESTIMATE);
+							NULL, 1, (int) size, -1, FFTW_ESTIMATE);
 
-			planf = fftwf_plan_many_dft(
-							1,
-							length,
-							howmany/threads,
+			planf = fftwf_plan_many_dft(1, length, howmany/threads,
 							reinterpret_cast<fftwf_complex*>(inf),
-							NULL,
-							1,
-							(int) size,
+							NULL, 1, (int) size,
 							reinterpret_cast<fftwf_complex*>(inf),
-							NULL,
-							1,
-							(int) size,
-							-1,
-							FFTW_ESTIMATE);
+							NULL, 1, (int) size, -1, FFTW_ESTIMATE);
 
 			transfer_size = (uint64_t*) malloc(threads*sizeof(uint64_t));
 			for(uint64_t i=0;i<(threads-1);i++){transfer_size[i]=size*(howmany/threads);}
 			transfer_size[threads-1] = N-(threads-1)*transfer_size[0];
 		}
 		
-		~iFFT_Block_py()
+		~IFFT_Block_py()
 		{
 			free(transfer_size);
 			fftw_free(in);
@@ -1252,7 +1316,31 @@ class iFFT_Block_py
 		uint64_t getSize(){return size;}
 		uint64_t getN(){return Npad;}
 		uint64_t getHowmany(){return Npad;}
-		
+
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_many_dft(1, length, howmany/threads,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL, 1, (int) size,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL, 1, (int) size, -1, FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf = fftwf_plan_many_dft(1, length, howmany/threads,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL, 1, (int) size,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL, 1, (int) size, -1, FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
+	
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
 			auto time1 = Clock::now();
@@ -1283,11 +1371,15 @@ class iFFT_Block_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			timef=std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			
 			py::print("Time for ",howmany,
-							" double precision iFFT of size ",size,": ",time/n," us","sep"_a="");
+							" double precision iFFT of size ",
+							size,": ",time/n," us","sep"_a="");
 			py::print("Time for ",howmany,
-							" single precision iFFT of size ",size,": ",timef/n," us","sep"_a="");
+							" single precision iFFT of size ",
+							size,": ",timef/n," us","sep"_a="");
+			
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -1317,10 +1409,15 @@ class iFFT_Block_py
 								reinterpret_cast<fftw_complex*>(out+i*size*howmany/threads));
 			}
 
-			if(N!=Npad)
+			if(howmany != (howmany/threads)*threads)
 			{
-				::ifftBlock<double>(Npad-N,size,py_ptr,out+threads*size*(howmany/threads));
+				::ifftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+(howmany/threads)*threads*size,
+								out+(howmany/threads)*threads*size);
 			}
+
+			#pragma omp parallel for
+			for(uint64_t i=0;i<howmany*size;i++){out[i] *= norm;}
 
 			py::capsule free_when_done( out, fftw_free );
 			return py::array_t<std::complex<double>,py::array::c_style>
@@ -1358,10 +1455,15 @@ class iFFT_Block_py
 								reinterpret_cast<fftwf_complex*>(out+i*size*howmany/threads));
 			}
 
-			if(N!=Npad)
+			if(howmany != (howmany/threads)*threads)
 			{
-				::ifftBlock<float>(Npad-N,size,py_ptr,out+threads*size*(howmany/threads));
+				::ifftBlock<float>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+(howmany/threads)*threads*size,
+								out+(howmany/threads)*threads*size);
 			}
+
+			#pragma omp parallel for
+			for(uint64_t i=0;i<howmany*size;i++){out[i] *= normf;}
 
 			py::capsule free_when_done( out, fftw_free );
 			return py::array_t<std::complex<float>,py::array::c_style>
@@ -1540,12 +1642,11 @@ class IRFFT_py
 			
 			plan = fftw_plan_dft_c2r_1d(N,
 							reinterpret_cast<fftw_complex*>(in),
-							reinterpret_cast<double*>(in),
-							FFTW_ESTIMATE);
+							reinterpret_cast<double*>(in), FFTW_ESTIMATE);
+
 			planf=fftwf_plan_dft_c2r_1d(N,
 							reinterpret_cast<fftwf_complex*>(inf),
-							reinterpret_cast<float*>(inf),
-							FFTW_ESTIMATE);
+							reinterpret_cast<float*>(inf), FFTW_ESTIMATE);
 		}
 		
 		~IRFFT_py()
@@ -1557,6 +1658,26 @@ class IRFFT_py
 		}
 
 		uint64_t getSize(){return N;}
+
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_dft_c2r_1d(N,
+							reinterpret_cast<fftw_complex*>(in),
+							reinterpret_cast<double*>(in), FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf=fftwf_plan_dft_c2r_1d(N,
+							reinterpret_cast<fftwf_complex*>(inf),
+							reinterpret_cast<float*>(inf), FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
 		{
@@ -1572,9 +1693,13 @@ class IRFFT_py
 			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
 
 			double timef;
-			timef = std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
-			py::print("Time for double precision irFFT of size ",N,": ",time/n," us","sep"_a="");
-			py::print("Time for single precision irFFT of size ",N,": ",timef/n," us","sep"_a="");
+			timef=std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			
+			py::print("Time for double precision irFFT of size ",
+							N,": ",time/n," us","sep"_a="");
+			py::print("Time for single precision irFFT of size ",
+							N,": ",timef/n," us","sep"_a="");
+
 			return std::make_tuple<double,double>(time/n,timef/n);
 		}
 
@@ -1588,7 +1713,6 @@ class IRFFT_py
 			throw std::runtime_error("U dumbdumb dimension must be 1.");
 			}	
 			
-			//std::memcpy(in,(std::complex<double>*) buf_in.ptr, (N+2)*sizeof(double));
 			std::complex<double>* py_ptr = (std::complex<double>*) buf_in.ptr;
 			for(uint64_t i=0; i<(N/2+1);i++){in[i] = py_ptr[i]*norm;}
 			
@@ -1617,7 +1741,6 @@ class IRFFT_py
 			throw std::runtime_error("U dumbdumb dimension must be 1.");
 			}	
 
-			//std::memcpy(inf,(std::complex<float>*) buf_in.ptr, (N+2)*sizeof(float));
 			std::complex<float>* py_ptr = (std::complex<float>*) buf_in.ptr;
 			for(uint64_t i=0; i<(N/2+1);i++){inf[i] = py_ptr[i]*normf;}
 
@@ -1637,5 +1760,225 @@ class IRFFT_py
 		}
 };
 
+class IRFFT_Block_py
+{
+	public:
+
+		fftw_plan plan, plan2;
+		fftwf_plan planf, plan2f;
+		double *in, *out_temp, norm;
+		float *inf, *out_tempf, normf;
+		uint64_t N, size, howmany, Npad, threads;
+		int length[1];
+		uint64_t* transfer_size;
+
+		IRFFT_Block_py(uint64_t N_in, uint64_t size_in)
+		{
+			N = N_in;
+			size = size_in;
+			howmany = N/(size/2+1);
+			if(howmany*(size/2+1) != N){howmany += 1;}
+			Npad = (size/2+1)*howmany;
+			length[0] = (int) size;
+			norm = 1.0/size;
+			normf = 1.0/size;
+
+			#ifdef _WIN32_WINNT
+				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+			#else
+				threads = omp_get_max_threads();
+			#endif
+
+			threads = std::min(threads,(uint64_t) 64);
+
+			in = (double*) fftw_malloc((size+2)*howmany*sizeof(double));
+			inf = (float*) fftwf_malloc((size+2)*howmany*sizeof(float));
+			
+			out_temp = (double*) fftw_malloc(size*howmany*sizeof(double));
+			out_tempf = (float*) fftwf_malloc(size*howmany*sizeof(float));
+			
+			plan = fftw_plan_many_dft_c2r(1, length, howmany/threads,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL, 1, (int) size/2+1, out_temp,
+							NULL, 1, (int) size, FFTW_ESTIMATE);
+
+			planf = fftwf_plan_many_dft_c2r(1, length, howmany/threads,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL, 1, (int) size/2+1, out_tempf,
+							NULL, 1, (int) size, FFTW_ESTIMATE);
+
+			transfer_size = (uint64_t*) malloc(threads*sizeof(uint64_t));
+			for(uint64_t i=0;i<(threads-1);i++){transfer_size[i]=(size/2+1)*(howmany/threads);}
+			transfer_size[threads-1] = N-(threads-1)*transfer_size[0];
+		}
+		
+		~IRFFT_Block_py()
+		{
+			free(transfer_size);
+			fftw_free(in);
+			fftwf_free(inf);
+			fftw_free(out_temp);
+			fftwf_free(out_tempf);
+			fftw_destroy_plan(plan);
+			fftwf_destroy_plan(planf);
+		}
+
+		uint64_t getSize(){return size;}
+		uint64_t getN(){return Npad;}
+		uint64_t getHowmany(){return Npad;}
+
+		void train()
+		{
+			fftw_destroy_plan(plan);
+			plan = fftw_plan_many_dft_c2r(1, length, howmany/threads,
+							reinterpret_cast<fftw_complex*>(in),
+							NULL, 1, (int) size/2+1, out_temp,
+							NULL, 1, (int) size, FFTW_EXHAUSTIVE);
+
+			fftwf_destroy_plan(planf);
+			planf = fftwf_plan_many_dft_c2r(1, length, howmany/threads,
+							reinterpret_cast<fftwf_complex*>(inf),
+							NULL, 1, (int) size/2+1, out_tempf,
+							NULL, 1, (int) size, FFTW_EXHAUSTIVE);
+
+			py::print("Training double precision.");
+			fftw_execute(plan);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			py::print("Training single precision.");
+			fftwf_execute(planf);
+			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+		}
+		
+		std::tuple<double,double> benchmark(uint64_t n)
+		{
+			auto time1 = Clock::now();
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t j=0;j<threads;j++)
+				{
+					manage_thread_affinity();
+					fftw_execute(plan);
+				}
+			}
+			auto time2 = Clock::now();
+			
+			auto timef1 = Clock::now();
+			for(uint64_t i=0;i<n;i++)
+			{
+				#pragma omp parallel for
+				for(uint64_t j=0;j<threads;j++)
+				{
+					manage_thread_affinity();
+					fftwf_execute(planf);
+				}
+			}
+			auto timef2 = Clock::now();
+			
+			double time;
+			time = std::chrono::duration_cast<std::chrono::microseconds>(time2-time1).count();
+
+			double timef;
+			timef=std::chrono::duration_cast<std::chrono::microseconds>(timef2-timef1).count();
+			
+			py::print("Time for ",howmany,
+							" double precision irFFT of size ",
+							size,": ",time/n," us","sep"_a="");
+
+			py::print("Time for ",howmany,
+							" single precision irFFT of size ",
+							size,": ",timef/n," us","sep"_a="");
+
+			return std::make_tuple<double,double>(time/n,timef/n);
+		}
+
+		py::array_t<double,py::array::c_style> 
+		irfftBlock(py::array_t<std::complex<double>,py::array::c_style> py_in)
+		{
+			py::buffer_info buf_in = py_in.request();
+			std::complex<double>* py_ptr = (std::complex<double>*) buf_in.ptr;
+
+			if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
+			if ((uint64_t) buf_in.size > Npad)
+			{throw std::runtime_error("U dumbdumb input too long.");}
+
+			double* out = (double*) fftw_malloc(howmany*size*sizeof(double));
+			std::memset(in+2*N,0.0,(Npad-N)*2*sizeof(double));
+
+			#pragma omp parallel for
+			for(uint64_t i=0;i<threads;i++)
+			{
+				manage_thread_affinity();
+				std::memcpy(in+2*i*transfer_size[0],
+								py_ptr+i*transfer_size[0],transfer_size[i]*2*sizeof(double));
+				fftw_execute_dft_c2r(plan,
+								reinterpret_cast<fftw_complex*>(in+2*i*transfer_size[0]),
+								out+i*(transfer_size[0]/(size/2+1))*size);
+			}
+
+			if(howmany != (howmany/threads)*threads)
+			{
+				::irfftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+(howmany/threads)*threads*(size/2+1),
+								out+(howmany/threads)*threads*size);
+			}
+			
+			#pragma omp parallel for
+			for(uint64_t i=0;i<howmany*size;i++){out[i] *= norm;}
+
+			py::capsule free_when_done( out, fftw_free );
+			return py::array_t<double,py::array::c_style>
+			(
+			{howmany*size},
+			{sizeof(double)},
+			out,
+			free_when_done	
+			);
+		}
+
+		py::array_t<float,py::array::c_style> 
+		irfftBlockf(py::array_t<std::complex<float>,py::array::c_style> py_in)
+		{
+			py::buffer_info buf_in = py_in.request();
+			std::complex<float>* py_ptr = (std::complex<float>*) buf_in.ptr;
+
+			if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
+			if ((uint64_t) buf_in.size > Npad)
+			{throw std::runtime_error("U dumbdumb input too long.");}
+
+			float* out = (float*) fftwf_malloc(howmany*size*sizeof(float));
+			std::memset(inf+2*N,0.0,(Npad-N)*2*sizeof(float));
+
+			#pragma omp parallel for
+			for(uint64_t i=0;i<threads;i++)
+			{
+				manage_thread_affinity();
+				std::memcpy(inf+2*i*transfer_size[0],
+								py_ptr+i*transfer_size[0],transfer_size[i]*2*sizeof(float));
+				fftwf_execute_dft_c2r(planf,
+								reinterpret_cast<fftwf_complex*>(inf+2*i*transfer_size[0]),
+								out+i*(transfer_size[0]/(size/2+1))*size);
+			}
+
+			if(howmany != (howmany/threads)*threads)
+			{
+				::irfftBlock<float>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+(howmany/threads)*threads*(size/2+1),
+								out+(howmany/threads)*threads*size);
+			}
+
+			#pragma omp parallel for
+			for(uint64_t i=0;i<howmany*size;i++){out[i] *= normf;}
+			
+			py::capsule free_when_done( out, fftwf_free );
+			return py::array_t<float,py::array::c_style>
+			(
+			{howmany*size},
+			{sizeof(float)},
+			out,
+			free_when_done	
+			);
+		}
+};
 
 

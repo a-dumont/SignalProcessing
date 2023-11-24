@@ -19,7 +19,8 @@ void init_fft(py::module &m)
 			.def("fft",&FFT_py::fft,"In"_a.noconvert())
 			.def("fft",&FFT_py::fftf,"In"_a.noconvert())
 			.def("getSize",&FFT_py::getSize)
-			.def("benchmark",&FFT_py::benchmark);
+			.def("benchmark",&FFT_py::benchmark)
+			.def("train",&FFT_py::train);
 
 	py::class_<FFT_Block_py>(m,"FFT_Block")
 			.def(py::init<uint64_t,uint64_t>())
@@ -28,7 +29,8 @@ void init_fft(py::module &m)
 			.def("getSize",&FFT_Block_py::getSize)
 			.def("getN",&FFT_Block_py::getN)
 			.def("getHowmany",&FFT_Block_py::getHowmany)
-			.def("benchmark",&FFT_Block_py::benchmark);
+			.def("benchmark",&FFT_Block_py::benchmark)
+			.def("train",&FFT_Block_py::train);
 	
 	// iFFT
 	m.def("ifft",&ifft_py<double>,"In"_a.noconvert());
@@ -45,16 +47,18 @@ void init_fft(py::module &m)
 			.def("ifft",&IFFT_py::ifft,"In"_a.noconvert())
 			.def("ifft",&IFFT_py::ifftf,"In"_a.noconvert())
 			.def("getSize",&IFFT_py::getSize)
-			.def("benchmark",&IFFT_py::benchmark);
+			.def("benchmark",&IFFT_py::benchmark)
+			.def("train",&IFFT_py::train);
 
-	py::class_<iFFT_Block_py>(m,"iFFT_Block")
+	py::class_<IFFT_Block_py>(m,"IFFT_Block")
 			.def(py::init<uint64_t,uint64_t>())
-			.def("ifftBlock",&iFFT_Block_py::ifftBlock,"In"_a.noconvert())
-			.def("ifftBlock",&iFFT_Block_py::ifftBlockf,"In"_a.noconvert())
-			.def("getSize",&iFFT_Block_py::getSize)
-			.def("getN",&iFFT_Block_py::getN)
-			.def("getHowmany",&iFFT_Block_py::getHowmany)
-			.def("benchmark",&iFFT_Block_py::benchmark);
+			.def("ifftBlock",&IFFT_Block_py::ifftBlock,"In"_a.noconvert())
+			.def("ifftBlock",&IFFT_Block_py::ifftBlockf,"In"_a.noconvert())
+			.def("getSize",&IFFT_Block_py::getSize)
+			.def("getN",&IFFT_Block_py::getN)
+			.def("getHowmany",&IFFT_Block_py::getHowmany)
+			.def("benchmark",&IFFT_Block_py::benchmark)
+			.def("train",&IFFT_Block_py::train);
 
 	// rFFT
 	m.def("rfft",&rfft_py<double>,"In"_a.noconvert());
@@ -71,7 +75,8 @@ void init_fft(py::module &m)
 			.def("rfft",&RFFT_py::rfft,"In"_a.noconvert())
 			.def("rfft",&RFFT_py::rfftf,"In"_a.noconvert())
 			.def("getSize",&RFFT_py::getSize)
-			.def("benchmark",&RFFT_py::benchmark);
+			.def("benchmark",&RFFT_py::benchmark)
+			.def("train",&RFFT_py::train);
 
 
 	py::class_<RFFT_Block_py>(m,"RFFT_Block")
@@ -81,7 +86,8 @@ void init_fft(py::module &m)
 			.def("getSize",&RFFT_Block_py::getSize)
 			.def("getN",&RFFT_Block_py::getN)
 			.def("getHowmany",&RFFT_Block_py::getHowmany)
-			.def("benchmark",&RFFT_Block_py::benchmark);
+			.def("benchmark",&RFFT_Block_py::benchmark)
+			.def("train",&RFFT_Block_py::train);
 
 	// irFFT
 	m.def("irfft",&irfft_py<double>,"In"_a.noconvert());
@@ -96,8 +102,18 @@ void init_fft(py::module &m)
 			.def("irfft",&IRFFT_py::irfft,"In"_a.noconvert())
 			.def("irfft",&IRFFT_py::irfftf,"In"_a.noconvert())
 			.def("getSize",&IRFFT_py::getSize)
-			.def("benchmark",&IRFFT_py::benchmark);
+			.def("benchmark",&IRFFT_py::benchmark)
+			.def("train",&IRFFT_py::train);
 
+	py::class_<IRFFT_Block_py>(m,"IRFFT_Block")
+			.def(py::init<uint64_t,uint64_t>())
+			.def("irfftBlock",&IRFFT_Block_py::irfftBlock,"In"_a.noconvert())
+			.def("irfftBlock",&IRFFT_Block_py::irfftBlockf,"In"_a.noconvert())
+			.def("getSize",&IRFFT_Block_py::getSize)
+			.def("getN",&IRFFT_Block_py::getN)
+			.def("getHowmany",&IRFFT_Block_py::getHowmany)
+			.def("benchmark",&IRFFT_Block_py::benchmark)
+			.def("train",&IRFFT_Block_py::train);
 
 	// Load wisdom
 	fftw_import_wisdom_from_filename(&wisdom_path[0]);

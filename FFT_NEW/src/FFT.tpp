@@ -519,7 +519,6 @@ void ifftBlock<double>(int N, int size, std::complex<double>* in, std::complex<d
 					-1,
 					FFTW_ESTIMATE);
 
-    //fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
 }
@@ -549,7 +548,6 @@ void ifftBlock<float>(int N, int size, std::complex<float>* in, std::complex<flo
 					-1,
 					FFTW_ESTIMATE);
 
-    //fftw_export_wisdom_to_filename(&wisdom_path[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
