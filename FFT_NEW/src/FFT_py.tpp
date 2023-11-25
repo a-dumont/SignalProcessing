@@ -588,8 +588,9 @@ rfft_pad_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
 	
 	DataType* in = (DataType*) buf_in.ptr;
 	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc((size+2)*sizeof(DataType));
+	std::memset((void*) out,0.0,(size+2)*sizeof(DataType));
+
 	std::memcpy((void*) out,in,N*sizeof(DataType));
-	out[N] = 0.0;
 
 	rfft<DataType>(size, reinterpret_cast<DataType*>(out), out);
 
@@ -1090,12 +1091,14 @@ ifft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64
 	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}		
 
 	uint64_t N = std::min((uint64_t) buf_in.size, size);
-	
+	DataType norm = 1.0/size;
+
 	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
 	std::complex<DataType>* out;
     out	= (std::complex<DataType>*) fftw_malloc(2*size*sizeof(DataType));
+	
 	std::memset((void*) out,0,2*size*sizeof(DataType));
-	std::memcpy(out,in,2*N*sizeof(DataType));
+	for(uint64_t i=0;i<N;i++){out[i] = in[i]*norm;}
 
 	ifft<DataType>(size, out, out);
 
@@ -1632,12 +1635,13 @@ irfft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint6
 	}	
 
 	uint64_t N = std::min((uint64_t) buf_in.size, size);
-	DataType norm = 1.0/(2*N-2);
+	DataType norm = 1.0/size;
 	
 	DataType* in = (DataType*) buf_in.ptr;
 	DataType* out = (DataType*) fftw_malloc((size+2)*sizeof(DataType));
+	std::memset(out,0.0,(size+2)*sizeof(DataType));
 
-	for(uint64_t i=0;i<(2*N);i++){out[i]=in[i]*norm;}
+	for(uint64_t i=0;i<(N+2);i++){out[i]=in[i]*norm;}
 
 	irfft<DataType>(size, reinterpret_cast<std::complex<DataType>*>(out), out);
 

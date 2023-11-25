@@ -35,6 +35,8 @@ void init_fft(py::module &m)
 	// iFFT
 	m.def("ifft",&ifft_py<double>,"In"_a.noconvert());
 	m.def("ifft",&ifft_py<float>,"In"_a.noconvert());
+	m.def("ifft",&ifft_pad_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("ifft",&ifft_pad_py<float>,"In"_a.noconvert(),"size"_a);
 	m.def("ifft_training",&ifft_training_py<double>,"In"_a.noconvert());
 	m.def("ifft_training",&ifft_training_py<float>,"In"_a.noconvert());
 	m.def("ifftBlock",&ifftBlock_py<double>,"In"_a.noconvert(),"size"_a);
@@ -63,6 +65,8 @@ void init_fft(py::module &m)
 	// rFFT
 	m.def("rfft",&rfft_py<double>,"In"_a.noconvert());
 	m.def("rfft",&rfft_py<float>,"In"_a.noconvert());
+	m.def("rfft",&rfft_pad_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("rfft",&rfft_pad_py<float>,"In"_a.noconvert(),"size"_a);
 	m.def("rfft_training",&rfft_training_py<double>,"In"_a.noconvert());
 	m.def("rfft_training",&rfft_training_py<float>,"In"_a.noconvert());
 	m.def("rfftBlock",&rfftBlock_py<double>,"In"_a.noconvert(),"size"_a);
@@ -92,6 +96,8 @@ void init_fft(py::module &m)
 	// irFFT
 	m.def("irfft",&irfft_py<double>,"In"_a.noconvert());
 	m.def("irfft",&irfft_py<float>,"In"_a.noconvert());
+	m.def("irfft",&irfft_pad_py<double>,"In"_a.noconvert(),"size"_a);
+	m.def("irfft",&irfft_pad_py<float>,"In"_a.noconvert(),"size"_a);
 	m.def("irfft_training",&irfft_training_py<double>,"In"_a.noconvert());
 	m.def("irfft_training",&irfft_training_py<float>,"In"_a.noconvert());
 	m.def("irfftBlock",&irfftBlock_py<double>,"In"_a.noconvert(),"size"_a);
