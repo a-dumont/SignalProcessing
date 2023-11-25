@@ -444,7 +444,12 @@ class FFT_Block_py
 								reinterpret_cast<fftw_complex*>(out+i*size*howmany/threads));
 			}
 
-			if(N!=Npad){::fftBlock<double>(Npad-N,size,py_ptr,out);}
+			if(howmany != (howmany/threads)*threads)
+			{
+				::fftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+(howmany/threads)*threads*size,
+								out+(howmany/threads)*threads*size);
+			}
 
 			py::capsule free_when_done( out, fftw_free );
 			return py::array_t<std::complex<double>,py::array::c_style>
@@ -482,9 +487,11 @@ class FFT_Block_py
 								reinterpret_cast<fftwf_complex*>(out+i*size*howmany/threads));
 			}
 
-			if(N!=Npad)
+			if(howmany != (howmany/threads)*threads)
 			{
-				::fftBlock<float>(Npad-N,size,py_ptr,out+threads*size*(howmany/threads));
+				::fftBlock<float>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+(howmany/threads)*threads*size,
+								out+(howmany/threads)*threads*size);
 			}
 
 			py::capsule free_when_done( out, fftw_free );
@@ -916,7 +923,12 @@ class RFFT_Block_py
 								(out+i*(transfer_size[0]/size)*(size/2+1)));
 			}
 
-			if(N!=Npad){::rfftBlock<double>(Npad-N,size,py_ptr,out);}
+			if(howmany != threads*(howmany/threads))
+			{
+				::rfftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+threads*(howmany/threads)*size,
+								out+threads*(howmany/threads)*(size/2+1));
+			}
 
 			py::capsule free_when_done( out, fftw_free );
 			return py::array_t<std::complex<double>,py::array::c_style>
@@ -954,7 +966,12 @@ class RFFT_Block_py
 								(outf+i*(transfer_size[0]/size)*(size/2+1)));
 			}
 
-			if(N!=Npad){::rfftBlock<float>(Npad-N,size,py_ptr,outf);}
+			if(howmany != threads*(howmany/threads))
+			{
+				::rfftBlock<float>(size*(howmany-threads*(howmany/threads)),size,
+								py_ptr+threads*(howmany/threads)*size,
+								outf+threads*(howmany/threads)*(size/2+1));
+			}
 
 			py::capsule free_when_done2( outf, fftwf_free );
 			return py::array_t<std::complex<float>,py::array::c_style>
