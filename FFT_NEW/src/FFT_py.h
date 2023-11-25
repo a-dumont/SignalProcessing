@@ -45,6 +45,10 @@ py::array_t<std::complex<DataType>,py::array::c_style>
 rfft_training_py(py::array_t<DataType,py::array::c_style> py_in);
 
 template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+rfft_pad_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size);
+
+template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
 rfftBlock_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size);
 
@@ -54,6 +58,8 @@ rfftBlock_training_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t s
 
 class RFFT_py;
 
+class RFFT_Block_py;
+
 // iFFT
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
@@ -62,6 +68,10 @@ ifft_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in);
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style> 
 ifft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in);
+
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+ifft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size);
 
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
@@ -83,6 +93,10 @@ irfft_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in);
 template<class DataType>
 py::array_t<DataType,py::array::c_style> 
 irfft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in);
+
+template<class DataType>
+py::array_t<DataType,py::array::c_style> 
+irfft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size);
 
 template<class DataType>
 py::array_t<DataType,py::array::c_style>

@@ -574,6 +574,36 @@ rfft_training_py(py::array_t<DataType,py::array::c_style> py_in)
 }
 
 template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+rfft_pad_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	uint64_t N = std::min((uint64_t) buf_in.size, size);
+	
+	DataType* in = (DataType*) buf_in.ptr;
+	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc((size+2)*sizeof(DataType));
+	std::memcpy((void*) out,in,N*sizeof(DataType));
+	out[N] = 0.0;
+
+	rfft<DataType>(size, reinterpret_cast<DataType*>(out), out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{size/2+1},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
 rfftBlock_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
 {
@@ -1045,6 +1075,34 @@ ifft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 	return py::array_t<std::complex<DataType>, py::array::c_style> 
 	(
 		{N},
+		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style> 
+ifft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}		
+
+	uint64_t N = std::min((uint64_t) buf_in.size, size);
+	
+	std::complex<DataType>* in = (std::complex<DataType>*) buf_in.ptr;
+	std::complex<DataType>* out;
+    out	= (std::complex<DataType>*) fftw_malloc(2*size*sizeof(DataType));
+	std::memset((void*) out,0,2*size*sizeof(DataType));
+	std::memcpy(out,in,2*N*sizeof(DataType));
+
+	ifft<DataType>(size, out, out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataType>, py::array::c_style> 
+	(
+		{size},
 		{2*sizeof(DataType)},
 		out,
 		free_when_done	
@@ -1556,6 +1614,37 @@ irfft_training_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in)
 	return py::array_t<DataType, py::array::c_style> 
 	(
 		{2*N-2},
+		{sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataType>
+py::array_t<DataType,py::array::c_style> 
+irfft_pad_py(py::array_t<std::complex<DataType>,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	uint64_t N = std::min((uint64_t) buf_in.size, size);
+	DataType norm = 1.0/(2*N-2);
+	
+	DataType* in = (DataType*) buf_in.ptr;
+	DataType* out = (DataType*) fftw_malloc((size+2)*sizeof(DataType));
+
+	for(uint64_t i=0;i<(2*N);i++){out[i]=in[i]*norm;}
+
+	irfft<DataType>(size, reinterpret_cast<std::complex<DataType>*>(out), out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<DataType, py::array::c_style> 
+	(
+		{size},
 		{sizeof(DataType)},
 		out,
 		free_when_done	
