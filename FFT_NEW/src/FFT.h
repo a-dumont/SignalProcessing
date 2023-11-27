@@ -7,6 +7,7 @@
 #include <omp.h>
 #include <type_traits>
 #include <chrono>
+#include <immintrin.h>
 
 #ifdef _WIN64
 	std::string wisdom_path = "FFTW_Wisdom";
@@ -69,6 +70,10 @@ void irfftBlock(int N, int size, std::complex<DataType>* in, DataType* out);
 
 template<class DataType>
 void irfftBlock_training(int N, int size, std::complex<DataType>* in, DataType* out);
+
+// Others
+template<class DataTypeIn, class DataTypeOut>
+void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out);
 
 // .tpp definitions
 #include "FFT.tpp"

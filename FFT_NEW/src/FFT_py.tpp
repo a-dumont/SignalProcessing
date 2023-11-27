@@ -528,7 +528,7 @@ rfft_py(py::array_t<DataType,py::array::c_style> py_in)
 	DataType* in = (DataType*) buf_in.ptr;
 	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc((N+2)*sizeof(DataType));
 	std::memcpy((void*) out,in,N*sizeof(DataType));
-	out[N] = 0.0;
+	out[N/2] = (std::complex<DataType>) 0.0;
 
 	rfft<DataType>(N, reinterpret_cast<DataType*>(out), out);
 
@@ -559,7 +559,7 @@ rfft_training_py(py::array_t<DataType,py::array::c_style> py_in)
 	std::complex<DataType>* out;
     out = (std::complex<DataType>*) fftw_malloc(2*(N+2)*sizeof(DataType));
 	std::memcpy((void*) out,in,2*N*sizeof(DataType));
-	out[N] = 0.0;
+	out[N/2] = (std::complex<DataType>) 0.0;
 
 	rfft_training<DataType>(N, reinterpret_cast<DataType*>(out), out);
 
@@ -587,7 +587,8 @@ rfft_pad_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
 	uint64_t N = std::min((uint64_t) buf_in.size, size);
 	
 	DataType* in = (DataType*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc((size+2)*sizeof(DataType));
+	std::complex<DataType>* out;
+    out	= (std::complex<DataType>*) fftw_malloc((size+2)*sizeof(DataType));
 	std::memset((void*) out,0.0,(size+2)*sizeof(DataType));
 
 	std::memcpy((void*) out,in,N*sizeof(DataType));
@@ -673,6 +674,38 @@ rfftBlock_training_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t s
 	(
 		{Nout/2},
 		{2*sizeof(DataType)},
+		out,
+		free_when_done	
+	);
+}
+
+template<class DataTypeIn, class DataTypeOut>
+py::array_t<std::complex<DataTypeOut>,py::array::c_style> 
+digitizer_rfft_py(py::array_t<DataTypeIn,py::array::c_style> py_in, 
+				DataTypeOut conv, DataTypeIn offset)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}	
+
+	uint64_t N = buf_in.size;
+	
+	DataTypeIn* in = (DataTypeIn*) buf_in.ptr;
+	std::complex<DataTypeOut>* out; 
+	out = (std::complex<DataTypeOut>*) fftw_malloc((N+2)*sizeof(DataTypeOut));
+	out[N/2] = (std::complex<DataTypeOut>) 0.0;
+
+	convertAVX<DataTypeIn,DataTypeOut>(N,in,reinterpret_cast<DataTypeOut*>(out),conv,offset);
+	rfft<DataTypeOut>(N, reinterpret_cast<DataTypeOut*>(out), out);
+
+	py::capsule free_when_done( out, fftw_free );
+	return py::array_t<std::complex<DataTypeOut>, py::array::c_style> 
+	(
+		{N/2+1},
+		{2*sizeof(DataTypeOut)},
 		out,
 		free_when_done	
 	);
@@ -2091,4 +2124,38 @@ class IRFFT_Block_py
 		}
 };
 
+///////////////////////////////////////////////////////////////////
+//	  			 ___ _____ _   _ _____ ____  ____                //
+//	 			/ _ \_   _| | | | ____|  _ \/ ___|               //
+//			   | | | || | | |_| |  _| | |_) \___ \               //
+//			   | |_| || | |  _  | |___|  _ < ___) |              //
+//	 			\___/ |_| |_| |_|_____|_| \_\____/               //
+///////////////////////////////////////////////////////////////////
 
+template<class DataTypeIn, class DataTypeOut>
+py::array_t<DataTypeOut,py::array::c_style>
+convertAVX_py(py::array_t<DataTypeIn,py::array::c_style>py_in,DataTypeOut conv,DataTypeIn offset)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+
+	DataTypeIn* in = (DataTypeIn*) buf_in.ptr;
+	DataTypeOut* out = (DataTypeOut*) malloc(N*sizeof(DataTypeOut));
+
+	convertAVX<DataTypeIn,DataTypeOut>(N,in,out,conv,offset);
+
+	py::capsule free_when_done( out, free );
+	return py::array_t<DataTypeOut, py::array::c_style> 
+	(
+		{N},
+		{sizeof(DataTypeOut)},
+		out,
+		free_when_done	
+	);
+}

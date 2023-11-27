@@ -73,6 +73,11 @@ void init_fft(py::module &m)
 	m.def("rfftBlock",&rfftBlock_py<float>,"In"_a.noconvert(),"size"_a);
 	m.def("rfftBlock_training",&rfftBlock_training_py<double>,"In"_a.noconvert(),"size"_a);
 	m.def("rfftBlock_training",&rfftBlock_training_py<float>,"In"_a.noconvert(),"size"_a);
+	m.def("digitizer_rfft",&digitizer_rfft_py<uint8_t,double>,
+					"In"_a.noconvert(),"conv"_a,"offset"_a);
+	m.def("digitizer_rfftf",&digitizer_rfft_py<uint8_t, float>,
+					"In"_a.noconvert(),"conv"_a,"offset"_a);
+
 
 	py::class_<RFFT_py>(m,"RFFT")
 			.def(py::init<uint64_t>())
@@ -120,6 +125,12 @@ void init_fft(py::module &m)
 			.def("getHowmany",&IRFFT_Block_py::getHowmany)
 			.def("benchmark",&IRFFT_Block_py::benchmark)
 			.def("train",&IRFFT_Block_py::train);
+
+	// Others
+	m.def("convert",&convertAVX_py<uint8_t,double>,"In"_a.noconvert(),"conv"_a,"offset"_a);
+	m.def("convert",&convertAVX_py<int16_t,double>,"In"_a.noconvert(),"conv"_a,"offset"_a);
+	m.def("convertf",&convertAVX_py<uint8_t,float>,"In"_a.noconvert(),"conv"_a,"offset"_a);
+	m.def("convertf",&convertAVX_py<int16_t,float>,"In"_a.noconvert(),"conv"_a,"offset"_a);
 
 	// Load wisdom
 	fftw_import_wisdom_from_filename(&wisdom_path[0]);

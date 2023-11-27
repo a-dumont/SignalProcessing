@@ -108,5 +108,10 @@ irfftBlock_training_py(py::array_t<std::complex<DataType>,1> py_in, uint64_t siz
 
 class IRFFT_py;
 
+// Others
+template<class DataTypeIn, class DataTypeOut>
+py::array_t<DataTypeOut,py::array::c_style>
+convertAVX_py(py::array_t<DataTypeIn,py::array::c_style>, DataTypeOut conv, DataTypeIn offset);
+
 // .tpp definitions
 #include "FFT_py.tpp"
