@@ -56,6 +56,16 @@ template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
 rfftBlock_training_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size);
 
+template<class DataTypeIn, class DataTypeOut>
+py::array_t<std::complex<DataTypeOut>,py::array::c_style> 
+digitizer_rfft_py(py::array_t<DataTypeIn,py::array::c_style> py_in, 
+				DataTypeOut conv, DataTypeIn offset);
+
+template<class DataTypeIn, class DataTypeOut>
+py::array_t<std::complex<DataTypeOut>,py::array::c_style>
+digitizer_rfftBlock_py(py::array_t<DataTypeIn,py::array::c_style> py_in, 
+				uint64_t size, DataTypeOut conv, DataTypeIn offset);
+
 class RFFT_py;
 
 class RFFT_Block_py;

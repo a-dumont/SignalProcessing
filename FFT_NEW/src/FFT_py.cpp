@@ -81,7 +81,30 @@ void init_fft(py::module &m)
 					"In"_a.noconvert(),"conv"_a,"offset"_a);
 	m.def("digitizer_rfftf",&digitizer_rfft_py<int16_t, float>,
 					"In"_a.noconvert(),"conv"_a,"offset"_a);
-
+	m.def("digitizer_rfft",&digitizer_rfft_pad_py<uint8_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfft",&digitizer_rfft_pad_py<int16_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftf",&digitizer_rfft_pad_py<uint8_t, float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftf",&digitizer_rfft_pad_py<int16_t, float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlock",&digitizer_rfftBlock_py<uint8_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlock",&digitizer_rfftBlock_py<int16_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlockf",&digitizer_rfftBlock_py<uint8_t, float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlockf",&digitizer_rfftBlock_py<int16_t, float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlock_training",&digitizer_rfftBlock_training_py<uint8_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlock_training",&digitizer_rfftBlock_training_py<int16_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlockf_training",&digitizer_rfftBlock_training_py<uint8_t, float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_rfftBlockf_training",&digitizer_rfftBlock_training_py<int16_t, float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 
 	py::class_<RFFT_py>(m,"RFFT")
 			.def(py::init<uint64_t>())
