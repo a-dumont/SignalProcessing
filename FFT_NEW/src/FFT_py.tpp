@@ -2280,3 +2280,36 @@ convertAVX_py(py::array_t<DataTypeIn,py::array::c_style>py_in,DataTypeOut conv,D
 		free_when_done	
 	);
 }
+
+template<class DataTypeIn, class DataTypeOut>
+py::array_t<DataTypeOut,py::array::c_style>
+convertAVX_pad_py(py::array_t<DataTypeIn,py::array::c_style>py_in,
+				uint64_t size, DataTypeOut conv,DataTypeIn offset)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(howmany*size != N){howmany += 1;}
+	uint64_t Nout = (size+2)*howmany;
+
+	DataTypeIn* in = (DataTypeIn*) buf_in.ptr;
+	DataTypeOut* out = (DataTypeOut*) malloc(2*Nout*sizeof(DataTypeOut));
+	std::memset((void*)out,0,Nout*sizeof(DataTypeOut));
+
+	convertAVX_pad<DataTypeIn,DataTypeOut>(N,size,in,out,conv,offset);
+
+	py::capsule free_when_done( out, free );
+	return py::array_t<DataTypeOut, py::array::c_style> 
+	(
+		{Nout},
+		{sizeof(DataTypeOut)},
+		out,
+		free_when_done	
+	);
+}

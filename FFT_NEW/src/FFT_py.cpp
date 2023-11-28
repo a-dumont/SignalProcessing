@@ -159,6 +159,16 @@ void init_fft(py::module &m)
 	m.def("convertf",&convertAVX_py<uint8_t,float>,"In"_a.noconvert(),"conv"_a,"offset"_a);
 	m.def("convertf",&convertAVX_py<int16_t,float>,"In"_a.noconvert(),"conv"_a,"offset"_a);
 
+
+	m.def("convert",&convertAVX_pad_py<uint8_t,double>,"In"_a.noconvert(),
+					"size"_a,"conv"_a,"offset"_a);
+	m.def("convert",&convertAVX_pad_py<int16_t,double>,"In"_a.noconvert(),
+					"size"_a,"conv"_a,"offset"_a);
+	m.def("convertf",&convertAVX_pad_py<uint8_t,float>,"In"_a.noconvert(),
+					"size"_a,"conv"_a,"offset"_a);
+	m.def("convertf",&convertAVX_pad_py<int16_t,float>,"In"_a.noconvert(),
+					"size"_a,"conv"_a,"offset"_a);
+
 	// Load wisdom
 	fftw_import_wisdom_from_filename(&wisdom_path[0]);
 	//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
