@@ -75,5 +75,9 @@ void irfftBlock_training(int N, int size, std::complex<DataType>* in, DataType* 
 template<class DataTypeIn, class DataTypeOut>
 void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out);
 
+template<class DataTypeIn, class DataTypeOut>
+void convertAVX_pad(uint64_t N, uint64_t Npad, 
+				DataTypeIn* in, DataTypeOut* out, DataTypeOut conv, DataTypeIn offset);
+
 // .tpp definitions
 #include "FFT.tpp"
