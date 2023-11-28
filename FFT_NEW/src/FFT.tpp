@@ -1128,7 +1128,7 @@ void convertAVX_pad<uint8_t, float>(uint64_t N, uint64_t Npad,
 	for(uint64_t i=0;i<howmany;i++)
 	{
 		j = 16*i;
-		k = 2*(j%(Npad-1));
+		k = 2*(j/Npad);
 		out0 = out+j+k;
 		out1 = out+j+8+k;
 
@@ -1171,7 +1171,7 @@ void convertAVX_pad<int16_t, float>(uint64_t N, uint64_t Npad,
 	for(uint64_t i=0;i<howmany;i++)
 	{
 		j = 8*i;
-		k = 2*(j%(Npad-1));
+		k = 2*(j/Npad);
 		out0 = out+j+k;
 
 		// 16 uint8 to 16 int32
@@ -1207,7 +1207,7 @@ void convertAVX_pad<uint8_t, double>(uint64_t N, uint64_t Npad,
 	for(uint64_t i=0;i<howmany;i++)
 	{
 		j = 16*i;
-		k = 2*(j%(Npad-1));
+		k = 2*(j/Npad);
 		out0 = out+j+k;
 		out1 = out+j+4+k;
 		out2 = out+j+8+k;
@@ -1259,7 +1259,7 @@ void convertAVX_pad<int16_t, double>(uint64_t N, uint64_t Npad,
 	for(uint64_t i=0;i<howmany;i++)
 	{
 		j = 8*i;
-		k = 2*(j%(Npad-1));
+		k = 2*(j/Npad);
 		out0 = out+j+k;
 		out1 = out+j+4+k;
 
