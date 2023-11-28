@@ -13,10 +13,13 @@ template<>
 void aCorrFreqAVX<float>(uint64_t N, float* in, float* out)
 {
 	__m256 ymm0, ymm1, ymm2;
+	__m256i ymm15;
 	float *out0;
 
 	uint64_t howmany = N/16;
 	uint64_t j=0;
+
+	ymm15 = _mm256_set_epi32(7,6,3,2,5,4,1,0);
 
 	for(uint64_t i=0;i<howmany;i++)
 	{
@@ -31,6 +34,7 @@ void aCorrFreqAVX<float>(uint64_t N, float* in, float* out)
 		ymm1 = _mm256_mul_ps(ymm1,ymm1);
 
 		ymm2 = _mm256_hadd_ps(ymm0,ymm1);
+		ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm15);
 
 		// Store result
     	_mm256_storeu_ps(out0,ymm2);
@@ -42,10 +46,13 @@ template<>
 void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 {
 	__m256d ymm0, ymm1, ymm2;
+	__m256i ymm15;
 	double *out0;
 
 	uint64_t howmany = N/8;
 	uint64_t j=0;
+	
+	ymm15 = _mm256_set_epi32(7,6,3,2,5,4,1,0);
 
 	for(uint64_t i=0;i<howmany;i++)
 	{
@@ -60,6 +67,7 @@ void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 		ymm1 = _mm256_mul_pd(ymm1,ymm1);
 
 		ymm2 = _mm256_hadd_pd(ymm0,ymm1);
+		ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm15);
 
 		// Store result
     	_mm256_storeu_ps(out0,ymm2);

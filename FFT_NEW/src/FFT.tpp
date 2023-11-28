@@ -855,7 +855,7 @@ void convertAVX<uint8_t, float>(uint64_t N, uint8_t* in, float* out, float conv,
     	_mm256_storeu_ps(out0,ymm2);
     	_mm256_storeu_ps(out1,ymm3);
 	}
-	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<>
@@ -888,7 +888,7 @@ void convertAVX<int16_t, float>(uint64_t N, int16_t* in, float* out, float conv,
 		// Store result
     	_mm256_storeu_ps(out0,ymm1);
 	}
-	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<>
@@ -937,7 +937,7 @@ void convertAVX<uint8_t, double>(uint64_t N, uint8_t* in, double* out,double con
     	_mm256_storeu_pd(out2,ymm4);
     	_mm256_storeu_pd(out3,ymm5);
 	}
-	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<>
@@ -974,7 +974,7 @@ void convertAVX<int16_t, double>(uint64_t N, int16_t* in, double* out, double co
     	_mm256_storeu_pd(out0,ymm1);
     	_mm256_storeu_pd(out1,ymm2);
 	}
-	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<class DataTypeIn, class DataTypeOut>
@@ -1022,7 +1022,7 @@ void convertAVX_pad<uint8_t, float>(uint64_t N, uint64_t Npad,
     	_mm256_storeu_ps(out0,ymm2);
     	_mm256_storeu_ps(out1,ymm3);
 	}
-	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<>
@@ -1058,7 +1058,7 @@ void convertAVX_pad<int16_t, float>(uint64_t N, uint64_t Npad,
 		// Store result
     	_mm256_storeu_ps(out0,ymm1);
 	}
-	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<>
@@ -1110,7 +1110,7 @@ void convertAVX_pad<uint8_t, double>(uint64_t N, uint64_t Npad,
     	_mm256_storeu_pd(out2,ymm4);
     	_mm256_storeu_pd(out3,ymm5);
 	}
-	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
 template<>
@@ -1150,5 +1150,5 @@ void convertAVX_pad<int16_t, double>(uint64_t N, uint64_t Npad,
     	_mm256_storeu_pd(out0,ymm1);
     	_mm256_storeu_pd(out1,ymm2);
 	}
-	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+	for(uint64_t i=(8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
