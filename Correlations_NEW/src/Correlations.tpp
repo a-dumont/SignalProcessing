@@ -1,159 +1,436 @@
-template <class DatatypeIn, class DatatypeOut>
-void autocorrelation(int n, DatatypeIn* in, DatatypeOut* out)
+///////////////////////////////////////////////////////////////////
+//                       _    ____                               //
+//                      / \  / ___|___  _ __ _ __                //
+//                     / _ \| |   / _ \| '__| '__|               //
+//                    / ___ \ |__| (_) | |  | |                  //
+//                   /_/   \_\____\___/|_|  |_|                  //
+///////////////////////////////////////////////////////////////////
+
+template<class DataType>
+void aCorrFreqAVX(uint64_t N, DataType* in, DataType* out){}
+
+template<>
+void aCorrFreqAVX<float>(uint64_t N, float* in, float* out)
 {
-	// Compute the FFT
-	rFFT(n, in, out);
+	__m256 ymm0, ymm1, ymm2;
+	float *out0;
 
-	// Compute the correlation
-	for (int i=0; i<(n/2+1); i++)
+	uint64_t howmany = N/16;
+	uint64_t j=0;
+
+	for(uint64_t i=0;i<howmany;i++)
 	{
-		out[i] *= std::conj(out[i]);	
+		j = 16*i;
+		out0 = out+(j/2);
+
+		// Acorr
+		ymm0 = _mm256_loadu_ps(in+j);
+		ymm1 = _mm256_loadu_ps(in+j+8);
+
+		ymm0 = _mm256_mul_ps(ymm0,ymm0);
+		ymm1 = _mm256_mul_ps(ymm1,ymm1);
+
+		ymm2 = _mm256_hadd_ps(ymm0,ymm1);
+
+		// Store result
+    	_mm256_storeu_ps(out0,ymm2);
 	}
+	for(uint64_t i=(N-16*howmany);i<N;i+=2){out[i/2] = in[i]*in[i]+in[i+1]*in[i+1];}
 }
 
-
-template <class DatatypeIn, class DatatypeOut>
-void xcorrelation(int n, DatatypeIn* in1, DatatypeIn* in2, DatatypeOut* out)
+template<>
+void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 {
-	// Create a temporary buffer
-	DatatypeOut* temp_out = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*(n/2+1));
-	
-	// Compute both FFTs
-	rFFT(n, in1, out);
-	rFFT(n, in2, temp_out);
+	__m256d ymm0, ymm1, ymm2;
+	double *out0;
 
-	// Compute the correlation
-	for (int i=0; i<(n/2+1); i++)
+	uint64_t howmany = N/8;
+	uint64_t j=0;
+
+	for(uint64_t i=0;i<howmany;i++)
 	{
-		out[i] *= std::conj(temp_out[i]);	
-	}
+		j = 8*i;
+		out0 = out+(j/2);
 
-	// Free the temporary buffer
-	fftw_free(temp_out);
+		// Acorr
+		ymm0 = _mm256_loadu_pd(in+j);
+		ymm1 = _mm256_loadu_pd(in+j+4);
+
+		ymm0 = _mm256_mul_pd(ymm0,ymm0);
+		ymm1 = _mm256_mul_pd(ymm1,ymm1);
+
+		ymm2 = _mm256_hadd_pd(ymm0,ymm1);
+
+		// Store result
+    	_mm256_storeu_ps(out0,ymm2);
+	}
+	for(uint64_t i=(N-8*howmany);i<N;i+=2){out[i/2] = in[i]*in[i]+in[i+1]*in[i+1];}
 }
 
-template <class DatatypeIn, class DatatypeOut>
-void autocorrelation_Block(int n, int N, DatatypeIn* in, DatatypeOut* out)
-{	
-	// Make sure the output is empty
-	for (int i=0; i<(N/2+1); i++)
+///////////////////////////////////////////////////////////////////
+//                      __  ______                               //
+//                      \ \/ / ___|___  _ __ _ __                //
+//                       \  / |   / _ \| '__| '__|               //
+//                       /  \ |__| (_) | |  | |                  //
+//                      /_/\_\____\___/|_|  |_|                  //
+///////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////
+//                       _____ ____                              //
+//                      |  ___/ ___|___  _ __ _ __               //
+//                      | |_ | |   / _ \| '__| '__|              //
+//                      |  _|| |__| (_) | |  | |                 //
+//                      |_|   \____\___/|_|  |_|                 //
+///////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////
+//               ___ _____ _   _ _____ ____  ____                //
+//				/ _ \_   _| | | | ____|  _ \/ ___|               //
+//			   | | | || | | |_| |  _| | |_) \___ \               //
+//			   | |_| || | |  _  | |___|  _ < ___) |              //
+//				\___/ |_| |_| |_|_____|_| \_\____/               //
+///////////////////////////////////////////////////////////////////
+
+template<class DataTypeIn, class DataTypeOut>
+void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out, DataTypeOut conv, DataTypeIn offset)
+{}
+
+template<>
+void convertAVX<uint8_t, float>(uint64_t N, uint8_t* in, float* out, float conv, uint8_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm1, ymm12; 
+	__m256 ymm2, ymm3, ymm13;
+	float *out0, *out1;
+
+	uint64_t howmany = N/16;
+	uint64_t j=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_ss(&conv);
+	
+	for(uint64_t i=0;i<howmany;i++)
 	{
-		out[i] = 0;
+		j = 16*i;
+		out0 = out+j;
+		out1 = out+j+8;
+
+		// 16 uint8 to 16 int32
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepu8_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm2 = _mm256_cvtepi32_ps(ymm0);
+		ymm2 = _mm256_mul_ps(ymm2,ymm13);
+    	xmm0 = _mm_bsrli_si128(xmm0,8);
+    	ymm1 = _mm256_cvtepu8_epi32(xmm0);
+		ymm1 = _mm256_sub_epi32(ymm1,ymm12);
+		ymm3 = _mm256_cvtepi32_ps(ymm1);
+		ymm3 = _mm256_mul_ps(ymm3,ymm13);
+
+		// Store result
+    	_mm256_storeu_ps(out0,ymm2);
+    	_mm256_storeu_ps(out1,ymm3);
 	}
-
-	int h = n/N;
-	// Create a temporary buffer
-	DatatypeOut* temp_out = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
-
-	// Compute and store the FFT
-	rFFT_Block(n, N, in, temp_out);
-
-	// Compute the correlation and reduce the blocks
-	for (int i=0; i<(h*(N/2+1)); i++)
-	{
-		out[i%(N/2+1)] += std::norm(temp_out[i]);	
-	}
-
-	// Divide by the number of blocks
-	for (int i=0; i<(N/2+1); i++)
-	{
-		out[i] /= h;
-	}
-
-	// Free the temporary buffer
-	fftw_free(temp_out);
+	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
-template <class DatatypeIn, class DatatypeOut>
-void xcorrelation_Block(int n, int N, DatatypeIn* in1, DatatypeIn* in2, DatatypeOut* out)
-{	
-	// Make sure the output buffer is empty
-	for (int i=0; i<(N/2+1); i++)
-	{
-		out[i] = 0;
-	}
+template<>
+void convertAVX<int16_t, float>(uint64_t N, int16_t* in, float* out, float conv, int16_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm12; 
+	__m256 ymm1, ymm13;
+	float *out0;
 
-	int h = n/N;
-	// Create 2 temporary buffers
-	DatatypeOut* temp_out1 = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
-	DatatypeOut* temp_out2 = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
+	uint64_t howmany = N/8;
+	uint64_t j=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_ss(&conv);
 	
-	// Compute the FFT of the first input and store in temp_out
-	rFFT_Block(n, N, in1, temp_out1);
-	rFFT_Block(n, N, in2, temp_out2);
-	
-	// Compute correlation and reduce the blocks
-	for (int i=0; i<(h*(N/2+1)); i++)
+	for(uint64_t i=0;i<howmany;i++)
 	{
-		out[i%(N/2+1)] += temp_out1[i]*std::conj(temp_out2[i]);	
-	}
+		j = 8*i;
+		out0 = out+j;
 
-	// Divide by the number of blocks
-	for (int i=0; i<(N/2+1); i++)
-	{
-		out[i] /= h;
-	}
+		// 16 uint8 to 16 int32
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepi16_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm1 = _mm256_cvtepi32_ps(ymm0);
+		ymm1 = _mm256_mul_ps(ymm1,ymm13);
 
-	//Free the temporary buffers
-	fftw_free(temp_out1);
-	fftw_free(temp_out2);
+		// Store result
+    	_mm256_storeu_ps(out0,ymm1);
+	}
+	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
-template <class DatatypeIn, class DatatypeOut>
-void complete_correlation(int n, DatatypeIn* in1, DatatypeIn* in2, DatatypeOut* out)
-{	
-	int N = (n/2+1);
+template<>
+void convertAVX<uint8_t, double>(uint64_t N, uint8_t* in, double* out,double conv,uint8_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm1, ymm12;
+	__m256d ymm2, ymm3, ymm4, ymm5, ymm13;
+	double *out0, *out1, *out2, *out3;
 
-	// Compute the FFT of the first input and store in temp_out
-	rFFT(n, in1, out);
-	rFFT(n, in2, (out+N));
+	uint64_t howmany = N/16;
+	uint64_t j=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_sd(&conv);
 	
-	// Compute correlations 
-	for (int i=0; i<N; i++)
+	for(uint64_t i=0;i<howmany;i++)
 	{
-		out[i+(2*N)] = out[i]*std::conj(out[i+N]);
-		out[i] = std::norm(out[i]);
-		out[i+N] = std::norm(out[i+N]);	
+		j = 16*i;
+		out0 = out+j;
+		out1 = out+j+4;
+		out2 = out+j+8;
+		out3 = out+j+12;
+
+		// 16 uint8 to 16 double
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepu8_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm2 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0, 0));
+		ymm3 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0, 1));
+		ymm2 = _mm256_mul_pd(ymm2,ymm13);
+		ymm3 = _mm256_mul_pd(ymm3,ymm13);
+		
+		xmm0 = _mm_bsrli_si128(xmm0,8);
+    	ymm1 = _mm256_cvtepu8_epi32(xmm0);
+		ymm1 = _mm256_sub_epi32(ymm1,ymm12);
+		ymm4 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm1, 0));
+		ymm5 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm1, 1));
+		ymm4 = _mm256_mul_pd(ymm4,ymm13);
+		ymm5 = _mm256_mul_pd(ymm5,ymm13);
+
+		// Store result
+    	_mm256_storeu_pd(out0,ymm2);
+    	_mm256_storeu_pd(out1,ymm3);
+    	_mm256_storeu_pd(out2,ymm4);
+    	_mm256_storeu_pd(out3,ymm5);
 	}
+	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
-template <class DatatypeIn, class DatatypeOut>
-void complete_correlation_Block(int n, int N, DatatypeIn* in1, DatatypeIn* in2, DatatypeOut* out)
-{	
+template<>
+void convertAVX<int16_t, double>(uint64_t N, int16_t* in, double* out, double conv, int16_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm12; 
+	__m256d ymm1, ymm2, ymm13;
+	double *out0, *out1;
 
-	int k = (N/2+1);
-	// Make sure the output buffers are empty
-	for (int i=0; i<(3*k); i++)
-	{
-		out[i] = 0;
-	}
+	uint64_t howmany = N/8;
+	uint64_t j=0;
+	int32_t off = (int32_t) offset;
 
-	int h = n/N;
-	// Create 2 temporary buffers
-	DatatypeOut* temp_out1 = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
-	DatatypeOut* temp_out2 = (DatatypeOut*) fftw_malloc(sizeof(DatatypeOut)*h*(N/2+1));
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_sd(&conv);
 	
-	// Compute the FFT of the first input and store in temp_out
-	rFFT_Block(n, N, in1, temp_out1);
-	rFFT_Block(n, N, in2, temp_out2);
-	
-	// Compute correlation and reduce the blocks
-	for (int i=0; i<(h*k); i++)
+	for(uint64_t i=0;i<howmany;i++)
 	{
-		out[(i%k)+(2*k)] += temp_out1[i]*std::conj(temp_out2[i]);
-		out[i%k] += std::norm(temp_out1[i]);
-		out[(i%k)+k] += std::norm(temp_out2[i]);	
-	}
+		j = 8*i;
+		out0 = out+j;
+		out1 = out+j+4;
 
-	// Divide by the number of blocks
-	for (int i=0; i<(3*k); i++)
-	{
-		out[i] /= h;
-	}
+		// 16 uint8 to 16 int32
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepi16_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm1 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0,0));
+		ymm1 = _mm256_mul_pd(ymm1,ymm13);
+		ymm2 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0,1));
+		ymm2 = _mm256_mul_pd(ymm2,ymm13);
 
-	//Free the temporary buffers
-	fftw_free(temp_out1);
-	fftw_free(temp_out2);
+		// Store result
+    	_mm256_storeu_pd(out0,ymm1);
+    	_mm256_storeu_pd(out1,ymm2);
+	}
+	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
 }
 
+template<class DataTypeIn, class DataTypeOut>
+void convertAVX_pad(uint64_t N, uint64_t Npad, 
+				DataTypeIn* in, DataTypeOut* out, DataTypeOut conv, DataTypeIn offset)
+{}
 
+template<>
+void convertAVX_pad<uint8_t, float>(uint64_t N, uint64_t Npad, 
+				uint8_t* in, float* out, float conv, uint8_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm1, ymm12; 
+	__m256 ymm2, ymm3, ymm13;
+	float *out0, *out1;
+
+	uint64_t howmany = N/16;
+	uint64_t j=0;
+	uint64_t k=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_ss(&conv);
+	
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		j = 16*i;
+		k = 2*(j%(Npad-1));
+		out0 = out+j+k;
+		out1 = out+j+8+k;
+
+		// 16 uint8 to 16 int32
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepu8_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm2 = _mm256_cvtepi32_ps(ymm0);
+		ymm2 = _mm256_mul_ps(ymm2,ymm13);
+    	xmm0 = _mm_bsrli_si128(xmm0,8);
+    	ymm1 = _mm256_cvtepu8_epi32(xmm0);
+		ymm1 = _mm256_sub_epi32(ymm1,ymm12);
+		ymm3 = _mm256_cvtepi32_ps(ymm1);
+		ymm3 = _mm256_mul_ps(ymm3,ymm13);
+
+		// Store result
+    	_mm256_storeu_ps(out0,ymm2);
+    	_mm256_storeu_ps(out1,ymm3);
+	}
+	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+}
+
+template<>
+void convertAVX_pad<int16_t, float>(uint64_t N, uint64_t Npad, 
+				int16_t* in, float* out, float conv, int16_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm12; 
+	__m256 ymm1, ymm13;
+	float *out0;
+
+	uint64_t howmany = N/8;
+	uint64_t j=0;
+	uint64_t k=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_ss(&conv);
+	
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		j = 8*i;
+		k = 2*(j%(Npad-1));
+		out0 = out+j+k;
+
+		// 16 uint8 to 16 int32
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepi16_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm1 = _mm256_cvtepi32_ps(ymm0);
+		ymm1 = _mm256_mul_ps(ymm1,ymm13);
+
+		// Store result
+    	_mm256_storeu_ps(out0,ymm1);
+	}
+	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+}
+
+template<>
+void convertAVX_pad<uint8_t, double>(uint64_t N, uint64_t Npad, 
+				uint8_t* in, double* out,double conv,uint8_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm1, ymm12;
+	__m256d ymm2, ymm3, ymm4, ymm5, ymm13;
+	double *out0, *out1, *out2, *out3;
+
+	uint64_t howmany = N/16;
+	uint64_t j=0;
+	uint64_t k=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_sd(&conv);
+	
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		j = 16*i;
+		k = 2*(j%(Npad-1));
+		out0 = out+j+k;
+		out1 = out+j+4+k;
+		out2 = out+j+8+k;
+		out3 = out+j+12+k;
+
+		// 16 uint8 to 16 double
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepu8_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm2 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0, 0));
+		ymm3 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0, 1));
+		ymm2 = _mm256_mul_pd(ymm2,ymm13);
+		ymm3 = _mm256_mul_pd(ymm3,ymm13);
+		
+		xmm0 = _mm_bsrli_si128(xmm0,8);
+    	ymm1 = _mm256_cvtepu8_epi32(xmm0);
+		ymm1 = _mm256_sub_epi32(ymm1,ymm12);
+		ymm4 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm1, 0));
+		ymm5 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm1, 1));
+		ymm4 = _mm256_mul_pd(ymm4,ymm13);
+		ymm5 = _mm256_mul_pd(ymm5,ymm13);
+
+		// Store result
+    	_mm256_storeu_pd(out0,ymm2);
+    	_mm256_storeu_pd(out1,ymm3);
+    	_mm256_storeu_pd(out2,ymm4);
+    	_mm256_storeu_pd(out3,ymm5);
+	}
+	for(uint64_t i=(N-16*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+}
+
+template<>
+void convertAVX_pad<int16_t, double>(uint64_t N, uint64_t Npad, 
+				int16_t* in, double* out, double conv, int16_t offset)
+{
+	__m128i xmm0;
+	__m256i ymm0, ymm12; 
+	__m256d ymm1, ymm2, ymm13;
+	double *out0, *out1;
+
+	uint64_t howmany = N/8;
+	uint64_t j=0;
+	uint64_t k=0;
+	int32_t off = (int32_t) offset;
+
+	ymm12 = _mm256_set_epi32(off,off,off,off,off,off,off,off);
+	ymm13 = _mm256_broadcast_sd(&conv);
+	
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		j = 8*i;
+		k = 2*(j%(Npad-1));
+		out0 = out+j+k;
+		out1 = out+j+4+k;
+
+		// 16 uint8 to 16 int32
+    	xmm0 = _mm_loadu_si128((const __m128i*) (in+j));
+    	ymm0 = _mm256_cvtepi16_epi32(xmm0);
+		ymm0 = _mm256_sub_epi32(ymm0,ymm12);
+		ymm1 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0,0));
+		ymm1 = _mm256_mul_pd(ymm1,ymm13);
+		ymm2 = _mm256_cvtepi32_pd(_mm256_extractf128_si256(ymm0,1));
+		ymm2 = _mm256_mul_pd(ymm2,ymm13);
+
+		// Store result
+    	_mm256_storeu_pd(out0,ymm1);
+    	_mm256_storeu_pd(out1,ymm2);
+	}
+	for(uint64_t i=(N-8*howmany);i<N;i++){out[i] = conv*(in[i]-offset);}
+}

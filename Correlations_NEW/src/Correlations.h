@@ -9,10 +9,17 @@
 #include <chrono>
 #include <immintrin.h>
 
+// Acorr
+template<class DataType>
+void aCorrFreqAVX(uint64_t N, DataType* in, DataType* out);
 
 // Others
 template<class DataTypeIn, class DataTypeOut>
 void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out);
 
-// .tpp template definitions
+template<class DataTypeIn, class DataTypeOut>
+void convertAVX_pad(uint64_t N, uint64_t Npad,
+				DataTypeIn* in, DataTypeOut* out, DataTypeOut conv, DataTypeIn offset);
+
+// .tpp template definitions 
 #include "Correlations.tpp"
