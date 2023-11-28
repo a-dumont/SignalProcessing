@@ -420,6 +420,132 @@ void rfftBlock_training<float>(int N, int size, float* in, std::complex<float>* 
 	fftwf_destroy_plan(plan);
 }
 
+template<class DataType>
+void rfftBlock_inplace(int N, int size, DataType* in, std::complex<DataType>* out){}
+
+template<>
+void rfftBlock_inplace<double>(int N, int size, double* in, std::complex<double>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int idist = size+2;
+	int odist = size/2+1;
+	int stride = 1;
+
+	fftw_plan plan = fftw_plan_many_dft_r2c(
+					rank,
+					length,
+					howmany,
+					in,
+					NULL,
+					stride,
+					idist,
+					reinterpret_cast<fftw_complex*>(out),
+					NULL,
+					stride,
+					odist,
+					FFTW_ESTIMATE);
+
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+}
+
+template<>
+void rfftBlock_inplace<float>(int N, int size, float* in, std::complex<float>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int idist = size+2;
+	int odist = size/2+1;
+	int stride = 1;
+
+	fftwf_plan plan = fftwf_plan_many_dft_r2c(
+					rank,
+					length,
+					howmany,
+					in,
+					NULL,
+					stride,
+					idist,
+					reinterpret_cast<fftwf_complex*>(out),
+					NULL,
+					stride,
+					odist,
+					FFTW_ESTIMATE);
+
+	fftwf_execute(plan);
+	fftwf_destroy_plan(plan);
+}
+
+template<class DataType>
+void rfftBlock_inplace_training(int N, int size, 
+					DataType* in, std::complex<DataType>* out){}
+
+template<>
+void rfftBlock_inplace_training<double>(int N, int size, 
+					double* in, std::complex<double>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int idist = size+2;
+	int odist = size/2+1;
+	int stride = 1;
+
+	fftw_plan plan = fftw_plan_many_dft_r2c(
+					rank,
+					length,
+					howmany,
+					in,
+					NULL,
+					stride,
+					idist,
+					reinterpret_cast<fftw_complex*>(out),
+					NULL,
+					stride,
+					odist,
+					FFTW_EXHAUSTIVE);
+
+	fftw_export_wisdom_to_filename(&wisdom_path[0]);
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+}
+
+template<>
+void rfftBlock_inplace_training<float>(int N, int size, 
+					float* in, std::complex<float>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int idist = size+2;
+	int odist = size/2+1;
+	int stride = 1;
+
+	fftwf_plan plan = fftwf_plan_many_dft_r2c(
+					rank,
+					length,
+					howmany,
+					in,
+					NULL,
+					stride,
+					idist,
+					reinterpret_cast<fftwf_complex*>(out),
+					NULL,
+					stride,
+					odist,
+					FFTW_EXHAUSTIVE);
+
+	fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+	fftwf_execute(plan);
+	fftwf_destroy_plan(plan);
+}
 ///////////////////////////////////////////////////////////////////
 //						 _ _____ _____ _____                     //
 //						(_)  ___|  ___|_   _|                    //

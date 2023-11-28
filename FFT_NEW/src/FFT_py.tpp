@@ -775,7 +775,8 @@ digitizer_rfftBlock_py(py::array_t<DataTypeIn,py::array::c_style> py_in,
 	convertAVX_pad<DataTypeIn,DataTypeOut>(N,size,in,
 					reinterpret_cast<DataTypeOut*>(out),conv,offset);
 
-	rfftBlock((int) Npad,(int) size, reinterpret_cast<DataTypeOut*>(out), out);
+	rfftBlock_inplace((int) Npad,(int) size, 
+					reinterpret_cast<DataTypeOut*>(out), out);
 
 	py::capsule free_when_done( out, fftw_free );
 	return py::array_t<std::complex<DataTypeOut>, py::array::c_style> 
@@ -818,7 +819,8 @@ digitizer_rfftBlock_training_py(py::array_t<DataTypeIn,py::array::c_style> py_in
 	convertAVX_pad<DataTypeIn,DataTypeOut>(N,size,in,
 					reinterpret_cast<DataTypeOut*>(out),conv,offset);
 
-	rfftBlock_training((int) Npad,(int) size, reinterpret_cast<DataTypeOut*>(out), out);
+	rfftBlock_inplace_training((int) Npad,(int) size, 
+					reinterpret_cast<DataTypeOut*>(out), out);
 
 	py::capsule free_when_done( out, fftw_free );
 	return py::array_t<std::complex<DataTypeOut>, py::array::c_style> 

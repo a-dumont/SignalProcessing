@@ -45,6 +45,14 @@ void rfftBlock(int N, int size, DataType* in, std::complex<DataType>* out);
 template<class DataType>
 void rfftBlock_training(int N, int size, DataType* in, std::complex<DataType>* out);
 
+template<class DataType>
+void rfftBlock_inplace(int N, int size, 
+	DataType* in, std::complex<DataType>* out);
+
+template<class DataType>
+void rfftBlock_inplace_training(int N, int size, 
+	DataType* in, std::complex<DataType>* out);
+
 // iFFT
 template<class DataType>
 void ifft(uint64_t N, std::complex<DataType>* in, std::complex<DataType>* out);
