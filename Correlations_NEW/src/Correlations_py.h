@@ -9,8 +9,8 @@ using namespace pybind11::literals;
 
 #include "Correlations.h"
 
-typedef py::array_t<double,py::array::c_style> np_double;
-typedef py::array_t<std::complex<double>,py::array::c_style> np_complex;
-typedef std::complex<double> dbl_complex; 
 
+
+ 
+// .tpp definitions
 #include "Correlations_py.tpp"
