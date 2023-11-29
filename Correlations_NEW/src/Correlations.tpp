@@ -457,10 +457,9 @@ void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
     uint64_t largest = (uint64_t) std::log2(N);
 	uint64_t N2 = 1<<largest;
 	uint64_t step = 0;
-	
+
 	for(uint64_t i=0;i<powers;i++)
 	{
-
 		for(uint64_t j=largest;j>=4;j-=4)
 		{
 			for(uint64_t k=0;k<((uint64_t)(1<<(j-1)));k+=8)

@@ -74,16 +74,18 @@ DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
 	}
 
 	uint64_t N = buf_in.size;
-	//uint64_t n = (uint64_t) std::log2(N); 
+	uint64_t n = (uint64_t) std::log2(N); 
+	uint64_t size = 1<<(n-1);
 
 	DataType* in = (DataType*) buf_in.ptr;
-	//DataType* out = (DataType*) malloc((1<<(n-1))*sizeof(DataType));
+	DataType* out = (DataType*) malloc(size*sizeof(DataType));
 
-	reduceAVX<DataType>(N, in, in, 0.0);
+	reduceAVX<DataType>(N, in, out, 0.0);
+	
 
-	DataType result = 0;
-	result += in[0];
-	//free(out);
+	DataType result = (DataType) 0.0;
+	result += out[0];
+	free(out);
 	
 	return result;
 }
