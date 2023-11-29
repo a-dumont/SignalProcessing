@@ -46,14 +46,11 @@ template<>
 void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 {
 	__m256d ymm0, ymm1, ymm2;
-	__m256i ymm15;
 	double *out0;
 
 	uint64_t howmany = N/8;
 	uint64_t j=0;
 	
-	ymm15 = _mm256_set_epi32(7,6,3,2,5,4,1,0);
-
 	for(uint64_t i=0;i<howmany;i++)
 	{
 		j = 8*i;
@@ -67,10 +64,10 @@ void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 		ymm1 = _mm256_mul_pd(ymm1,ymm1);
 
 		ymm2 = _mm256_hadd_pd(ymm0,ymm1);
-		ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm15);
+		ymm2 = _mm256_permute4x64_pd(ymm2,0b11011000);
 
 		// Store result
-    	_mm256_storeu_ps(out0,ymm2);
+    	_mm256_storeu_pd(out0,ymm2);
 	}
 	for(uint64_t i=(N-8*howmany);i<N;i+=2){out[i/2] = in[i]*in[i]+in[i+1]*in[i+1];}
 }
@@ -444,13 +441,56 @@ void convertAVX_pad<int16_t, double>(uint64_t N, uint64_t Npad,
 }
 
 template<class DataType>
-void reduceAVX(uint64_t N, uint64_t size, DataType* in){}
+void reduceAVX(uint64_t N, DataType* in, DataType* out, DataType sum){}
 
 template<>
-void reduceAVX<float>(uint64_t N, uint64_t size, float* in)
+void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
 {
-	uint64_t N2 = N/2;
+	__m256 ymm0, ymm1;
 
-	for(uint64_t i=0;i<N2;i++)
+	uint64_t powers = 0;
+	for(int i=0;i<64;i++){powers+=(N & (1<<(63-i)))>>(63-i);}
 
+	uint64_t n = ((uint64_t) std::log2((float) N));
+	uint64_t N2 = 1<<(n-1);
+	
+	for(uint64_t i=0;i<(n-std::min((uint64_t) 3,n));i++)
+	{
+		for(uint64_t j=0;j<N2;j+=8)
+		{
+			ymm0 = _mm256_loadu_ps(data+j);
+			ymm1 = _mm256_loadu_ps(data+j+N2);
+			ymm0 = _mm256_add_ps(ymm0,ymm1);
+			_mm256_storeu_ps(result+j,ymm0);
+		}
+		N2 >>= 1;
+		data = result;
+	}
+	out[0] = std::accumulate(data,data+std::min(N,(uint64_t) 8),sum);	
 }
+/*
+template<>
+void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
+{
+	__m256 ymm0, ymm1;
+
+	float* data = in;
+	float* result = out;
+	
+	uint64_t n = ((uint64_t) std::log2((float) N));
+	uint64_t N2 = 1<<(n-1);
+	
+	for(uint64_t i=0;i<(n-std::min((uint64_t) 3,n));i++)
+	{
+		for(uint64_t j=0;j<N2;j+=8)
+		{
+			ymm0 = _mm256_loadu_ps(data+j);
+			ymm1 = _mm256_loadu_ps(data+j+N2);
+			ymm0 = _mm256_add_ps(ymm0,ymm1);
+			_mm256_storeu_ps(result+j,ymm0);
+		}
+		N2 >>= 1;
+		data = result;
+	}
+	out[0] = std::accumulate(data,data+std::min(N,(uint64_t) 8),sum);	
+}*/

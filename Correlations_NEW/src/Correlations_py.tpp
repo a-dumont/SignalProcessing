@@ -6,6 +6,7 @@
 //                   /_/   \_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
 
+/*
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
 rfft_py(py::array_t<DataType,py::array::c_style> py_in)
@@ -34,8 +35,8 @@ rfft_py(py::array_t<DataType,py::array::c_style> py_in)
 		out,
 		free_when_done
 	);
-}
- 
+}*/
+
 ///////////////////////////////////////////////////////////////////
 //                      __  ______                               //
 //                      \ \/ / ___|___  _ __ _ __                //
@@ -62,4 +63,28 @@ rfft_py(py::array_t<DataType,py::array::c_style> py_in)
 //				\___/ |_| |_| |_|_____|_| \_\____/               //
 ///////////////////////////////////////////////////////////////////
 
+template<class DataType>
+//py::array_t<DataType,py::array::c_style> 
+DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
+{
+	py::buffer_info buf_in = py_in.request();
 
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+
+	DataType* in = (DataType*) buf_in.ptr;
+	DataType* out = (DataType*) malloc(N/2*sizeof(DataType));
+
+	//std::memcpy(out,in,N*sizeof(DataType));
+
+	reduceAVX<DataType>(N, in, out, 0.0);
+
+	DataType result = out[0];
+	free(out);
+	
+	return result;
+}
