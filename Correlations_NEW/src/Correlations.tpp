@@ -447,6 +447,7 @@ template<>
 void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
 {
 	__m256 ymm0, ymm1;
+	float* fymm0 = (float*) &ymm0;
 	float* data=in; 
 	float* result=out;
 
@@ -459,23 +460,25 @@ void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
 	
 	for(uint64_t i=0;i<powers;i++)
 	{
-		for(uint64_t j=(largest-1);j>=3;j--)
+
+		for(uint64_t j=largest;j>=4;j-=4)
 		{
-			for(uint64_t k=0;k<((uint64_t)(1<<j));k+=8)
+			for(uint64_t k=0;k<((uint64_t)(1<<(j-1)));k+=8)
 			{
 				ymm0 = _mm256_loadu_ps(data+k);
-				ymm1 = _mm256_loadu_ps(data+k+(1<<j));
+				ymm1 = _mm256_loadu_ps(data+k+(1<<(j-1)));
 				ymm0 = _mm256_add_ps(ymm0,ymm1);
-				_mm256_storeu_ps(result+k,ymm0);
+				ymm0 = _mm256_hadd_ps(ymm0,ymm0);
+				ymm0 = _mm256_hadd_ps(ymm0,ymm0);
+				result[k/8] = fymm0[0]+fymm0[4];
 			}
 			data = result;
 		}
-		sum = std::accumulate(result,result+8,sum);
+		sum = std::accumulate(result,result+(N2/16)%15,sum);
 		step += N2;
 		data = in+step;
 		largest = (uint64_t) std::log2(N-step);
 		N2 = 1<<largest;
 	}
-	//out[0] = (float) largest;	
 	out[0] = std::accumulate(in+step,in+N,sum);	
 }
