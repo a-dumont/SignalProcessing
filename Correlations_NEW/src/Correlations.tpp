@@ -447,50 +447,35 @@ template<>
 void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
 {
 	__m256 ymm0, ymm1;
+	float* data=in; 
+	float* result=out;
 
 	uint64_t powers = 0;
-	for(int i=0;i<64;i++){powers+=(N & (1<<(63-i)))>>(63-i);}
-
-	uint64_t n = ((uint64_t) std::log2((float) N));
-	uint64_t N2 = 1<<(n-1);
+    for(int i=4;i<64;i++){powers+=((N>>i)&1);}
 	
-	for(uint64_t i=0;i<(n-std::min((uint64_t) 3,n));i++)
+    uint64_t largest = (uint64_t) std::log2(N);
+	uint64_t N2 = 1<<largest;
+	uint64_t step = 0;
+	
+	for(uint64_t i=0;i<powers;i++)
 	{
-		for(uint64_t j=0;j<N2;j+=8)
+		for(uint64_t j=(largest-1);j>=3;j--)
 		{
-			ymm0 = _mm256_loadu_ps(data+j);
-			ymm1 = _mm256_loadu_ps(data+j+N2);
-			ymm0 = _mm256_add_ps(ymm0,ymm1);
-			_mm256_storeu_ps(result+j,ymm0);
+			for(uint64_t k=0;k<((uint64_t)(1<<j));k+=8)
+			{
+				ymm0 = _mm256_loadu_ps(data+k);
+				ymm1 = _mm256_loadu_ps(data+k+(1<<j));
+				ymm0 = _mm256_add_ps(ymm0,ymm1);
+				_mm256_storeu_ps(result+k,ymm0);
+			}
+			data = result;
 		}
-		N2 >>= 1;
-		data = result;
+		sum = std::accumulate(result,result+8,sum);
+		step += N2;
+		data = in+step;
+		largest = (uint64_t) std::log2(N-step);
+		N2 = 1<<largest;
 	}
-	out[0] = std::accumulate(data,data+std::min(N,(uint64_t) 8),sum);	
+	//out[0] = (float) largest;	
+	out[0] = std::accumulate(in+step,in+N,sum);	
 }
-/*
-template<>
-void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
-{
-	__m256 ymm0, ymm1;
-
-	float* data = in;
-	float* result = out;
-	
-	uint64_t n = ((uint64_t) std::log2((float) N));
-	uint64_t N2 = 1<<(n-1);
-	
-	for(uint64_t i=0;i<(n-std::min((uint64_t) 3,n));i++)
-	{
-		for(uint64_t j=0;j<N2;j+=8)
-		{
-			ymm0 = _mm256_loadu_ps(data+j);
-			ymm1 = _mm256_loadu_ps(data+j+N2);
-			ymm0 = _mm256_add_ps(ymm0,ymm1);
-			_mm256_storeu_ps(result+j,ymm0);
-		}
-		N2 >>= 1;
-		data = result;
-	}
-	out[0] = std::accumulate(data,data+std::min(N,(uint64_t) 8),sum);	
-}*/

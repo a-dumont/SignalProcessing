@@ -64,7 +64,6 @@ rfft_py(py::array_t<DataType,py::array::c_style> py_in)
 ///////////////////////////////////////////////////////////////////
 
 template<class DataType>
-//py::array_t<DataType,py::array::c_style> 
 DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
 {
 	py::buffer_info buf_in = py_in.request();
@@ -79,11 +78,10 @@ DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
 	DataType* in = (DataType*) buf_in.ptr;
 	DataType* out = (DataType*) malloc(N/2*sizeof(DataType));
 
-	//std::memcpy(out,in,N*sizeof(DataType));
-
 	reduceAVX<DataType>(N, in, out, 0.0);
 
-	DataType result = out[0];
+	DataType result = 0;
+	result += out[0];
 	free(out);
 	
 	return result;
