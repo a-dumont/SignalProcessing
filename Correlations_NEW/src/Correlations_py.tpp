@@ -74,18 +74,53 @@ DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
 	}
 
 	uint64_t N = buf_in.size;
-	uint64_t n = (uint64_t) std::log2(N); 
-	uint64_t size = 1<<(n-1);
+	uint64_t size = std::max((uint64_t) 22,N/4);
 
 	DataType* in = (DataType*) buf_in.ptr;
 	DataType* out = (DataType*) malloc(size*sizeof(DataType));
 
-	reduceAVX<DataType>(N, in, out, 0.0);
+	reduceAVX<DataType>(N, in, out);
 	
-
-	DataType result = (DataType) 0.0;
-	result += out[0];
+	DataType result = out[0];
 	free(out);
-	
+
 	return result;
+}
+
+template<class DataType>
+py::array_t<uint8_t,py::array::c_style> 
+base16_py(DataType in)
+{
+	uint64_t N = in;
+	uint8_t* out = (uint8_t*) malloc(16*sizeof(uint8_t));
+
+	for(int i=15;i>=0;i--){out[i]=N>>(4*i);N^=(N>>(4*i)<<(4*i));}	
+	
+	py::capsule free_when_done( out, free );
+	return py::array_t<uint8_t, py::array::c_style>
+	(
+		{16},
+		{sizeof(uint8_t)},
+		out,
+		free_when_done
+	);
+}
+
+template<class DataType>
+py::array_t<uint8_t,py::array::c_style> 
+base8_py(DataType in)
+{
+	uint64_t N = in;
+	uint8_t* out = (uint8_t*) malloc(22*sizeof(uint8_t));
+
+	for(int i=21;i>=0;i--){out[i]=N>>(3*i);N^=(N>>(3*i)<<(3*i));}	
+	
+	py::capsule free_when_done( out, free );
+	return py::array_t<uint8_t, py::array::c_style>
+	(
+		{22},
+		{sizeof(uint8_t)},
+		out,
+		free_when_done
+	);
 }

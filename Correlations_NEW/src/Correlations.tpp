@@ -6,6 +6,7 @@
 //                   /_/   \_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
 
+#include <numeric>
 template<class DataType>
 void aCorrFreqAVX(uint64_t N, DataType* in, DataType* out){}
 
@@ -441,43 +442,81 @@ void convertAVX_pad<int16_t, double>(uint64_t N, uint64_t Npad,
 }
 
 template<class DataType>
-void reduceAVX(uint64_t N, DataType* in, DataType* out, DataType sum){}
+void reduceAVX(uint64_t N, DataType* in, DataType* out){}
 
 template<>
-void reduceAVX<float>(uint64_t N, float* in, float* out, float sum)
+void reduceAVX<float>(uint64_t N, float* in, float* out)
 {
 	__m256 ymm0, ymm1;
 	float* fymm0 = (float*) &ymm0;
+
 	float* data=in; 
 	float* result=out;
 
-	uint64_t powers = 0;
-    for(int i=4;i<64;i++){powers+=((N>>i)&1);}
+	uint64_t powers[16];
+	for(int i=15;i>=0;i--){powers[i]=N>>(4*i);N^=(N>>(4*i)<<(4*i));}
 	
-    uint64_t largest = (uint64_t) std::log2(N);
-	uint64_t N2 = 1<<largest;
-	uint64_t step = 0;
+	result[0] = std::accumulate(data,data+powers[0],0.0);
+	
+	uint64_t offset = powers[0];
+	data = in+offset;
 
-	for(uint64_t i=0;i<powers;i++)
+	for(uint8_t i=1;i<16;i++)
 	{
-		for(uint64_t j=largest;j>=4;j-=4)
+		for(uint8_t j=0;j<i;j++)
 		{
-			for(uint64_t k=0;k<((uint64_t)(1<<(j-1)));k+=8)
+			for(uint64_t k=0;k<powers[i]*(1<<(4*(i-j)));k+=16)
 			{
 				ymm0 = _mm256_loadu_ps(data+k);
-				ymm1 = _mm256_loadu_ps(data+k+(1<<(j-1)));
+				ymm1 = _mm256_loadu_ps(data+k+8);
 				ymm0 = _mm256_add_ps(ymm0,ymm1);
 				ymm0 = _mm256_hadd_ps(ymm0,ymm0);
 				ymm0 = _mm256_hadd_ps(ymm0,ymm0);
-				result[k/8] = fymm0[0]+fymm0[4];
+				result[i+k/16] = fymm0[0]+fymm0[4];
 			}
-			data = result;
+			data = result+i;
 		}
-		sum = std::accumulate(result,result+(N2/16)%15,sum);
-		step += N2;
-		data = in+step;
-		largest = (uint64_t) std::log2(N-step);
-		N2 = 1<<largest;
+		result[i] = std::accumulate(result+i,result+i+powers[i],0.0);
+		offset += powers[i]*(1<<(4*i));
+		data = in+offset;
 	}
-	out[0] = std::accumulate(in+step,in+N,sum);	
+	for(int i=1;i<16;i++){result[0]+=result[i];}
+}
+
+template<>
+void reduceAVX<double>(uint64_t N, double* in, double* out)
+{
+	__m256d ymm0, ymm1;
+	double* fymm0 = (double*) &ymm0;
+
+	double* data=in; 
+	double* result=out;
+
+	uint64_t powers[22];
+	for(int i=21;i>=0;i--){powers[i]=N>>(3*i);N^=(N>>(3*i)<<(3*i));}
+	
+	result[0] = std::accumulate(data,data+powers[0],0.0);
+	
+	uint64_t offset = powers[0];
+	data = in+offset;
+
+	for(uint8_t i=1;i<22;i++)
+	{
+		for(uint8_t j=0;j<i;j++)
+		{
+			for(uint64_t k=0;k<powers[i]*(1<<(3*(i-j)));k+=8)
+			{
+				ymm0 = _mm256_loadu_pd(data+k);
+				ymm1 = _mm256_loadu_pd(data+k+4);
+				ymm0 = _mm256_add_pd(ymm0,ymm1);
+				ymm0 = _mm256_hadd_pd(ymm0,ymm0);
+				result[i+k/8] = fymm0[0]+fymm0[2];
+			}
+			data = result+i;
+		}
+		result[i] = std::accumulate(result+i,result+i+powers[i],0.0);
+		offset += powers[i]*(1<<(3*i));
+		data = in+offset;
+	}
+	for(int i=1;i<22;i++){result[0]+=result[i];}
 }
