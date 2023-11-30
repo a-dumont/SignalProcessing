@@ -78,6 +78,7 @@ DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
 
 	DataType* in = (DataType*) buf_in.ptr;
 	DataType* out = (DataType*) malloc(size*sizeof(DataType));
+	//std::memset((void*) out,0,size*sizeof(DataType));
 
 	reduceAVX<DataType>(N, in, out);
 	
@@ -120,6 +121,25 @@ base8_py(DataType in)
 	(
 		{22},
 		{sizeof(uint8_t)},
+		out,
+		free_when_done
+	);
+}
+
+template<class DataType>
+py::array_t<uint64_t,py::array::c_style> 
+base128_py(DataType in)
+{
+	uint64_t N = in;
+	uint64_t* out = (uint64_t*) malloc(10*sizeof(uint64_t));
+
+	for(int i=10;i>=0;i--){out[i]=N>>(7*i);N^=(N>>(7*i)<<(7*i));}	
+	
+	py::capsule free_when_done( out, free );
+	return py::array_t<uint64_t, py::array::c_style>
+	(
+		{10},
+		{sizeof(uint64_t)},
 		out,
 		free_when_done
 	);
