@@ -63,9 +63,10 @@ void xCorrCircularFreqAVX<float>(uint64_t N, float* in1, float* in2, float* out)
 		ymm0 = _mm256_permute_ps(ymm0,0b11011000);
 		_mm256_storeu_ps(out+8*i,ymm0);
 	}
-	for(uint64_t i=(8*howmany);i<(N-howmany*8);i++)
+	for(uint64_t i=(8*howmany);i<(N-howmany*8);i+=2)
 	{
-		//out[i] = in1[i]*in2[i]*(1-2*(i%2));
+		out[i] = in1[i]*in2[i]+in1[i+1]*in2[i+1];
+		out[i+1] = in1[i+1]*in2[i]-in1[i]*in2[i+1];
 	}
 }
 

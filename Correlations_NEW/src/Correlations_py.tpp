@@ -111,13 +111,13 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 					out1);
 
 	// Divide the sum by the number of blocks
-	for(uint64_t i=0;i<(2*(size/2+1));i++){result[i]=out1[i]/howmany;}
+	for(uint64_t i=0;i<(2*(size/2+1));i++){result[i]=out1[i]/std::max(howmany,2);}
 	
 	// Free intermediate buffer
 	fftw_free(out1);
 	fftw_free(out2);
 
-	py::capsule free_when_done( result, free );
+	py::capsule free_when_done(result, free);
 	return py::array_t<std::complex<DataType>, py::array::c_style>
 	(
 		{size/2+1},
