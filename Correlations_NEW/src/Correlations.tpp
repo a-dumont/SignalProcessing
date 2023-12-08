@@ -5,74 +5,36 @@
 //                    / ___ \ |__| (_) | |  | |                  //
 //                   /_/   \_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
-
-#include <numeric>
 template<class DataType>
-void aCorrFreqAVX(uint64_t N, DataType* in, DataType* out){}
+void aCorrCircularFreqAVX(uint64_t N, DataType* in, DataType* out){}
 
 template<>
-void aCorrFreqAVX<float>(uint64_t N, float* in, float* out)
+void aCorrCircularFreqAVX<float>(uint64_t N, float* in, float* out)
 {
-	__m256 ymm0, ymm1, ymm2;
-	__m256i ymm15;
-	float *out0;
-
-	uint64_t howmany = N/16;
-	uint64_t j=0;
-
-	ymm15 = _mm256_set_epi32(7,6,3,2,5,4,1,0);
-
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		j = 16*i;
-		out0 = out+(j/2);
-
-		// Acorr
-		ymm0 = _mm256_loadu_ps(in+j);
-		ymm1 = _mm256_loadu_ps(in+j+8);
-
-		ymm0 = _mm256_mul_ps(ymm0,ymm0);
-		ymm1 = _mm256_mul_ps(ymm1,ymm1);
-
-		ymm2 = _mm256_hadd_ps(ymm0,ymm1);
-		ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm15);
-
-		// Store result
-    	_mm256_storeu_ps(out0,ymm2);
-	}
-	for(uint64_t i=(N-16*howmany);i<N;i+=2){out[i/2] = in[i]*in[i]+in[i+1]*in[i+1];}
-}
-
-template<>
-void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
-{
-	__m256d ymm0, ymm1, ymm2;
-	double *out0;
-
+	__m256 ymm0;
 	uint64_t howmany = N/8;
-	uint64_t j=0;
-	
 	for(uint64_t i=0;i<howmany;i++)
 	{
-		j = 8*i;
-		out0 = out+(j/2);
-
-		// Acorr
-		ymm0 = _mm256_loadu_pd(in+j);
-		ymm1 = _mm256_loadu_pd(in+j+4);
-
-		ymm0 = _mm256_mul_pd(ymm0,ymm0);
-		ymm1 = _mm256_mul_pd(ymm1,ymm1);
-
-		ymm2 = _mm256_hadd_pd(ymm0,ymm1);
-		ymm2 = _mm256_permute4x64_pd(ymm2,0b11011000);
-
-		// Store result
-    	_mm256_storeu_pd(out0,ymm2);
+		ymm0 = _mm256_loadu_ps(in+8*i);
+		ymm0 = _mm256_mul_ps(ymm0,ymm0);
+		_mm256_storeu_ps(out+8*i,ymm0);
 	}
-	for(uint64_t i=(N-8*howmany);i<N;i+=2){out[i/2] = in[i]*in[i]+in[i+1]*in[i+1];}
+	for(uint64_t i=(8*howmany);i<(N-howmany*8);i++){out[i] = in[i]*in[i];}
 }
 
+template<>
+void aCorrCircularFreqAVX<double>(uint64_t N, double* in, double* out)
+{
+	__m256d ymm0;
+	uint64_t howmany = N/4;
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		ymm0 = _mm256_loadu_pd(in+4*i);
+		ymm0 = _mm256_mul_pd(ymm0,ymm0);
+		_mm256_storeu_pd(out+4*i,ymm0);
+	}
+	for(uint64_t i=(4*howmany);i<(N-howmany*4);i++){out[i] = in[i]*in[i];}
+}
 ///////////////////////////////////////////////////////////////////
 //                      __  ______                               //
 //                      \ \/ / ___|___  _ __ _ __                //
@@ -80,9 +42,52 @@ void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 //                       /  \ |__| (_) | |  | |                  //
 //                      /_/\_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
+template<class DataType>
+void xCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, DataType* out){}
 
+template<>
+void xCorrCircularFreqAVX<float>(uint64_t N, float* in1, float* in2, float* out)
+{
+	__m256 ymm0, ymm1, ymm2, ymm3, ymm4;
+	uint64_t howmany = N/8;
+	ymm4 = _mm256_set_ps(-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0);
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		ymm0 = _mm256_loadu_ps(in1+8*i);
+		ymm1 = _mm256_loadu_ps(in2+8*i);
+		ymm2 = _mm256_mul_ps(ymm0,ymm1);
+		ymm1 = _mm256_mul_ps(ymm1,ymm4);
+		ymm1 = _mm256_permute_ps(ymm1,0b10110001);
+		ymm3 = _mm256_mul_ps(ymm0,ymm1);
+		ymm0 = _mm256_hadd_ps(ymm2,ymm3);
+		ymm0 = _mm256_permute_ps(ymm0,0b11011000);
+		_mm256_storeu_ps(out+8*i,ymm0);
+	}
+	for(uint64_t i=(8*howmany);i<(N-howmany*8);i++)
+	{
+		//out[i] = in1[i]*in2[i]*(1-2*(i%2));
+	}
+}
 
-
+template<>
+void xCorrCircularFreqAVX<double>(uint64_t N, double* in1, double* in2, double* out)
+{
+	__m256d ymm0, ymm1, ymm2;
+	uint64_t howmany = N/8;
+	ymm2 = _mm256_set_pd(1.0,-1.0,1.0,-1.0);
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		ymm0 = _mm256_loadu_pd(in1+4*i);
+		ymm1 = _mm256_loadu_pd(in2+4*i);
+		ymm1 = _mm256_mul_pd(ymm1,ymm2);
+		ymm0 = _mm256_mul_pd(ymm0,ymm1);
+		_mm256_storeu_pd(out+4*i,ymm0);
+	}
+	for(uint64_t i=(4*howmany);i<(N-howmany*4);i++)
+	{
+		out[i] = in1[i]*in2[i]*(1-2*(i%2));
+	}
+}
 
 ///////////////////////////////////////////////////////////////////
 //                       _____ ____                              //
@@ -91,7 +96,63 @@ void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 //                      |  _|| |__| (_) | |  | |                 //
 //                      |_|   \____\___/|_|  |_|                 //
 ///////////////////////////////////////////////////////////////////
+template<class DataType>
+void axCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, 
+				DataType* out1, DataType* out2, DataType* out3){}
 
+template<>
+void axCorrCircularFreqAVX<float>(uint64_t N, float* in1, float* in2, 
+				float* out1, float* out2, float* out3)
+{
+	__m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5;
+	uint64_t howmany = N/8;
+	ymm5 = _mm256_set_ps(1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0);
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		ymm0 = _mm256_loadu_ps(in1+8*i);
+		ymm1 = _mm256_mul_ps(ymm0,ymm0);
+		ymm2 = _mm256_loadu_ps(in2+8*i);
+		ymm3 = _mm256_mul_ps(ymm2,ymm2);
+		ymm4 = _mm256_mul_ps(ymm2,ymm5);
+		ymm0 = _mm256_mul_ps(ymm0,ymm4);
+		_mm256_storeu_ps(out1+8*i,ymm1);
+		_mm256_storeu_ps(out2+8*i,ymm3);
+		_mm256_storeu_ps(out3+8*i,ymm0);
+	}
+	for(uint64_t i=(8*howmany);i<(N-howmany*8);i++)
+	{
+		out1[i] = in1[i]*in1[i];
+		out2[i] = in2[i]*in2[i];
+		out3[i] = in1[i]*in2[i]*(1-2*(i%2));
+	}
+}
+
+template<>
+void axCorrCircularFreqAVX<double>(uint64_t N, double* in1, double* in2, 
+				double* out1, double* out2, double* out3)
+{
+	__m256d ymm0, ymm1, ymm2, ymm3, ymm4, ymm5;
+	uint64_t howmany = N/8;
+	ymm5 = _mm256_set_pd(1.0,-1.0,1.0,-1.0);
+	for(uint64_t i=0;i<howmany;i++)
+	{
+		ymm0 = _mm256_loadu_pd(in1+4*i);
+		ymm1 = _mm256_mul_pd(ymm0,ymm0);
+		ymm2 = _mm256_loadu_pd(in2+4*i);
+		ymm3 = _mm256_mul_pd(ymm2,ymm2);
+		ymm4 = _mm256_mul_pd(ymm2,ymm5);
+		ymm0 = _mm256_mul_pd(ymm0,ymm4);
+		_mm256_storeu_pd(out1+4*i,ymm1);
+		_mm256_storeu_pd(out2+4*i,ymm3);
+		_mm256_storeu_pd(out3+4*i,ymm0);
+	}
+	for(uint64_t i=(4*howmany);i<(N-howmany*4);i++)
+	{
+		out1[i] = in1[i]*in1[i];
+		out2[i] = in2[i]*in2[i];
+		out3[i] = in1[i]*in2[i]*(1-2*(i%2));
+	}
+}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -101,6 +162,66 @@ void aCorrFreqAVX<double>(uint64_t N, double* in, double* out)
 //			   | |_| || | |  _  | |___|  _ < ___) |              //
 //				\___/ |_| |_| |_|_____|_| \_\____/               //
 ///////////////////////////////////////////////////////////////////
+template<class DataType>
+void rfftBlock(int N, int size, DataType* in, std::complex<DataType>* out){}
+
+template<>
+void rfftBlock<double>(int N, int size, double* in, std::complex<double>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int idist = size;
+	int odist = size/2+1;
+	int stride = 1;
+
+	fftw_plan plan = fftw_plan_many_dft_r2c(
+					rank,
+					length,
+					howmany,
+					in,
+					NULL,
+					stride,
+					idist,
+					reinterpret_cast<fftw_complex*>(out),
+					NULL,
+					stride,
+					odist,
+					FFTW_ESTIMATE);
+
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+}
+
+template<>
+void rfftBlock<float>(int N, int size, float* in, std::complex<float>* out)
+{
+
+	int rank = 1;
+	int length[] = {size};
+	int howmany = N/size;
+	int idist = size;
+	int odist = size/2+1;
+	int stride = 1;
+
+	fftwf_plan plan = fftwf_plan_many_dft_r2c(
+					rank,
+					length,
+					howmany,
+					in,
+					NULL,
+					stride,
+					idist,
+					reinterpret_cast<fftwf_complex*>(out),
+					NULL,
+					stride,
+					odist,
+					FFTW_ESTIMATE);
+
+	fftwf_execute(plan);
+	fftwf_destroy_plan(plan);
+}
 
 template<class DataTypeIn, class DataTypeOut>
 void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out, DataTypeOut conv, DataTypeIn offset)
@@ -597,4 +718,111 @@ void reduceAVX<double>(uint64_t N, double* in, double* out)
 		data = in+offset;
 	}
 	for(int i=1;i<11;i++){result[0]+=result[i];}
+}
+
+template<class DataType>
+void reduceBlockAVX(uint64_t N, uint64_t size, DataType* in, DataType* out){}
+
+template<>
+void reduceBlockAVX<float>(uint64_t N, uint64_t size, float* in, float* out)
+{
+	__m256 ymm0,ymm1;
+
+	float* data=in; 
+	float* result=out;
+
+	uint64_t howmany = N/size;
+	uint64_t registers = size/8;
+	uint64_t excess = size-(registers*8);
+
+	uint64_t powers[64];
+	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
+	
+	std::memcpy(result,data,powers[0]*size*sizeof(float));
+	
+	uint64_t offset = powers[0]*size;
+	data = in+offset;
+
+	for(uint8_t i=1;i<63;i++)
+	{
+		for(uint8_t j=0;j<i;j++)
+		{
+			for(uint64_t k=0;k<size*powers[i]*(1<<(i-j));k+=2*size)
+			{
+				for(uint64_t l=0;l<registers;l++)
+				{
+					ymm0 = _mm256_loadu_ps(data+k+l*8);
+					ymm1 = _mm256_loadu_ps(data+k+l*8+size);
+					ymm0 = _mm256_add_ps(ymm0,ymm1);
+					_mm256_storeu_ps(result+size+k/2+l*8,ymm0);
+				}
+				for(uint64_t l=0;l<excess;l++)
+				{
+					result[size+k/2+8*registers+l] = data[k+8*registers+l]
+														+data[k+8*registers+size+l];
+				}
+			}
+			data = result+size;
+		}
+		
+		for(uint64_t j=0;j<size;j++)
+		{
+			result[j] += result[j+size];
+			result[j+size] = 0.0;
+		}
+		offset += size*powers[i]*(1<<i);
+		data = in+offset;
+	}
+}
+
+template<>
+void reduceBlockAVX<double>(uint64_t N, uint64_t size, double* in, double* out)
+{
+	__m256d ymm0,ymm1;
+
+	double* data=in; 
+	double* result=out;
+
+	uint64_t howmany = N/size;
+	uint64_t registers = size/4;
+	uint64_t excess = size-(registers*4);
+
+	uint64_t powers[64];
+	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
+	
+	std::memcpy(result,data,powers[0]*size*sizeof(float));
+	
+	uint64_t offset = powers[0]*size;
+	data = in+offset;
+
+	for(uint8_t i=1;i<63;i++)
+	{
+		for(uint8_t j=0;j<i;j++)
+		{
+			for(uint64_t k=0;k<size*powers[i]*(1<<(i-j));k+=2*size)
+			{
+				for(uint64_t l=0;l<registers;l++)
+				{
+					ymm0 = _mm256_loadu_pd(data+k+l*4);
+					ymm1 = _mm256_loadu_pd(data+k+l*4+size);
+					ymm0 = _mm256_add_pd(ymm0,ymm1);
+					_mm256_storeu_pd(result+size+k/2+l*4,ymm0);
+				}
+				for(uint64_t l=0;l<excess;l++)
+				{
+					result[size+k/2+4*registers+l] = data[k+4*registers+l]
+														+data[k+4*registers+size+l];
+				}
+			}
+			data = result+size;
+		}
+		
+		for(uint64_t j=0;j<size;j++)
+		{
+			result[j] += result[j+size];
+			result[j+size] = 0.0;
+		}
+		offset += size*powers[i]*(1<<i);
+		data = in+offset;
+	}
 }

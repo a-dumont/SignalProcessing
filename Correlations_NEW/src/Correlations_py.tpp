@@ -5,11 +5,9 @@
 //                    / ___ \ |__| (_) | |  | |                  //
 //                   /_/   \_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
-
-/*
 template<class DataType>
-py::array_t<std::complex<DataType>,py::array::c_style>
-rfft_py(py::array_t<DataType,py::array::c_style> py_in)
+py::array_t<DataType,py::array::c_style>
+aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
 {
 	py::buffer_info buf_in = py_in.request();
 
@@ -19,23 +17,46 @@ rfft_py(py::array_t<DataType,py::array::c_style> py_in)
 	}
 
 	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	if(size*howmany != N){howmany+=1;}
 
+	// Retreive all pointers
 	DataType* in = (DataType*) buf_in.ptr;
-	std::complex<DataType>* out = (std::complex<DataType>*) fftw_malloc((N+2)*sizeof(DataType));
-	std::memcpy((void*) out,in,N*sizeof(DataType));
-	out[N/2] = (std::complex<DataType>) 0.0;
+	
+	DataType* out;
+	out = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	std::memset((void*) out, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	
+	DataType* result;
+   	result = (DataType*) malloc((size/2+1)*sizeof(DataType));
 
-	rfft<DataType>(N, reinterpret_cast<DataType*>(out), out);
+	// Compute rFFT blocks
+	rfftBlock<DataType>((int) N, (int) size, in, 
+					reinterpret_cast<std::complex<DataType>*>(out)+(size/2+1));
+	
+	// Compute product
+	aCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out+2*(size/2+1),out+2*(size/2+1));
+	
+	// Sum all blocks
+	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1),
+					out+2*(size/2+1),
+					out);
 
-	py::capsule free_when_done( out, fftw_free );
-	return py::array_t<std::complex<DataType>, py::array::c_style>
+	// Divide the sum by the number of blocks
+	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
+	
+	// Free intermediate buffer
+	fftw_free(out);
+
+	py::capsule free_when_done( result, free );
+	return py::array_t<DataType, py::array::c_style>
 	(
-		{N/2+1},
-		{2*sizeof(DataType)},
-		out,
+		{size/2+1},
+		{sizeof(DataType)},
+		result,
 		free_when_done
 	);
-}*/
+}
 
 ///////////////////////////////////////////////////////////////////
 //                      __  ______                               //
@@ -44,7 +65,67 @@ rfft_py(py::array_t<DataType,py::array::c_style> py_in)
 //                       /  \ |__| (_) | |  | |                  //
 //                      /_/\_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1, 
+				py::array_t<DataType,py::array::c_style> py_in2, uint64_t size)
+{
+	py::buffer_info buf_in1 = py_in1.request();
+	py::buffer_info buf_in2 = py_in2.request();
 
+	if (buf_in1.ndim != 1 || buf_in2.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = std::min(buf_in1.size,buf_in2.size);
+	uint64_t howmany = N/size;
+	if(size*howmany != N){howmany+=1;}
+
+	// Retreive all pointers
+	DataType* in1 = (DataType*) buf_in1.ptr;
+	DataType* in2 = (DataType*) buf_in2.ptr;
+	
+	DataType *out1, *out2;
+	out1 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	std::memset((void*) out1, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	std::memset((void*) out2, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	
+	DataType* result;
+   	result = (DataType*) malloc(2*(size/2+1)*sizeof(DataType));
+
+	// Compute rFFT blocks
+	rfftBlock<DataType>((int) N, (int) size, in1, 
+					reinterpret_cast<std::complex<DataType>*>(out1)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in2, 
+					reinterpret_cast<std::complex<DataType>*>(out2)+(size/2+1));
+
+	// Compute product
+	xCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out1+2*(size/2+1),
+					out2+2*(size/2+1), out1+2*(size/2+1));
+	
+	// Sum all blocks
+	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1),
+					out1+2*(size/2+1),
+					out1);
+
+	// Divide the sum by the number of blocks
+	for(uint64_t i=0;i<(2*(size/2+1));i++){result[i]=out1[i]/howmany;}
+	
+	// Free intermediate buffer
+	fftw_free(out1);
+	fftw_free(out2);
+
+	py::capsule free_when_done( result, free );
+	return py::array_t<std::complex<DataType>, py::array::c_style>
+	(
+		{size/2+1},
+		{2*sizeof(DataType)},
+		reinterpret_cast<std::complex<DataType>*>(result),
+		free_when_done
+	);
+}
 
 ///////////////////////////////////////////////////////////////////
 //                       _____ ____                              //
@@ -87,57 +168,30 @@ DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
 }
 
 template<class DataType>
-py::array_t<uint8_t,py::array::c_style> 
-base16_py(DataType in)
+py::array_t<DataType,py::array::c_style>
+reduceBlockAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
 {
-	uint64_t N = in;
-	uint8_t* out = (uint8_t*) malloc(16*sizeof(uint8_t));
+	py::buffer_info buf_in = py_in.request();
 
-	for(int i=15;i>=0;i--){out[i]=N>>(4*i);N^=(N>>(4*i)<<(4*i));}	
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+
+	DataType* in = (DataType*) buf_in.ptr;
+	DataType* out = (DataType*) malloc(N*sizeof(DataType));
+
+	std::memset((void*) out,0,N*sizeof(DataType));
 	
+	reduceBlockAVX<DataType>(N, size, in, out);
+
 	py::capsule free_when_done( out, free );
-	return py::array_t<uint8_t, py::array::c_style>
+	return py::array_t<DataType, py::array::c_style>
 	(
-		{16},
-		{sizeof(uint8_t)},
-		out,
-		free_when_done
-	);
-}
-
-template<class DataType>
-py::array_t<uint8_t,py::array::c_style> 
-base8_py(DataType in)
-{
-	uint64_t N = in;
-	uint8_t* out = (uint8_t*) malloc(22*sizeof(uint8_t));
-
-	for(int i=21;i>=0;i--){out[i]=N>>(3*i);N^=(N>>(3*i)<<(3*i));}	
-	
-	py::capsule free_when_done( out, free );
-	return py::array_t<uint8_t, py::array::c_style>
-	(
-		{22},
-		{sizeof(uint8_t)},
-		out,
-		free_when_done
-	);
-}
-
-template<class DataType>
-py::array_t<uint64_t,py::array::c_style> 
-base128_py(DataType in)
-{
-	uint64_t N = in;
-	uint64_t* out = (uint64_t*) malloc(10*sizeof(uint64_t));
-
-	for(int i=10;i>=0;i--){out[i]=N>>(7*i);N^=(N>>(7*i)<<(7*i));}	
-	
-	py::capsule free_when_done( out, free );
-	return py::array_t<uint64_t, py::array::c_style>
-	(
-		{10},
-		{sizeof(uint64_t)},
+		{size},
+		{sizeof(DataType)},
 		out,
 		free_when_done
 	);

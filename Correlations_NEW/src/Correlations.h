@@ -8,10 +8,12 @@
 #include <type_traits>
 #include <chrono>
 #include <immintrin.h>
+#include <cstring>
+#include <numeric>
 
 // Acorr
 template<class DataType>
-void aCorrFreqAVX(uint64_t N, DataType* in, DataType* out);
+void aCorrCircularFreqAVX(uint64_t N, uint64_t size, DataType* in, DataType* out);
 
 // Others
 template<class DataTypeIn, class DataTypeOut>
