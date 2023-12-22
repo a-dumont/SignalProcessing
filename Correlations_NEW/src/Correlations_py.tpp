@@ -212,17 +212,19 @@ class ACorrCircularFreqAVX_py
 				::aCorrCircularFreqAVX(2*(size/2+1)*(howmany/threads),
 								out_temp+i*(transfer_size[0]/size)*(size/2+1),
 								out_temp+i*(transfer_size[0]/size)*(size/2+1));
-				/*::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
+				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
 								out_temp+i*(transfer_size[0]/size)*(size/2+1),
-								in+i*transfer_size[0]);*/
+								in+i*transfer_size[0]);
 			}
+			std::memcpy(out,in,(size/2+1)*sizeof(double));
+			/*
 			for(uint64_t i=0;i<threads;i++)
 			{
 				for(uint64_t j=0;j<(size/2+1);j++)
 				{
 					out[j]+=((in+i*transfer_size[0])[2*j]+(in+i*transfer_size[0])[2*j+1])/howmany;
 				}
-			}
+			}*/
 			
 			/*
 			if(howmany != threads*(howmany/threads))
