@@ -223,15 +223,6 @@ class ACorrCircularFreqAVX_py
 					+(in+i*transfer_size[0])[2*j+1])/howmany;
 				}
 			}
-			/*
-			for(uint64_t i=0;i<threads;i++)
-			{
-				double* result = in+i*transfer_size[0];
-				for(uint64_t j=0;j<(size/2+1);j++)
-				{
-					out[j]+=(result[2*j]+result[2*j+1])/howmany;
-				}
-			}*/
 			
 			/*
 			if(howmany != threads*(howmany/threads))
@@ -258,9 +249,9 @@ class ACorrCircularFreqAVX_py
 			free_when_done	
 			);
 		}
-		/*
-		py::array_t<std::complex<float>,py::array::c_style> 
-		rfftBlockf(py::array_t<float,py::array::c_style> py_in)
+		
+		py::array_t<float,1> 
+		aCorrCircularFreqAVX(py::array_t<float,1> py_in)
 		{
 			py::buffer_info buf_in = py_in.request();
 			float* py_ptr = (float*) buf_in.ptr;
@@ -269,38 +260,62 @@ class ACorrCircularFreqAVX_py
 			if ((uint64_t) buf_in.size > Npad)
 			{throw std::runtime_error("U dumbdumb input too long.");}
 
-			std::complex<float>* outf;
-			outf = (std::complex<float>*) fftwf_malloc(howmany*(size+2)*sizeof(float));
-			std::memset(inf,0.0,(Npad-N)*sizeof(float));
+			float* out;
+			out = (float*) malloc((size/2+1)*sizeof(float));
+			std::memset(out,0.0,(size/2+1)*sizeof(float));
+			std::memset(in,0.0,(N-Npad)*sizeof(float));
 
 			#pragma omp parallel for
 			for(uint64_t i=0;i<threads;i++)
 			{
 				manage_thread_affinity();
-				std::memcpy(inf+i*transfer_size[0],
-								py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(float));
-				fftwf_execute_dft_r2c(planf,
-								inf+i*transfer_size[0],
-								reinterpret_cast<fftwf_complex*>
-								(outf+i*(transfer_size[0]/size)*(size/2+1)));
+				std::memcpy(in+i*transfer_size[0],
+							py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(float));
+				fftw_execute_dft_r2c(plan,
+								in+i*transfer_size[0],
+								reinterpret_cast<fftw_complex*>
+								(out_temp+2*i*(transfer_size[0]/size)*(size/2+1)));
+				std::memset(in+i*transfer_size[0],0.0,4*(size/2+1)*sizeof(float));
+				::aCorrCircularFreqAVX(2*(size/2+1)*(howmany/threads),
+								out_temp+2*i*(transfer_size[0]/size)*(size/2+1),
+								out_temp+2*i*(transfer_size[0]/size)*(size/2+1));
+				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
+								out_temp+2*i*(transfer_size[0]/size)*(size/2+1),
+								in+i*transfer_size[0]);
+				
+				for(uint64_t j=0;j<(size/2+1);j++)
+				{
+					#pragma omp atomic
+					out[j]+=((in+i*transfer_size[0])[2*j]
+					+(in+i*transfer_size[0])[2*j+1])/howmany;
+				}
 			}
-
+			
+			/*
 			if(howmany != threads*(howmany/threads))
 			{
-				::rfftBlock<float>(size*(howmany-threads*(howmany/threads)),size,
+				::rfftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
 								py_ptr+threads*(howmany/threads)*size,
-								outf+threads*(howmany/threads)*(size/2+1));
-			}
+								reinterpret_cast<std::complex<double>*>(
+								out_temp+threads*(howmany/threads)*(size/2+1)));
+				::aCorrCircularFreqAVX(size*(howmany-threads*(howmany/threads)),
+								out_temp+threads*(howmany/threads)*(size/2+1),
+								out_temp+threads*(howmany/threads)*(size/2+1));
+				std::memset((void*) in, 0, transfer_size[0]*sizeof(double));
+				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
+								out_temp+threads*(howmany/threads)*(size/2+1),in);
+				for(uint64_t j=0;j<(size/2+1);j++){out[j]+=(in[2*j]+in[2*j+1])/howmany;}
+			}*/
 
-			py::capsule free_when_done2( outf, fftwf_free );
-			return py::array_t<std::complex<float>,py::array::c_style>
+			py::capsule free_when_done( out, free );
+			return py::array_t<float,py::array::c_style>
 			(
-			{howmany*(size/2+1)},
-			{2*sizeof(float)},
-			outf,
-			free_when_done2	
+			{(size/2+1)},
+			{sizeof(float)},
+			out,
+			free_when_done	
 			);
-		}*/
+		}
 };
 
 ///////////////////////////////////////////////////////////////////
