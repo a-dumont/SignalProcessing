@@ -215,7 +215,15 @@ class ACorrCircularFreqAVX_py
 				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
 								out_temp+2*i*(transfer_size[0]/size)*(size/2+1),
 								in+i*transfer_size[0]);
+				
+				for(uint64_t j=0;j<(size/2+1);j++)
+				{
+					#pragma omp atomic
+					out[j]+=((in+i*transfer_size[0])[2*j]
+					+(in+i*transfer_size[0])[2*j+1])/howmany;
+				}
 			}
+			/*
 			for(uint64_t i=0;i<threads;i++)
 			{
 				double* result = in+i*transfer_size[0];
@@ -223,7 +231,7 @@ class ACorrCircularFreqAVX_py
 				{
 					out[j]+=(result[2*j]+result[2*j+1])/howmany;
 				}
-			}
+			}*/
 			
 			/*
 			if(howmany != threads*(howmany/threads))
