@@ -263,31 +263,31 @@ class ACorrCircularFreqAVX_py
 			float* out;
 			out = (float*) malloc((size/2+1)*sizeof(float));
 			std::memset(out,0.0,(size/2+1)*sizeof(float));
-			std::memset(in,0.0,(N-Npad)*sizeof(float));
+			std::memset(inf,0.0,(N-Npad)*sizeof(float));
 
 			#pragma omp parallel for
 			for(uint64_t i=0;i<threads;i++)
 			{
 				manage_thread_affinity();
-				std::memcpy(in+i*transfer_size[0],
+				std::memcpy(inf+i*transfer_size[0],
 							py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(float));
-				fftw_execute_dft_r2c(plan,
-								in+i*transfer_size[0],
-								reinterpret_cast<fftw_complex*>
-								(out_temp+2*i*(transfer_size[0]/size)*(size/2+1)));
-				std::memset(in+i*transfer_size[0],0.0,4*(size/2+1)*sizeof(float));
+				fftwf_execute_dft_r2c(plan,
+								inf+i*transfer_size[0],
+								reinterpret_cast<fftwf_complex*>
+								(out_tempf+2*i*(transfer_size[0]/size)*(size/2+1)));
+				std::memset(inf+i*transfer_size[0],0.0,4*(size/2+1)*sizeof(float));
 				::aCorrCircularFreqAVX(2*(size/2+1)*(howmany/threads),
-								out_temp+2*i*(transfer_size[0]/size)*(size/2+1),
-								out_temp+2*i*(transfer_size[0]/size)*(size/2+1));
+								out_tempf+2*i*(transfer_size[0]/size)*(size/2+1),
+								out_tempf+2*i*(transfer_size[0]/size)*(size/2+1));
 				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
-								out_temp+2*i*(transfer_size[0]/size)*(size/2+1),
-								in+i*transfer_size[0]);
+								out_tempf+2*i*(transfer_size[0]/size)*(size/2+1),
+								inf+i*transfer_size[0]);
 				
 				for(uint64_t j=0;j<(size/2+1);j++)
 				{
 					#pragma omp atomic
-					out[j]+=((in+i*transfer_size[0])[2*j]
-					+(in+i*transfer_size[0])[2*j+1])/howmany;
+					out[j]+=((inf+i*transfer_size[0])[2*j]
+					+(inf+i*transfer_size[0])[2*j+1])/howmany;
 				}
 			}
 			
