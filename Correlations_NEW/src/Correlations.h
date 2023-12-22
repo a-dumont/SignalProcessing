@@ -11,6 +11,16 @@
 #include <cstring>
 #include <numeric>
 
+#ifdef _WIN64
+	std::string wisdom_path = "FFTW_Wisdom";
+#else
+	std::string wisdom_path = "/etc/FFTW/FFTW_Wisdom";
+#endif
+
+typedef std::chrono::steady_clock Clock;
+
+void manage_thread_affinity();
+
 // Acorr
 template<class DataType>
 void aCorrCircularFreqAVX(uint64_t N, DataType* in, DataType* out);

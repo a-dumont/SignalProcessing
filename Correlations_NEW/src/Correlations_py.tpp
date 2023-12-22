@@ -76,7 +76,6 @@ class ACorrCircularFreqAVX_py
 			size = size_in;
 			howmany = N/size;
 			if(howmany*size != N){howmany += 1;}
-			total = howmany*averages;
 			Npad = size*howmany;
 			length[0] = (int) size;
 
@@ -229,7 +228,8 @@ class ACorrCircularFreqAVX_py
 			{
 				::rfftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
 								py_ptr+threads*(howmany/threads)*size,
-								out_temp+threads*(howmany/threads)*(size/2+1));
+								reinterpret_cast<std::complex<double*>>(
+								out_temp+threads*(howmany/threads)*(size/2+1)));
 				::aCorrCircularFreqAVX(size*(howmany-threads*(howmany/threads)),
 								2*(size/2+1),
 								out_temp+threads*(howmany/threads)*(size/2+1),
