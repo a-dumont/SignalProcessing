@@ -78,6 +78,13 @@ class ACorrCircularFreqAVX_py
 			if(howmany*size != N){howmany += 1;}
 			Npad = size*howmany;
 			length[0] = (int) size;
+			
+			// Load wisdom
+			fftw_import_wisdom_from_filename(&wisdom_path[0]);
+			//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
+	
+			// Set max plan time in seconds
+			fftw_set_timelimit(300);
 
 			#ifdef _WIN32_WINNT
 				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
