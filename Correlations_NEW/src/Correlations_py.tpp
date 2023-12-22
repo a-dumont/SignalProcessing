@@ -216,7 +216,7 @@ class ACorrCircularFreqAVX_py
 								out_temp+i*(transfer_size[0]/size)*(size/2+1),
 								in+i*transfer_size[0]);
 			}
-			for(uint64_t i=0;i<1;i++)
+			for(uint64_t i=0;i<2;i++)
 			{
 				double* result = in+i*transfer_size[0];
 				for(uint64_t j=0;j<(size/2+1);j++)
