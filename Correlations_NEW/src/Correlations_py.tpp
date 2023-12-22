@@ -228,7 +228,7 @@ class ACorrCircularFreqAVX_py
 			{
 				::rfftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
 								py_ptr+threads*(howmany/threads)*size,
-								reinterpret_cast<std::complex<double*>>(
+								reinterpret_cast<std::complex<double>*>(
 								out_temp+threads*(howmany/threads)*(size/2+1)));
 				::aCorrCircularFreqAVX(size*(howmany-threads*(howmany/threads)),
 								2*(size/2+1),
