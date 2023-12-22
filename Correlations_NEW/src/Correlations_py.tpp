@@ -231,7 +231,6 @@ class ACorrCircularFreqAVX_py
 								reinterpret_cast<std::complex<double>*>(
 								out_temp+threads*(howmany/threads)*(size/2+1)));
 				::aCorrCircularFreqAVX(size*(howmany-threads*(howmany/threads)),
-								2*(size/2+1),
 								out_temp+threads*(howmany/threads)*(size/2+1),
 								out_temp+threads*(howmany/threads)*(size/2+1));
 				std::memset((void*) in, 0, transfer_size[0]*sizeof(double));
