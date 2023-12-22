@@ -122,9 +122,9 @@ class ACorrCircularFreqAVX_py
 		uint64_t getHowmany(){return howmany;}
 
 		void train()
-		{
-			fftw_import_wisdom_from_filename(&wisdom_path[0]);
+		{	
 			fftw_destroy_plan(plan);
+			fftw_import_wisdom_from_filename(&wisdom_path[0]);
 			plan = fftw_plan_many_dft_r2c(1, length, howmany/threads, in, NULL,
 							1, (int) size, reinterpret_cast<fftw_complex*>(out_temp),
 							NULL, 1, (int) size/2+1, FFTW_EXHAUSTIVE);
