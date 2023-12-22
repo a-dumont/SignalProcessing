@@ -42,7 +42,7 @@ void init_correlations(py::module &m)
 	//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
 	
 	// Set max plan time in seconds
-	fftw_set_timelimit(3000);
+	fftw_set_timelimit(300);
 }
 
 PYBIND11_MODULE(libcorrelations, m)
