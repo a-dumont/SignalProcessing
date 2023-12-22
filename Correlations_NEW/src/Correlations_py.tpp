@@ -271,7 +271,7 @@ class ACorrCircularFreqAVX_py
 				manage_thread_affinity();
 				std::memcpy(inf+i*transfer_size[0],
 							py_ptr+i*transfer_size[0],transfer_size[i]*sizeof(float));
-				fftwf_execute_dft_r2c(plan,
+				fftwf_execute_dft_r2c(planf,
 								inf+i*transfer_size[0],
 								reinterpret_cast<fftwf_complex*>
 								(out_tempf+2*i*(transfer_size[0]/size)*(size/2+1)));
