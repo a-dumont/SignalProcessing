@@ -43,6 +43,7 @@ void init_correlations(py::module &m)
 	
 	// Set max plan time in seconds
 	fftw_set_timelimit(300);
+	fftwf_set_timelimit(300);
 }
 
 PYBIND11_MODULE(libcorrelations, m)
