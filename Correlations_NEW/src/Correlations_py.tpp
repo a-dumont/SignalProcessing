@@ -207,7 +207,7 @@ class ACorrCircularFreqAVX_py
 				fftw_execute_dft_r2c(plan,
 								in+i*transfer_size[0],
 								reinterpret_cast<fftw_complex*>
-								(out_temp+i*(transfer_size[0]/size)*(size/2+1)));
+								(out_temp+2*i*(transfer_size[0]/size)*(size/2+1)));
 				std::memset(in+i*transfer_size[0],0.0,transfer_size[i]*sizeof(double));
 				::aCorrCircularFreqAVX(2*(size/2+1)*(howmany/threads),
 								out_temp+2*i*(transfer_size[0]/size)*(size/2+1),
