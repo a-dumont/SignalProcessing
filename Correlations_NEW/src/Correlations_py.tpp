@@ -119,7 +119,7 @@ class ACorrCircularFreqAVX_py
 
 		uint64_t getSize(){return size;}
 		uint64_t getN(){return Npad;}
-		uint64_t getHowmany(){return Npad;}
+		uint64_t getHowmany(){return howmany;}
 
 		void train()
 		{
@@ -223,7 +223,7 @@ class ACorrCircularFreqAVX_py
 					out[j]+=((in+i*transfer_size[0])[2*j]+(in+i*transfer_size[0])[2*j+1])/howmany;
 				}
 			}
-
+			/*
 			if(howmany != threads*(howmany/threads))
 			{
 				::rfftBlock<double>(size*(howmany-threads*(howmany/threads)),size,
@@ -237,7 +237,7 @@ class ACorrCircularFreqAVX_py
 				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
 								out_temp+threads*(howmany/threads)*(size/2+1),in);
 				for(uint64_t j=0;j<(size/2+1);j++){out[j]+=(in[2*j]+in[2*j+1])/howmany;}
-			}
+			}*/
 
 			py::capsule free_when_done( out, free );
 			return py::array_t<double,py::array::c_style>
