@@ -36,6 +36,13 @@ void init_correlations(py::module &m)
 	
 	m.def("reduceAVX",&reduceBlockAVX_py<float>, "In"_a.noconvert(),"size"_a);
 	m.def("reduceAVX",&reduceBlockAVX_py<double>, "In"_a.noconvert(),"size"_a);
+	
+	// Load wisdom
+	fftw_import_wisdom_from_filename(&wisdom_path[0]);
+	//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
+	
+	// Set max plan time in seconds
+	fftw_set_timelimit(3000);
 }
 
 PYBIND11_MODULE(libcorrelations, m)
