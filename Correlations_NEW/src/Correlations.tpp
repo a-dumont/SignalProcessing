@@ -179,6 +179,42 @@ void axCorrCircularFreqAVX<double>(uint64_t N, double* in1, double* in2,
 //			   | |_| || | |  _  | |___|  _ < ___) |              //
 //				\___/ |_| |_| |_|_____|_| \_\____/               //
 ///////////////////////////////////////////////////////////////////
+void manage_thread_affinity()
+{
+	//Shamelessly stolen from Jean-Olivier's code at
+	//https://github.com/JeanOlivier/Histograms-OTF/blob/master/histograms.c
+    #ifdef _WIN32_WINNT
+        int nbgroups = GetActiveProcessorGroupCount();
+        int *threads_per_groups = (int *) malloc(nbgroups*sizeof(int));
+        for (int i=0; i<nbgroups; i++)
+        {
+            threads_per_groups[i] = GetActiveProcessorCount(i);
+        }
+
+        // Fetching thread number and assigning it to cores
+        int tid = omp_get_thread_num(); // Internal omp thread number (0 -- OMP_NUM_THREADS)
+        HANDLE thandle = GetCurrentThread();
+        bool result;
+
+        // We change group for each thread
+        short unsigned int set_group = tid%nbgroups; 
+		
+		// Nb of threads in group for affinity mask.
+        int nbthreads = threads_per_groups[set_group]; 
+        
+		// nbcores amount of 1 in binary
+        GROUP_AFFINITY group = {((uint64_t)1<<nbthreads)-1, set_group};
+		
+		// Actually setting the affinity
+        result = SetThreadGroupAffinity(thandle, &group, NULL); 
+        if(!result) std::fprintf(stderr, "Failed setting output for tid=%i\n", tid);
+        free(threads_per_groups);
+    #else
+        //We let openmp and the OS manage the threads themselves
+    #endif
+}
+
+
 template<class DataType>
 void rfftBlock(int N, int size, DataType* in, std::complex<DataType>* out){}
 
