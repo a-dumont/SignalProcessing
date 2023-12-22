@@ -39,7 +39,7 @@ void init_correlations(py::module &m)
 	
 	// Load wisdom
 	fftw_import_wisdom_from_filename(&wisdom_path[0]);
-	//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
+	fftwf_import_wisdom_from_filename(&wisdom_pathf[0]);
 	
 	// Set max plan time in seconds
 	fftw_set_timelimit(300);

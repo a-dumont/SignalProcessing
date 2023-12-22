@@ -13,8 +13,10 @@
 
 #ifdef _WIN64
 	std::string wisdom_path = "FFTW_Wisdom";
+	std::string wisdom_pathf = "FFTW_Wisdomf";
 #else
 	std::string wisdom_path = "/etc/FFTW/FFTW_Wisdom";
+	std::string wisdom_pathf = "/etc/FFTW/FFTW_Wisdomf";;
 #endif
 
 typedef std::chrono::steady_clock Clock;

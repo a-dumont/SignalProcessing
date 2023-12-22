@@ -78,13 +78,6 @@ class ACorrCircularFreqAVX_py
 			if(howmany*size != N){howmany += 1;}
 			Npad = size*howmany;
 			length[0] = (int) size;
-			
-			// Load wisdom
-			fftw_import_wisdom_from_filename(&wisdom_path[0]);
-			//fftwf_import_wisdom_from_filename(&wisdom_path[0]);
-	
-			// Set max plan time in seconds
-			fftw_set_timelimit(300);
 
 			#ifdef _WIN32_WINNT
 				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
@@ -132,6 +125,7 @@ class ACorrCircularFreqAVX_py
 		{	
 			fftw_destroy_plan(plan);
 			fftw_import_wisdom_from_filename(&wisdom_path[0]);
+			fftwf_import_wisdom_from_filename(&wisdom_pathf[0]);
 			plan = fftw_plan_many_dft_r2c(1, length, howmany/threads, in, NULL,
 							1, (int) size, reinterpret_cast<fftw_complex*>(out_temp),
 							NULL, 1, (int) size/2+1, FFTW_EXHAUSTIVE);
@@ -146,7 +140,7 @@ class ACorrCircularFreqAVX_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
