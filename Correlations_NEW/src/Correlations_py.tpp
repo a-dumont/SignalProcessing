@@ -213,7 +213,7 @@ class ACorrCircularFreqAVX_py
 								out_temp+i*(transfer_size[0]/size)*(size/2+1),
 								out_temp+i*(transfer_size[0]/size)*(size/2+1));
 				::reduceBlockAVX(2*(size/2+1)*(howmany/threads),2*(size/2+1),
-								out_temp+i*(transfer_size[0]/size)*(size/2+1).
+								out_temp+i*(transfer_size[0]/size)*(size/2+1),
 								in+i*transfer_size[0]);
 			}
 			for(uint64_t i=0;i<threads;i++)
