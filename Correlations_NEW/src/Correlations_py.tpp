@@ -196,7 +196,8 @@ class ACorrCircularFreqAVX_py
 			double* out;
 			out = (double*) malloc((size/2+1)*sizeof(double));
 			std::memset(out,0.0,(size/2+1)*sizeof(double));
-			std::memset(in,0.0,(Npad-N)*sizeof(double));
+			std::memset(in,0.0,howmany*size*sizeof(double));
+			std::memset(in,0.0,howmany*(size+2)*sizeof(double));
 
 			#pragma omp parallel for
 			for(uint64_t i=0;i<threads;i++)
@@ -208,7 +209,7 @@ class ACorrCircularFreqAVX_py
 								in+i*transfer_size[0],
 								reinterpret_cast<fftw_complex*>
 								(out_temp+i*(transfer_size[0]/size)*(size/2+1)));
-				std::memset((void*) (in+i*transfer_size[0]), 0, transfer_size[i]*sizeof(double));
+				std::memset(in+i*transfer_size[0],0.0,transfer_size[i]*sizeof(double));
 				::aCorrCircularFreqAVX(2*(size/2+1)*(howmany/threads),
 								out_temp+i*(transfer_size[0]/size)*(size/2+1),
 								out_temp+i*(transfer_size[0]/size)*(size/2+1));
@@ -216,7 +217,7 @@ class ACorrCircularFreqAVX_py
 								out_temp+i*(transfer_size[0]/size)*(size/2+1),
 								in+i*transfer_size[0]);
 			}
-			for(uint64_t i=0;i<3;i++)
+			for(uint64_t i=0;i<threads;i++)
 			{
 				double* result = in+i*transfer_size[0];
 				for(uint64_t j=0;j<(size/2+1);j++)
