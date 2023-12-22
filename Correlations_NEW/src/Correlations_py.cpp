@@ -10,7 +10,8 @@ void init_correlations(py::module &m)
 			.def(py::init<uint64_t,uint64_t>())
 			.def("aCorrCircularFreqAVX",&ACorrCircularFreqAVX_py::aCorrCircularFreqAVX,
 				"In"_a.noconvert())
-			//.def("rfftBlock",&RFFT_Block_py::rfftBlockf,"In"_a.noconvert())
+			.def("aCorrCircularFreqAVX",&ACorrCircularFreqAVX_py::aCorrCircularFreqAVXf,
+				"In"_a.noconvert())
 			.def("getSize",&ACorrCircularFreqAVX_py::getSize)
 			.def("getN",&ACorrCircularFreqAVX_py::getN)
 			.def("getHowmany",&ACorrCircularFreqAVX_py::getHowmany)

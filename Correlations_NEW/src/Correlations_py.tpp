@@ -251,7 +251,7 @@ class ACorrCircularFreqAVX_py
 		}
 		
 		py::array_t<float,1> 
-		aCorrCircularFreqAVX(py::array_t<float,1> py_in)
+		aCorrCircularFreqAVXf(py::array_t<float,1> py_in)
 		{
 			py::buffer_info buf_in = py_in.request();
 			float* py_ptr = (float*) buf_in.ptr;
