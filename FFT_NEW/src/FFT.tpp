@@ -98,7 +98,7 @@ void fft_training<float>(uint64_t N, std::complex<float>* in, std::complex<float
 					reinterpret_cast<fftwf_complex*>(out), 
 					FFTW_FORWARD, 
 					FFTW_EXHAUSTIVE);
-    fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+    fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -224,7 +224,7 @@ void fftBlock_training<float>(int N, int size, std::complex<float>* in, std::com
 					1,
 					FFTW_EXHAUSTIVE);
 
-    fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+    fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -291,7 +291,7 @@ void rfft_training<float>(uint64_t N, float* in, std::complex<float>* out)
 					in, 
 					reinterpret_cast<fftwf_complex*>(out), 
 					FFTW_EXHAUSTIVE);
-    fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+    fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -415,7 +415,7 @@ void rfftBlock_training<float>(int N, int size, float* in, std::complex<float>* 
 					odist,
 					FFTW_EXHAUSTIVE);
 
-	fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+	fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -542,7 +542,7 @@ void rfftBlock_inplace_training<float>(int N, int size,
 					odist,
 					FFTW_EXHAUSTIVE);
 
-	fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+	fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -612,7 +612,7 @@ void ifft_training<float>(uint64_t N, std::complex<float>* in, std::complex<floa
 					reinterpret_cast<fftwf_complex*>(out), 
 					FFTW_BACKWARD, 
 					FFTW_EXHAUSTIVE);
-    fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+    fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -737,7 +737,7 @@ void ifftBlock_training<float>(int N, int size, std::complex<float>* in, std::co
 					-1,
 					FFTW_EXHAUSTIVE);
 
-    fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+    fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -803,7 +803,7 @@ void irfft_training<float>(uint64_t N, std::complex<float>* in, float* out)
 					reinterpret_cast<fftwf_complex*>(in), 
 					out, 
 					FFTW_EXHAUSTIVE);
-    fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+    fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }
@@ -927,7 +927,7 @@ void irfftBlock_training<float>(int N, int size, std::complex<float>* in, float*
 					odist,
 					FFTW_EXHAUSTIVE);
 
-	fftwf_export_wisdom_to_filename(&wisdom_path[0]);
+	fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 	fftwf_execute(plan);
 	fftwf_destroy_plan(plan);
 }

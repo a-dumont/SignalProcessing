@@ -216,7 +216,7 @@ class FFT_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -375,7 +375,7 @@ class FFT_Block_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -879,7 +879,7 @@ class RFFT_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -1037,7 +1037,7 @@ class RFFT_Block_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -1399,7 +1399,7 @@ class IFFT_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -1570,7 +1570,7 @@ class IFFT_Block_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 	
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -1940,7 +1940,7 @@ class IRFFT_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
@@ -2110,7 +2110,7 @@ class IRFFT_Block_py
 			fftw_export_wisdom_to_filename(&wisdom_path[0]);
 			py::print("Training single precision.");
 			fftwf_execute(planf);
-			fftw_export_wisdom_to_filename(&wisdom_path[0]);
+			fftwf_export_wisdom_to_filename(&wisdom_pathf[0]);
 		}
 		
 		std::tuple<double,double> benchmark(uint64_t n)
