@@ -42,7 +42,7 @@ void rfftBlock(int N, int size, DataType* in, std::complex<DataType>* out);
 
 // Type conversion
 template<class DataTypeIn, class DataTypeOut>
-void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out);
+void convertAVX(uint64_t N, DataTypeIn* in, DataTypeOut* out, DataTypeOut conv, DataTypeIn offset);
 
 template<class DataTypeIn, class DataTypeOut>
 void convertAVX_pad(uint64_t N, uint64_t Npad,
