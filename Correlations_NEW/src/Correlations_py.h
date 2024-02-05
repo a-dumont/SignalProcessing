@@ -14,6 +14,66 @@ template<class DataType>
 py::array_t<DataType,py::array::c_style>
 aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size);
 
+class ACorrCircularFreqAVX_py
+{
+	private:
+		fftw_plan plan, plan2;
+		fftwf_plan planf, plan2f;
+		double *in, *out;
+		float *inf, *outf;
+		double **inThreads, **outThreads;
+		float **inThreadsf, **outThreadsf;
+		uint64_t N, size, cSize, howmany, Npad, threads, howmanyPerThread;
+		int length[1];
+		uint64_t transferSize;
+
+	public:
+		ACorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in);
+		~ACorrCircularFreqAVX_py();
+	
+		void train();
+		std::tuple<double,double> benchmark(uint64_t n);
+		py::array_t<double,1> aCorrCircularFreqAVX(py::array_t<double,1> py_in);
+		py::array_t<float,1> aCorrCircularFreqAVXf(py::array_t<float,1> py_in);
+
+		uint64_t getSize();
+		uint64_t getN();
+		uint64_t getHowmany();
+};
+
+class DigitizerACorrCircularFreqAVX_py
+{
+	private:
+		fftw_plan plan, plan2;
+		fftwf_plan planf, plan2f;
+		double *in, *out;
+		float *inf, *outf;
+		double **inThreads, **outThreads;
+		float **inThreadsf, **outThreadsf;
+		uint64_t N, size, cSize, howmany, Npad, threads, howmanyPerThread;
+		int length[1];
+		uint64_t transferSize;
+	
+	public:
+		DigitizerACorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in);
+		~DigitizerACorrCircularFreqAVX_py();
+	
+		void train();
+		std::tuple<double,double> benchmark(uint64_t n);
+
+		template<class DataType>
+		py::array_t<double,1> 
+		aCorrCircularFreqAVX(py::array_t<DataType,1> py_in, double conv, DataType offset);
+
+		template<class DataType>
+		py::array_t<float,1> 
+		aCorrCircularFreqAVXf(py::array_t<DataType,1> py_in, float conv, DataType offset);
+
+		uint64_t getSize();
+		uint64_t getN();
+		uint64_t getHowmany();
+};
+
 // Xcorr
 template<class DataType>
 py::array_t<std::complex<DataType>,py::array::c_style>
