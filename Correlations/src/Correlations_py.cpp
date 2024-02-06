@@ -116,13 +116,6 @@ void init_correlations(py::module &m)
 			.def("benchmark",&DigitizerFCorrCircularFreqAVX_py::benchmark)
 			.def("train",&DigitizerFCorrCircularFreqAVX_py::train);	
 
-	// Reduction
-	m.def("reduceAVX",&reduceAVX_py<float>, "In"_a.noconvert());
-	m.def("reduceAVX",&reduceAVX_py<double>, "In"_a.noconvert());
-	
-	m.def("reduceAVX",&reduceBlockAVX_py<float>, "In"_a.noconvert(),"size"_a);
-	m.def("reduceAVX",&reduceBlockAVX_py<double>, "In"_a.noconvert(),"size"_a);
-	
 	// Load wisdom
 	fftw_import_wisdom_from_filename(&wisdom_path[0]);
 	fftwf_import_wisdom_from_filename(&wisdom_pathf[0]);

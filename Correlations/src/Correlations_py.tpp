@@ -19,30 +19,28 @@ aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t
 
 	uint64_t N = buf_in.size;
 	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
 	DataType* in = (DataType*) buf_in.ptr;
 	
 	DataType* out;
-	out = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	//std::memset((void*) out, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
 	
 	DataType* result;
-   	result = (DataType*) malloc((size/2+1)*sizeof(DataType));
+   	result = (DataType*) malloc(cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in, 
-					reinterpret_cast<std::complex<DataType>*>(out)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in, reinterpret_cast<std::complex<DataType>*>(out));
 	
 	// Compute product
-	aCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out+2*(size/2+1),out+2*(size/2+1));
+	aCorrCircularFreqAVX<DataType>(2*cSize*howmany,out,out);
 	
 	// Sum all blocks
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1),
-					out+2*(size/2+1),
-					out);
-
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize,out);
+	
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
 	
@@ -52,7 +50,7 @@ aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t
 	py::capsule free_when_done( result, free );
 	return py::array_t<DataType, py::array::c_style>
 	(
-		{(size/2+1)},
+		{cSize},
 		{sizeof(DataType)},
 		result,
 		free_when_done
@@ -65,8 +63,6 @@ ACorrCircularFreqAVX_py::ACorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in
 	size = size_in;
 	cSize = size/2+1;
 	howmany = N/size;
-	if(howmany*size != N){howmany += 1;}
-	Npad = size*howmany;
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
@@ -234,14 +230,13 @@ ACorrCircularFreqAVX_py::aCorrCircularFreqAVX(py::array_t<double,1> py_in)
 		manage_thread_affinity();
 		std::memcpy(inThreads[i],py_ptr+i*transferSize,transferSize*sizeof(double));
 		fftw_execute_dft_r2c(plan,inThreads[i],reinterpret_cast<fftw_complex*>(outThreads[i]));
-		std::memset(inThreads[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
 		::aCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads[i],outThreads[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads[i],inThreads[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads[i]);
 					
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreads[i][2*j]+inThreads[i][2*j+1])/howmany;
+			result[j] += (outThreads[i][2*j]+outThreads[i][2*j+1])/howmany;
 		}
 	}
 			
@@ -251,14 +246,13 @@ ACorrCircularFreqAVX_py::aCorrCircularFreqAVX(py::array_t<double,1> py_in)
 						size*(howmany-threads*howmanyPerThread)*sizeof(double));
 		fftw_execute_dft_r2c(plan2,inThreads[0],
 						reinterpret_cast<fftw_complex*>(outThreads[0]));
-		std::memset(inThreads[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
 		::aCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreads[0],outThreads[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads[0],inThreads[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreads[0][2*j]+inThreads[0][2*j+1])/howmany;
+			result[j] += (outThreads[0][2*j]+outThreads[0][2*j+1])/howmany;
 		}
 	}
 
@@ -292,14 +286,13 @@ ACorrCircularFreqAVX_py::aCorrCircularFreqAVXf(py::array_t<float,1> py_in)
 		std::memcpy(inThreadsf[i],py_ptr+i*transferSize,transferSize*sizeof(float));
 		fftwf_execute_dft_r2c(planf,inThreadsf[i],
 						reinterpret_cast<fftwf_complex*>(outThreadsf[i]));
-		std::memset(inThreadsf[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
 		::aCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreadsf[i],outThreadsf[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreadsf[i],inThreadsf[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreadsf[i]);
 					
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreadsf[i][2*j]+inThreadsf[i][2*j+1])/howmany;
+			result[j] += (outThreadsf[i][2*j]+outThreadsf[i][2*j+1])/howmany;
 		}
 	}
 			
@@ -309,14 +302,13 @@ ACorrCircularFreqAVX_py::aCorrCircularFreqAVXf(py::array_t<float,1> py_in)
 						size*(howmany-threads*howmanyPerThread)*sizeof(float));
 		fftwf_execute_dft_r2c(plan2f,inThreadsf[0],
 						reinterpret_cast<fftwf_complex*>(outThreadsf[0]));
-		std::memset(inThreadsf[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
 		::aCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreadsf[0],outThreadsf[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreadsf[0],inThreadsf[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreadsf[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreadsf[0][2*j]+inThreadsf[0][2*j+1])/howmany;
+			result[j] += (outThreadsf[0][2*j]+outThreadsf[0][2*j+1])/howmany;
 		}
 	}
 
@@ -336,8 +328,6 @@ DigitizerACorrCircularFreqAVX_py::DigitizerACorrCircularFreqAVX_py(uint64_t N_in
 	size = size_in;
 	cSize = size/2+1;
 	howmany = N/size;
-	//if(howmany*size != N){howmany += 1;}
-	//Npad = size*howmany;
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
@@ -510,14 +500,13 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVX
 		convertAVX(transferSize,py_ptr+i*transferSize,inThreads[i],conv,offset);
 		fftw_execute_dft_r2c(plan,inThreads[i],
 						reinterpret_cast<fftw_complex*>(outThreads[i]));
-		std::memset(inThreads[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
 		::aCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads[i],outThreads[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads[i],inThreads[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads[i]);
 					
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreads[i][2*j]+inThreads[i][2*j+1])/howmany;
+			result[j] += (outThreads[i][2*j]+outThreads[i][2*j+1])/howmany;
 		}
 	}
 	
@@ -527,14 +516,13 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVX
 						py_ptr+threads*transferSize,inThreads[0],conv,offset);
 		fftw_execute_dft_r2c(plan2,inThreads[0],
 						reinterpret_cast<fftw_complex*>(outThreads[0]));
-		std::memset(inThreads[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
 		::aCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreads[0],outThreads[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads[0],inThreads[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreads[0][2*j]+inThreads[0][2*j+1])/howmany;
+			result[j] += (outThreads[0][2*j]+outThreads[0][2*j+1])/howmany;
 		}
 	}
 
@@ -570,14 +558,13 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVXf
 		convertAVX(transferSize,py_ptr+i*transferSize,inThreadsf[i],conv,offset);
 		fftwf_execute_dft_r2c(planf,inThreadsf[i],
 						reinterpret_cast<fftwf_complex*>(outThreadsf[i]));
-		std::memset(inThreadsf[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
 		::aCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreadsf[i],outThreadsf[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreadsf[i],inThreadsf[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreadsf[i]);
 			
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreadsf[i][2*j]+inThreadsf[i][2*j+1])/howmany;
+			result[j] += (outThreadsf[i][2*j]+outThreadsf[i][2*j+1])/howmany;
 		}
 	}
 	
@@ -589,17 +576,17 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVXf
 						size*(howmany-threads*howmanyPerThread)*sizeof(float));
 		fftwf_execute_dft_r2c(plan2f,inThreadsf[0],
 						reinterpret_cast<fftwf_complex*>(outThreadsf[0]));
-		std::memset(inThreadsf[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
 		::aCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreadsf[0],outThreadsf[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreadsf[0],inThreadsf[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreadsf[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreadsf[0][2*j]+inThreadsf[0][2*j+1])/howmany;
+			result[j] += (outThreadsf[0][2*j]+outThreadsf[0][2*j+1])/howmany;
 		}
 	}
-		py::capsule free_when_done( result, free );
+	
+	py::capsule free_when_done( result, free );
 	return py::array_t<float,py::array::c_style>
 	(
 	{cSize},
@@ -631,6 +618,7 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 	uint64_t N = std::min(buf_in1.size,buf_in2.size);
 	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
@@ -638,28 +626,21 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
 	DataType *out1, *out2;
-	out1 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	out2 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out1, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out2, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
 	
 	DataType* result;
-   	result = (DataType*) malloc(2*(size/2+1)*sizeof(DataType));
+   	result = (DataType*) malloc(2*cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in1, 
-					reinterpret_cast<std::complex<DataType>*>(out1)+(size/2+1));
-	rfftBlock<DataType>((int) N, (int) size, in2, 
-					reinterpret_cast<std::complex<DataType>*>(out2)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
 
 	// Compute product
-	xCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out1+2*(size/2+1),
-					out2+2*(size/2+1), out1+2*(size/2+1));
+	xCorrCircularFreqAVX<DataType>(2*cSize*howmany,out1, out2, out1);
 	
 	// Sum all blocks
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1),
-					out1+2*(size/2+1),
-					out1);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany, 2*cSize, out1);
 
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(2*(size/2+1));i++)
@@ -674,7 +655,7 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	py::capsule free_when_done(result, free);
 	return py::array_t<std::complex<DataType>, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{2*sizeof(DataType)},
 		reinterpret_cast<std::complex<DataType>*>(result),
 		free_when_done
@@ -687,8 +668,6 @@ XCorrCircularFreqAVX_py::XCorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in
 	size = size_in;
 	cSize = size/2+1;
 	howmany = N/size;
-	if(howmany*size != N){howmany += 1;}
-	Npad = size*howmany;
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
@@ -877,15 +856,14 @@ XCorrCircularFreqAVX_py::xCorrCircularFreqAVX
 		fftw_execute_dft_r2c(plan,inThreads[i],reinterpret_cast<fftw_complex*>(outThreads1[i]));
 		std::memcpy(inThreads[i],py_ptr2+i*transferSize,transferSize*sizeof(double));
 		fftw_execute_dft_r2c(plan,inThreads[i],reinterpret_cast<fftw_complex*>(outThreads2[i]));
-		std::memset(inThreads[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
 		::xCorrCircularFreqAVX(2*cSize*howmanyPerThread,
 						outThreads1[i],outThreads2[i],outThreads1[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i],inThreads[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i]);
 					
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
 			#pragma omp atomic
-			result[j] += inThreads[i][j]/howmany;
+			result[j] += outThreads1[i][j]/howmany;
 		}
 	}
 			
@@ -899,14 +877,13 @@ XCorrCircularFreqAVX_py::xCorrCircularFreqAVX
 						size*(howmany-threads*howmanyPerThread)*sizeof(double));
 		fftw_execute_dft_r2c(plan2,inThreads[0],
 						reinterpret_cast<fftw_complex*>(outThreads2[0]));
-		std::memset(inThreads[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
 		::xCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreads1[0],outThreads2[0],outThreads1[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1[0],inThreads[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1[0]);
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
-			result[j] += inThreads[0][j]/howmany;
+			result[j] += outThreads1[0][j]/howmany;
 		}
 	}
 		py::capsule free_when_done( result, free );
@@ -951,15 +928,14 @@ XCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 		std::memcpy(inThreadsf[i],py_ptr2+i*transferSize,transferSize*sizeof(float));
 		fftwf_execute_dft_r2c(planf,inThreadsf[i],
 						reinterpret_cast<fftwf_complex*>(outThreads2f[i]));
-		std::memset(inThreadsf[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
 		::xCorrCircularFreqAVX(2*cSize*howmanyPerThread,
 						outThreads1f[i],outThreads2f[i],outThreads1f[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i],inThreadsf[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i]);
 			
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
 			#pragma omp atomic
-			result[j] += inThreadsf[i][j]/howmany;
+			result[j] += outThreads1f[i][j]/howmany;
 		}
 	}
 			
@@ -973,14 +949,13 @@ XCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 						size*(howmany-threads*howmanyPerThread)*sizeof(float));
 		fftwf_execute_dft_r2c(plan2f,inThreadsf[0],
 						reinterpret_cast<fftwf_complex*>(outThreads2f[0]));
-		std::memset(inThreadsf[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
 		::xCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreads1f[0],outThreads2f[0],outThreads1f[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1f[0],inThreadsf[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1f[0]);
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
-			result[j] += inThreadsf[0][j]/howmany;
+			result[j] += outThreads1f[0][j]/howmany;
 		}
 	}
 
@@ -1001,8 +976,6 @@ DigitizerXCorrCircularFreqAVX_py::DigitizerXCorrCircularFreqAVX_py
 	size = size_in;
 	cSize = size/2+1;
 	howmany = N/size;
-	if(howmany*size != N){howmany += 1;}
-	Npad = size*howmany;
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
@@ -1191,15 +1164,14 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVX
 		fftw_execute_dft_r2c(plan,inThreads[i], reinterpret_cast<fftw_complex*>(outThreads1[i]));
 		convertAVX(transferSize, py_ptr2+i*transferSize,inThreads[i],conv,offset);
 		fftw_execute_dft_r2c(plan,inThreads[i], reinterpret_cast<fftw_complex*>(outThreads2[i]));
-		std::memset(inThreads[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
 		::xCorrCircularFreqAVX(2*cSize*howmanyPerThread,
 						outThreads1[i],outThreads2[i],outThreads1[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i],inThreads[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i]);
 					
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
 			#pragma omp atomic
-			result[j] += inThreads[i][j]/howmany;
+			result[j] += outThreads1[i][j]/howmany;
 		}
 	}
 			
@@ -1213,14 +1185,13 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVX
 						py_ptr2+threads*transferSize,inThreads[0],conv,offset);
 		fftw_execute_dft_r2c(plan2,inThreads[0],
 						reinterpret_cast<fftw_complex*>(outThreads2[0]));
-		std::memset(inThreads[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
 		::xCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreads1[0],outThreads2[0],outThreads1[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1[0],inThreads[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1[0]);
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
-			result[j] += inThreads[0][j]/howmany;
+			result[j] += outThreads1[0][j]/howmany;
 		}
 	}
 
@@ -1267,15 +1238,14 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 		convertAVX(transferSize, py_ptr2+i*transferSize,inThreadsf[i],conv,offset);
 		fftwf_execute_dft_r2c(planf,inThreadsf[i],
 						reinterpret_cast<fftwf_complex*>(outThreads2f[i]));
-		std::memset(inThreadsf[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
 		::xCorrCircularFreqAVX(2*cSize*howmanyPerThread,
 						outThreads1f[i],outThreads2f[i],outThreads1f[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i],inThreadsf[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i]);
 					
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
 			#pragma omp atomic
-			result[j] += inThreadsf[i][j]/howmany;
+			result[j] += outThreads1f[i][j]/howmany;
 		}
 	}
 		
@@ -1289,14 +1259,13 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 						py_ptr2+threads*transferSize,inThreadsf[0],conv,offset);
 		fftwf_execute_dft_r2c(plan2f,inThreadsf[0],
 						reinterpret_cast<fftwf_complex*>(outThreads2f[0]));
-		std::memset(inThreadsf[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
 		::xCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),
 						outThreads1f[0],outThreads2f[0],outThreads1f[0]);
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1f[0],inThreadsf[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1f[0]);
 		for(uint64_t j=0;j<(2*cSize);j++)
 		{
-			result[j] += inThreadsf[0][j]/howmany;
+			result[j] += outThreads1f[0][j]/howmany;
 		}
 	}
 
@@ -1335,6 +1304,7 @@ fCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 	uint64_t N = std::min(buf_in1.size,buf_in2.size);
 	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
@@ -1342,32 +1312,26 @@ fCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
 	DataType *out1, *out2, *out3;
-	out1 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	out2 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	out3 = (DataType*) malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out1, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out2, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out3, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out3 = (DataType*) malloc(2*cSize*howmany*sizeof(DataType));
 	
 	DataType *result1, *result2, *result3;
-   	result1 = (DataType*) malloc((size/2+1)*sizeof(DataType));
-   	result2 = (DataType*) malloc((size/2+1)*sizeof(DataType));
-   	result3 = (DataType*) malloc(2*(size/2+1)*sizeof(DataType));
+   	result1 = (DataType*) malloc(cSize*sizeof(DataType));
+   	result2 = (DataType*) malloc(cSize*sizeof(DataType));
+   	result3 = (DataType*) malloc(2*cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in1, 
-					reinterpret_cast<std::complex<DataType>*>(out1)+(size/2+1));
-	rfftBlock<DataType>((int) N, (int) size, in2, 
-					reinterpret_cast<std::complex<DataType>*>(out2)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
 
 	// Compute product
-	fCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out1+2*(size/2+1),
-					out2+2*(size/2+1), out1+2*(size/2+1), out2+2*(size/2+1), out3+2*(size/2+1));
+	fCorrCircularFreqAVX<DataType>(2*cSize*howmany,out1, out2, out1, out2, out3);
 	
 	// Sum all blocks
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1), out1+2*(size/2+1), out1);
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1), out2+2*(size/2+1), out2);
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1), out3+2*(size/2+1), out3);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize, out1);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize, out2);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize, out3);
 
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(size/2+1);i++)
@@ -1389,21 +1353,21 @@ fCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	return std::make_tuple(
 	py::array_t<DataType, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{sizeof(DataType)},
 		result1,
 		free_when_done1
 	),
 	py::array_t<DataType, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{sizeof(DataType)},
 		result2,
 		free_when_done2
 	),
 	py::array_t<std::complex<DataType>, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{2*sizeof(DataType)},
 		reinterpret_cast<std::complex<DataType>*>(result3),
 		free_when_done3
@@ -1416,8 +1380,6 @@ FCorrCircularFreqAVX_py::FCorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in
 	size = size_in;
 	cSize = size/2+1;
 	howmany = N/size;
-	if(howmany*size != N){howmany += 1;}
-	Npad = size*howmany;
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
@@ -1617,22 +1579,19 @@ FCorrCircularFreqAVX_py::fCorrCircularFreqAVX
 		::fCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads1[i],outThreads2[i],
 						outThreads1[i],outThreads2[i],outThreads3[i]);
 		
-		std::memset(inThreads[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i],inThreads[i]);			
-		std::memset(outThreads1[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2[i],outThreads1[i]);
-		std::memset(outThreads2[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3[i],outThreads2[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3[i]);		
+
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreads[i][2*j]+inThreads[i][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1[i][2*j]+outThreads1[i][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads2[i][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads2[i][2*j+1]/howmany;
+			result[j] += (outThreads1[i][2*j]+outThreads1[i][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2[i][2*j]+outThreads2[i][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3[i][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3[i][2*j+1]/howmany;
 		}
-	}
-		
+	}		
 		
 	if(howmany-threads*howmanyPerThread != 0)
 	{
@@ -1647,21 +1606,18 @@ FCorrCircularFreqAVX_py::fCorrCircularFreqAVX
 		::fCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),outThreads1[0],
 						outThreads2[0],outThreads1[0],outThreads2[0],outThreads3[0]);
 		
-		std::memset(inThreads[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1[0],inThreads[0]);
-		std::memset(outThreads1[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads2[0],outThreads1[0]);
-		std::memset(outThreads2[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads3[0],outThreads2[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads2[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads3[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreads[0][2*j]+inThreads[0][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1[0][2*j]+outThreads1[0][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads1[0][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads1[0][2*j+1]/howmany;
+			result[j] += (outThreads1[0][2*j]+outThreads1[0][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2[0][2*j]+outThreads2[0][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3[0][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3[0][2*j+1]/howmany;
 		}
 	}
 	
@@ -1712,19 +1668,17 @@ FCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 		::fCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads1f[i],outThreads2f[i],
 						outThreads1f[i],outThreads2f[i],outThreads3f[i]);
 		
-		std::memset(inThreadsf[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i],inThreadsf[i]);		
-		std::memset(outThreads1f[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2f[i],outThreads1f[i]);
-		std::memset(outThreads2f[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3f[i],outThreads2f[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2f[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3f[i]);		
+
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreadsf[i][2*j]+inThreadsf[i][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1f[i][2*j]+outThreads1f[i][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads2f[i][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads2f[i][2*j+1]/howmany;
+			result[j] += (outThreads1f[i][2*j]+outThreads1f[i][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2f[i][2*j]+outThreads2f[i][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3f[i][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3f[i][2*j+1]/howmany;
 		}
 	}
 			
@@ -1741,21 +1695,18 @@ FCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 		::fCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),outThreads1f[0],
 						outThreads2f[0],outThreads1f[0],outThreads2f[0],outThreads3f[0]);
 		
-		std::memset(inThreadsf[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1f[0],inThreadsf[0]);
-		std::memset(outThreads1f[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads2f[0],outThreads1f[0]);
-		std::memset(outThreads2f[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads3f[0],outThreads2f[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1f[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads2f[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads3f[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreadsf[0][2*j]+inThreadsf[0][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1f[0][2*j]+outThreads1f[0][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads2f[0][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads2f[0][2*j+1]/howmany;
+			result[j] += (outThreads1f[0][2*j]+outThreads1f[0][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2f[0][2*j]+outThreads2f[0][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3f[0][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3f[0][2*j+1]/howmany;
 		}
 	}
 	
@@ -1778,8 +1729,6 @@ DigitizerFCorrCircularFreqAVX_py::DigitizerFCorrCircularFreqAVX_py
 	size = size_in;
 	cSize = size/2+1;
 	howmany = N/size;
-	if(howmany*size != N){howmany += 1;}
-	Npad = size*howmany;
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
@@ -1980,19 +1929,17 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVX
 		::fCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads1[i],outThreads2[i],
 						outThreads1[i],outThreads2[i],outThreads3[i]);
 		
-		std::memset(inThreads[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i],inThreads[i]);			
-		std::memset(outThreads1[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2[i],outThreads1[i]);
-		std::memset(outThreads2[i],0.0,2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3[i],outThreads2[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3[i]);		
+
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreads[i][2*j]+inThreads[i][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1[i][2*j]+outThreads1[i][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads2[i][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads2[i][2*j+1]/howmany;
+			result[j] += (outThreads1[i][2*j]+outThreads1[i][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2[i][2*j]+outThreads2[i][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3[i][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3[i][2*j+1]/howmany;
 		}
 	}
 		
@@ -2010,21 +1957,18 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVX
 		::fCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),outThreads1[0],
 						outThreads2[0],outThreads1[0],outThreads2[0],outThreads3[0]);
 		
-		std::memset(inThreads[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1[0],inThreads[0]);
-		std::memset(outThreads1[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads2[0],outThreads1[0]);
-		std::memset(outThreads2[0], 0.0, 2*cSize*howmanyPerThread*sizeof(double));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads3[0],outThreads2[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads2[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads3[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreads[0][2*j]+inThreads[0][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1[0][2*j]+outThreads1[0][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads1[0][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads1[0][2*j+1]/howmany;
+			result[j] += (outThreads1[0][2*j]+outThreads1[0][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2[0][2*j]+outThreads2[0][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3[0][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3[0][2*j+1]/howmany;
 		}
 	}
 	
@@ -2076,20 +2020,20 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 		::fCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads1f[i],outThreads2f[i],
 						outThreads1f[i],outThreads2f[i],outThreads3f[i]);
 		
-		std::memset(inThreadsf[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i],inThreadsf[i]);		
-		std::memset(outThreads1f[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2f[i],outThreads1f[i]);
-		std::memset(outThreads2f[i],0.0,2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3f[i],outThreads2f[i]);
+
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads1f[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads2f[i]);		
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads3f[i]);		
+
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreadsf[i][2*j]+inThreadsf[i][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1f[i][2*j]+outThreads1f[i][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads2f[i][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads2f[i][2*j+1]/howmany;
+			result[j] += (outThreads1f[i][2*j]+outThreads1f[i][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2f[i][2*j]+outThreads2f[i][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3f[i][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3f[i][2*j+1]/howmany;
 		}
+
 	}
 			
 	if(howmany-threads*howmanyPerThread != 0)
@@ -2105,21 +2049,18 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 		::fCorrCircularFreqAVX(2*cSize*(howmany-threads*howmanyPerThread),outThreads1f[0],
 						outThreads2f[0],outThreads1f[0],outThreads2f[0],outThreads3f[0]);
 		
-		std::memset(inThreadsf[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads1f[0],inThreadsf[0]);
-		std::memset(outThreads1f[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads2f[0],outThreads1f[0]);
-		std::memset(outThreads2f[0], 0.0, 2*cSize*howmanyPerThread*sizeof(float));
-		::reduceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
-						2*cSize,outThreads3f[0],outThreads2f[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads1f[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads2f[0]);
+		::reduceInPlaceBlockAVX(2*cSize*(howmany-threads*howmanyPerThread),
+						2*cSize,outThreads3f[0]);
 		for(uint64_t j=0;j<cSize;j++)
 		{
-			result[j] += (inThreadsf[0][2*j]+inThreadsf[0][2*j+1])/howmany;
-			result[j+cSize] += (outThreads1f[0][2*j]+outThreads1f[0][2*j+1])/howmany;
-			result[2*j+2*cSize] += outThreads2f[0][2*j]/howmany;
-			result[2*j+2*cSize+1] += outThreads2f[0][2*j+1]/howmany;
+			result[j] += (outThreads1f[0][2*j]+outThreads1f[0][2*j+1])/howmany;
+			result[j+cSize] += (outThreads2f[0][2*j]+outThreads2f[0][2*j+1])/howmany;
+			result[2*j+2*cSize] += outThreads3f[0][2*j]/howmany;
+			result[2*j+2*cSize+1] += outThreads3f[0][2*j+1]/howmany;
 		}
 	}
 	
@@ -2141,56 +2082,3 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 //			   | |_| || | |  _  | |___|  _ < ___) |              //
 //				\___/ |_| |_| |_|_____|_| \_\____/               //
 ///////////////////////////////////////////////////////////////////
-
-template<class DataType>
-DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
-{
-	py::buffer_info buf_in = py_in.request();
-
-	if (buf_in.ndim != 1)
-	{
-		throw std::runtime_error("U dumbdumb dimension must be 1.");
-	}
-
-	uint64_t N = buf_in.size;
-	uint64_t size = std::max((uint64_t) 256, N*sizeof(DataType)/32);
-
-	DataType* in = (DataType*) buf_in.ptr;
-	DataType* out = (DataType*) malloc(size*sizeof(DataType));
-
-	reduceAVX<DataType>(N, in, out);
-	DataType result = out[0];
-	free(out);
-
-	return result;
-}
-
-template<class DataType>
-py::array_t<DataType,py::array::c_style>
-reduceBlockAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
-{
-	py::buffer_info buf_in = py_in.request();
-
-	if (buf_in.ndim != 1)
-	{
-		throw std::runtime_error("U dumbdumb dimension must be 1.");
-	}
-
-	uint64_t N = buf_in.size;
-
-	DataType* in = (DataType*) buf_in.ptr;
-	DataType* out = (DataType*) malloc(N*sizeof(DataType));
-
-	std::memset((void*) out,0,N*sizeof(DataType));
-	
-	reduceBlockAVX<DataType>(N, size, in, out);
-
-	py::capsule free_when_done( out, free );
-	return py::array_t<DataType, py::array::c_style>
-	(
-		{size},
-		{sizeof(DataType)},
-		out,
-		free_when_done
-	);
-}
