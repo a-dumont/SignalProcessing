@@ -53,7 +53,7 @@ template<class DataType>
 void reduceAVX(uint64_t N, DataType* in, DataType* out);
 
 template<class DataType>
-void reduceBlockAVX(uint64_t N, uint64_t size, DataType* in, DataType* out);
+void reduceInPlaceBlockAVX(uint64_t N, uint64_t size, DataType* in);
 
 // .tpp template definitions 
 #include "Correlations.tpp"

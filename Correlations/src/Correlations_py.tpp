@@ -19,30 +19,28 @@ aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t
 
 	uint64_t N = buf_in.size;
 	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
 	DataType* in = (DataType*) buf_in.ptr;
 	
 	DataType* out;
-	out = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	//std::memset((void*) out, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
 	
 	DataType* result;
-   	result = (DataType*) malloc((size/2+1)*sizeof(DataType));
+   	result = (DataType*) malloc(cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in, 
-					reinterpret_cast<std::complex<DataType>*>(out)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in, reinterpret_cast<std::complex<DataType>*>(out));
 	
 	// Compute product
-	aCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out+2*(size/2+1),out+2*(size/2+1));
+	aCorrCircularFreqAVX<DataType>(2*cSize*howmany,out,out);
 	
 	// Sum all blocks
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1),
-					out+2*(size/2+1),
-					out);
-
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize,out);
+	
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
 	
@@ -52,7 +50,7 @@ aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t
 	py::capsule free_when_done( result, free );
 	return py::array_t<DataType, py::array::c_style>
 	(
-		{(size/2+1)},
+		{cSize},
 		{sizeof(DataType)},
 		result,
 		free_when_done
@@ -502,14 +500,13 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVX
 		convertAVX(transferSize,py_ptr+i*transferSize,inThreads[i],conv,offset);
 		fftw_execute_dft_r2c(plan,inThreads[i],
 						reinterpret_cast<fftw_complex*>(outThreads[i]));
-		std::memset(inThreads[i],0.0,cSize*howmanyPerThread*sizeof(double));
 		::aCorrCircularFreqAVX(2*cSize*howmanyPerThread,outThreads[i],outThreads[i]);
-		::reduceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads[i],inThreads[i]);
+		::reduceInPlaceBlockAVX(2*cSize*howmanyPerThread,2*cSize,outThreads[i]);
 					
 		for(uint64_t j=0;j<cSize;j++)
 		{
 			#pragma omp atomic
-			result[j] += (inThreads[i][2*j]+inThreads[i][2*j+1])/howmany;
+			result[j] += (outThreads[i][2*j]+outThreads[i][2*j+1])/howmany;
 		}
 	}
 	
@@ -621,6 +618,7 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 	uint64_t N = std::min(buf_in1.size,buf_in2.size);
 	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
@@ -628,28 +626,21 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
 	DataType *out1, *out2;
-	out1 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	out2 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out1, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out2, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
 	
 	DataType* result;
-   	result = (DataType*) malloc(2*(size/2+1)*sizeof(DataType));
+   	result = (DataType*) malloc(2*cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in1, 
-					reinterpret_cast<std::complex<DataType>*>(out1)+(size/2+1));
-	rfftBlock<DataType>((int) N, (int) size, in2, 
-					reinterpret_cast<std::complex<DataType>*>(out2)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
 
 	// Compute product
-	xCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out1+2*(size/2+1),
-					out2+2*(size/2+1), out1+2*(size/2+1));
+	xCorrCircularFreqAVX<DataType>(2*cSize*howmany,out1, out2, out1);
 	
 	// Sum all blocks
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1),
-					out1+2*(size/2+1),
-					out1);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany, 2*cSize, out1);
 
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(2*(size/2+1));i++)
@@ -664,7 +655,7 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	py::capsule free_when_done(result, free);
 	return py::array_t<std::complex<DataType>, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{2*sizeof(DataType)},
 		reinterpret_cast<std::complex<DataType>*>(result),
 		free_when_done
@@ -1313,6 +1304,7 @@ fCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 	uint64_t N = std::min(buf_in1.size,buf_in2.size);
 	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
@@ -1320,32 +1312,26 @@ fCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	DataType* in2 = (DataType*) buf_in2.ptr;
 	
 	DataType *out1, *out2, *out3;
-	out1 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	out2 = (DataType*) fftw_malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	out3 = (DataType*) malloc(2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out1, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out2, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
-	std::memset((void*) out3, 0, 2*(howmany+1)*(size/2+1)*sizeof(DataType));
+	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out3 = (DataType*) malloc(2*cSize*howmany*sizeof(DataType));
 	
 	DataType *result1, *result2, *result3;
-   	result1 = (DataType*) malloc((size/2+1)*sizeof(DataType));
-   	result2 = (DataType*) malloc((size/2+1)*sizeof(DataType));
-   	result3 = (DataType*) malloc(2*(size/2+1)*sizeof(DataType));
+   	result1 = (DataType*) malloc(cSize*sizeof(DataType));
+   	result2 = (DataType*) malloc(cSize*sizeof(DataType));
+   	result3 = (DataType*) malloc(2*cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in1, 
-					reinterpret_cast<std::complex<DataType>*>(out1)+(size/2+1));
-	rfftBlock<DataType>((int) N, (int) size, in2, 
-					reinterpret_cast<std::complex<DataType>*>(out2)+(size/2+1));
+	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
 
 	// Compute product
-	fCorrCircularFreqAVX<DataType>(2*howmany*(size/2+1),out1+2*(size/2+1),
-					out2+2*(size/2+1), out1+2*(size/2+1), out2+2*(size/2+1), out3+2*(size/2+1));
+	fCorrCircularFreqAVX<DataType>(2*cSize*howmany,out1, out2, out1, out2, out3);
 	
 	// Sum all blocks
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1), out1+2*(size/2+1), out1);
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1), out2+2*(size/2+1), out2);
-	reduceBlockAVX<DataType>(2*howmany*(size/2+1),2*(size/2+1), out3+2*(size/2+1), out3);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize, out1);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize, out2);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize, out3);
 
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(size/2+1);i++)
@@ -1367,21 +1353,21 @@ fCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	return std::make_tuple(
 	py::array_t<DataType, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{sizeof(DataType)},
 		result1,
 		free_when_done1
 	),
 	py::array_t<DataType, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{sizeof(DataType)},
 		result2,
 		free_when_done2
 	),
 	py::array_t<std::complex<DataType>, py::array::c_style>
 	(
-		{size/2+1},
+		{cSize},
 		{2*sizeof(DataType)},
 		reinterpret_cast<std::complex<DataType>*>(result3),
 		free_when_done3
@@ -2096,56 +2082,3 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 //			   | |_| || | |  _  | |___|  _ < ___) |              //
 //				\___/ |_| |_| |_|_____|_| \_\____/               //
 ///////////////////////////////////////////////////////////////////
-
-template<class DataType>
-DataType reduceAVX_py(py::array_t<DataType,py::array::c_style> py_in)
-{
-	py::buffer_info buf_in = py_in.request();
-
-	if (buf_in.ndim != 1)
-	{
-		throw std::runtime_error("U dumbdumb dimension must be 1.");
-	}
-
-	uint64_t N = buf_in.size;
-	uint64_t size = std::max((uint64_t) 256, N*sizeof(DataType)/32);
-
-	DataType* in = (DataType*) buf_in.ptr;
-	DataType* out = (DataType*) malloc(size*sizeof(DataType));
-
-	reduceAVX<DataType>(N, in, out);
-	DataType result = out[0];
-	free(out);
-
-	return result;
-}
-
-template<class DataType>
-py::array_t<DataType,py::array::c_style>
-reduceBlockAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
-{
-	py::buffer_info buf_in = py_in.request();
-
-	if (buf_in.ndim != 1)
-	{
-		throw std::runtime_error("U dumbdumb dimension must be 1.");
-	}
-
-	uint64_t N = buf_in.size;
-
-	DataType* in = (DataType*) buf_in.ptr;
-	DataType* out = (DataType*) malloc(N*sizeof(DataType));
-
-	std::memset((void*) out,0,N*sizeof(DataType));
-	
-	reduceBlockAVX<DataType>(N, size, in, out);
-
-	py::capsule free_when_done( out, free );
-	return py::array_t<DataType, py::array::c_style>
-	(
-		{size},
-		{sizeof(DataType)},
-		out,
-		free_when_done
-	);
-}
