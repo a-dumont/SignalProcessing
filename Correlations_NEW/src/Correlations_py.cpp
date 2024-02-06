@@ -78,10 +78,22 @@ void init_correlations(py::module &m)
 			.def("train",&DigitizerXCorrCircularFreqAVX_py::train);
 					
 	// Combined Acorr and Xcorr
-	m.def("axCorrCircularFreqAVX",&axCorrCircularFreqAVX_py<float>, 
+	m.def("fCorrCircularFreqAVX",&fCorrCircularFreqAVX_py<float>, 
 					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
-	m.def("axCorrCircularFreqAVX",&axCorrCircularFreqAVX_py<double>, 
+	m.def("fCorrCircularFreqAVX",&fCorrCircularFreqAVX_py<double>, 
 					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
+
+	py::class_<FCorrCircularFreqAVX_py>(m,"FCorrCircularFreqAVX")
+			.def(py::init<uint64_t,uint64_t>())
+			.def("fCorrCircularFreqAVX",&FCorrCircularFreqAVX_py::fCorrCircularFreqAVX,
+				"In1"_a.noconvert(),"In2"_a.noconvert())
+			.def("fCorrCircularFreqAVX",&FCorrCircularFreqAVX_py::fCorrCircularFreqAVXf,
+				"In1"_a.noconvert(),"In2"_a.noconvert())
+			.def("getSize",&FCorrCircularFreqAVX_py::getSize)
+			.def("getN",&FCorrCircularFreqAVX_py::getN)
+			.def("getHowmany",&FCorrCircularFreqAVX_py::getHowmany)
+			.def("benchmark",&FCorrCircularFreqAVX_py::benchmark)
+			.def("train",&FCorrCircularFreqAVX_py::train);
 	
 	// Reduction
 	m.def("reduceAVX",&reduceAVX_py<float>, "In"_a.noconvert());

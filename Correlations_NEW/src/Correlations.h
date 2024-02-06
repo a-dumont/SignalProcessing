@@ -33,7 +33,7 @@ void xCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, DataType* ou
 
 // Combined Acorr and Xcorr
 template<class DataType>
-void axCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, 
+void fCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, 
 				DataType* out1, DataType* out2, DataType* out3);
 
 // rFFT
