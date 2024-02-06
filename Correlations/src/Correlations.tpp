@@ -794,7 +794,7 @@ void reduceBlockAVX<float>(uint64_t N, uint64_t size, float* in, float* out)
 
 	uint64_t powers[64];
 	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
-	
+
 	std::memcpy(result,data,powers[0]*size*sizeof(float));
 	
 	uint64_t offset = powers[0]*size;
@@ -884,6 +884,99 @@ void reduceBlockAVX<double>(uint64_t N, uint64_t size, double* in, double* out)
 			}
 			offset += size*powers[i]*(1<<i);
 			data = in+offset;
+		}
+	}
+}
+
+template<class DataType>
+void reduceInPlaceBlockAVX(uint64_t N, uint64_t size, DataType* data){}
+
+template<>
+void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
+{
+	__m256 ymm0,ymm1;
+
+	uint64_t howmany = N/size;
+	uint64_t registers = size/8;
+	uint64_t excess = size-(registers*8);
+
+	uint64_t powers[64];
+	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
+
+	uint64_t offset = powers[0]*size;
+	if(offset != 0 && howmany != 1)
+	{
+		for(uint64_t i=0;i<size;i++){data[i]+=data[N-1-size+i];offset=0;}
+	}
+
+	if(howmany > 1)
+	{
+		for(uint8_t i=1;i<63;i++)
+		{
+			for(uint8_t j=0;j<i;j++)
+			{
+				for(uint64_t k=0;k<size*powers[i]*(1<<(i-j));k+=2*size)
+				{
+					for(uint64_t l=0;l<registers;l++)
+					{
+						ymm0 = _mm256_loadu_ps(data+k+l*8+offset);
+						ymm1 = _mm256_loadu_ps(data+k+l*8+size+offset);
+						ymm0 = _mm256_add_ps(ymm0,ymm1);
+						_mm256_storeu_ps(data+k/2+l*8,ymm0);
+					}
+					for(uint64_t l=0;l<excess;l++)
+					{
+						data[k/2+8*registers+l] = data[k+8*registers+l+offset]
+														+data[k+8*registers+size+l+offset];
+					}
+				}
+			}
+			offset += size*powers[i]*(1<<i);
+		}
+	}
+}
+
+template<>
+void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
+{
+	__m256d ymm0,ymm1;
+
+	uint64_t howmany = N/size;
+	uint64_t registers = size/4;
+	uint64_t excess = size-(registers*4);
+
+	uint64_t powers[64];
+	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
+	
+	uint64_t offset = powers[0]*size;
+	if(offset != 0 && howmany != 1)
+	{
+		for(uint64_t i=0;i<size;i++){data[i]+=data[N-1-size+i];offset=0;}
+	}
+
+	if(howmany > 1)
+	{
+		for(uint8_t i=1;i<63;i++)
+		{
+			for(uint8_t j=0;j<i;j++)
+			{
+				for(uint64_t k=0;k<size*powers[i]*(1<<(i-j));k+=2*size)
+				{
+					for(uint64_t l=0;l<registers;l++)
+					{
+						ymm0 = _mm256_loadu_pd(data+k+l*4+offset);
+						ymm1 = _mm256_loadu_pd(data+k+l*4+size+offset);
+						ymm0 = _mm256_add_pd(ymm0,ymm1);
+						_mm256_storeu_pd(data+k/2+l*4,ymm0);
+					}
+					for(uint64_t l=0;l<excess;l++)
+					{
+						data[k/2+4*registers+l] = data[k+4*registers+l+offset]
+														+data[k+4*registers+size+l+offset];
+					}
+				}
+			}	
+			offset += size*powers[i]*(1<<i);
 		}
 	}
 }
