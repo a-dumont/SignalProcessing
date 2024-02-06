@@ -185,7 +185,7 @@ class FCorrCircularFreqAVX_py
 		uint64_t getHowmany();
 };
 
-/*
+
 class DigitizerFCorrCircularFreqAVX_py
 {
 	private:
@@ -219,7 +219,7 @@ class DigitizerFCorrCircularFreqAVX_py
 		uint64_t getSize();
 		uint64_t getN();
 		uint64_t getHowmany();
-};*/
+};
 
 // Reduction
 template<class DataType>
