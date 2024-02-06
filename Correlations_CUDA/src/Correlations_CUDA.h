@@ -8,6 +8,9 @@ template<class DataType>
 void autocorrelation_cuda(long long int N, std::complex<DataType>* in, DataType* out);
 
 template<class DataType>
+void autocorrelation_cuda2(long long int N, DataType* in, DataType* out);
+
+template<class DataType>
 void cross_correlation_cuda(long long int N, std::complex<DataType>* in1, 
 				std::complex<DataType>*in2, std::complex<DataType>* out);
 
@@ -44,3 +47,13 @@ void add_complex_cuda(long long int N, double* in1, double* in2, double* out);
 
 void completecorrelation_convert(long long int N, std::complex<float>* in1, 
 				std::complex<float>*in2, double* out1, double* out2, double* out3, double* out4);
+
+template<class DataType>
+void round(long long int N, DataType* in);
+
+template<class DataType>
+void llround(long long int N, DataType* in, long long int* out);
+
+template<class DataType>
+void mul(long long int N, DataType* in, DataType m);
+

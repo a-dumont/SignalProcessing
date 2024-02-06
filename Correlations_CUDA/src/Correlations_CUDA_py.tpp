@@ -231,7 +231,7 @@ autocorrelation_block_cuda_py(py::array_t<DataType,py::array::c_style> py_in, lo
 		reduction_general(howmany*(size/2+1),reinterpret_cast<DataType*>(gpu),size/2+1);
 		cufftDestroy(plan);
 	}
-	else{reduction(howmany*(size/2+1),reinterpret_cast<DataType*>(gpu),size/2+1);}
+	else{reduction_general(howmany*(size/2+1),reinterpret_cast<DataType*>(gpu),size/2+1);}
 
 	cudaMemcpy(out,gpu,(size/2+1)*sizeof(DataType),cudaMemcpyDeviceToHost);
 	for(long long int i=0;i<(size/2+1);i++){out[i] /= howmany;}
@@ -380,7 +380,7 @@ cross_correlation_block_cuda_py(
 		reduction_general(howmany*(size+2),reinterpret_cast<DataType*>(gpu1),size+2);
 		cufftDestroy(plan);
 	}
-	else{reduction(howmany*(size+2),reinterpret_cast<DataType*>(gpu1),size+2);}
+	else{reduction_general(howmany*(size+2),reinterpret_cast<DataType*>(gpu1),size+2);}
 
 	cudaMemcpy(out,gpu1,(size+2)*sizeof(DataType),cudaMemcpyDeviceToHost);
 	for(long long int i=0;i<(size/2+1);i++){out[i] /= howmany;}
@@ -552,9 +552,9 @@ complete_correlation_block_cuda_py(
 	}
 	else
 	{
-		reduction(howmany*(size+2),reinterpret_cast<DataType*>(gpu1),size+2);
-		reduction(howmany*(size/2+1),reinterpret_cast<DataType*>(gpu2),size/2+1);
-		reduction(howmany*(size/2+1),gpu3,size/2+1);
+		reduction_general(howmany*(size+2),reinterpret_cast<DataType*>(gpu1),size+2);
+		reduction_general(howmany*(size/2+1),reinterpret_cast<DataType*>(gpu2),size/2+1);
+		reduction_general(howmany*(size/2+1),gpu3,size/2+1);
 	}
 
 	cudaMemcpy(out1,gpu2,(size/2+1)*sizeof(DataType),cudaMemcpyDeviceToHost);
@@ -706,7 +706,7 @@ digitizer_autocorrelation_cuda_py(
 		reduction_general(howmany*(size/2+1),reinterpret_cast<DataType2*>(gpu),size/2+1);
 		cufftDestroy(plan);
 	}
-	else{reduction(howmany*(size/2+1),reinterpret_cast<DataType2*>(gpu),size/2+1);}
+	else{reduction_general(howmany*(size/2+1),reinterpret_cast<DataType2*>(gpu),size/2+1);}
 
 	cudaMemcpy(out,gpu,(size/2+1)*sizeof(DataType2),cudaMemcpyDeviceToHost);
 	for(long long int i=0;i<(size/2+1);i++){out[i] /= howmany;}
@@ -907,7 +907,7 @@ digitizer_crosscorrelation_cuda_py(
 		reduction_general(howmany*(size+2),reinterpret_cast<DataType2*>(gpu1),size+2);
 		cufftDestroy(plan);
 	}
-	else{reduction(howmany*(size+2),reinterpret_cast<DataType2*>(gpu1),size+2);}
+	else{reduction_general(howmany*(size+2),reinterpret_cast<DataType2*>(gpu1),size+2);}
 
 	cudaMemcpy(out,gpu1,(size+2)*sizeof(DataType2),cudaMemcpyDeviceToHost);
 	for(long long int i=0;i<(size/2+1);i++){out[i] /= howmany;}
@@ -1128,9 +1128,9 @@ digitizer_completecorrelation_cuda_py(
 	}
 	else
 	{
-		reduction(howmany*(size+2),reinterpret_cast<DataType2*>(gpu1),size+2);
-		reduction(howmany*(size/2+1),reinterpret_cast<DataType2*>(gpu2),size/2+1);
-		reduction(howmany*(size/2+1),gpu3,size/2+1);
+		reduction_general(howmany*(size+2),reinterpret_cast<DataType2*>(gpu1),size+2);
+		reduction_general(howmany*(size/2+1),reinterpret_cast<DataType2*>(gpu2),size/2+1);
+		reduction_general(howmany*(size/2+1),gpu3,size/2+1);
 	}
 
 	cudaMemcpy(out1,gpu2,(size/2+1)*sizeof(DataType2),cudaMemcpyDeviceToHost);
@@ -1299,7 +1299,7 @@ class DigitizerAutoCorrelationCuda
 				reduction_general(howmany*(size/2+1),
 								reinterpret_cast<double*>(gpu_data),size/2+1);
 			}
-			else{reduction(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data),size/2+1);}
+			else{reduction_general(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data),size/2+1);}
 			add_cuda(size/2+1,reinterpret_cast<double*>(gpu_data),gpu_accumulate);
 			count += 1;
 		}
@@ -1538,8 +1538,8 @@ class DigitizerCrossCorrelationCuda
 			}
 			else
 			{
-				reduction(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data1),size/2+1);
-				reduction(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data2),size/2+1);
+				reduction_general(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data1),size/2+1);
+				reduction_general(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data2),size/2+1);
 			}
 			add_complex_cuda(size/2+1,
 							reinterpret_cast<double*>(gpu_data1),
@@ -1802,10 +1802,10 @@ class DigitizerCompleteCorrelationCuda
 			}
 			else
 			{
-				reduction(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data1),size/2+1);
-				reduction(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data2),size/2+1);
-				reduction(howmany*(size/2+1),gpu_data3,size/2+1);
-				reduction(howmany*(size/2+1),gpu_data4,size/2+1);
+				reduction_general(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data1),size/2+1);
+				reduction_general(howmany*(size/2+1),reinterpret_cast<double*>(gpu_data2),size/2+1);
+				reduction_general(howmany*(size/2+1),gpu_data3,size/2+1);
+				reduction_general(howmany*(size/2+1),gpu_data4,size/2+1);
 			}
 			add_complex_cuda(size/2+1,
 							reinterpret_cast<double*>(gpu_data1),
@@ -1862,22 +1862,26 @@ class DigitizerAutoCorrelationPadCuda
 		long long int transfer_size = 1<<24;
 		long long int count = 0;
 		DataType* gpu_raw;
-		std::complex<float>* gpu_data;
-		double* gpu_accumulate;
+		std::complex<double>* gpu_data;
+		long long int* gpu_accumulate;
+		double* gpu_accumulate2;
 		cudaStream_t streams[2];
-		cufftHandle plan, plan2;
+		cufftHandle plan, plan2, plan3, plan_inv;
 
 		void cudaInit()
 		{
 			cudaStreamCreate(&streams[0]);
 			cudaStreamCreate(&streams[1]);
 			cudaMalloc((void**)&gpu_raw, howmany*(2*size+2)*sizeof(DataType));
-			cudaMalloc((void**)&gpu_data, howmany*(size+1)*sizeof(std::complex<float>));
-			cudaMalloc((void**)&gpu_accumulate,(size+1)*sizeof(double));
-			makePlan<float, long long int>(&plan,2*size,batch);
+			cudaMalloc((void**)&gpu_data, howmany*(size+1)*sizeof(std::complex<double>));
+			cudaMalloc((void**)&gpu_accumulate,(2*size+2)*sizeof(long long int));
+			cudaMalloc((void**)&gpu_accumulate2,(2*size+2)*sizeof(double));
+			makePlan<double, long long int>(&plan,2*size,batch);
+			makePlan<double, long long int>(&plan3,2*size,1);
+			makePlanInv<double>(&plan_inv,2*size,1);
 			if(remaining != 0)
 			{
-				makePlan<float, long long int>(&plan2,2*size,remaining/size/sizeof(DataType));
+				makePlan<double, long long int>(&plan2,2*size,remaining/size/sizeof(DataType));
 			}
 		}
 		void cudaDel()
@@ -1887,7 +1891,10 @@ class DigitizerAutoCorrelationPadCuda
 			cudaFree(gpu_raw);
 			cudaFree(gpu_data);
 			cudaFree(gpu_accumulate);
+			cudaFree(gpu_accumulate2);
 			cufftDestroy(plan);
+			cufftDestroy(plan3);
+			cufftDestroy(plan_inv);
 			if(remaining!=0){cufftDestroy(plan2);}
 		}
 	public:
@@ -1900,7 +1907,12 @@ class DigitizerAutoCorrelationPadCuda
 			size = size_in;
 			N = howmany*size;
 			data_size = N*sizeof(DataType);
-			if(data_size/transfer_size == 0){transfers=1;transfer_size=data_size;remaining=0;}
+			if(data_size/transfer_size == 0)
+			{
+				transfers=1;
+				transfer_size=1<<((int)(std::log2(data_size)));
+				remaining=data_size-transfers*transfer_size;
+			}
 			else{transfers=data_size/transfer_size;remaining=data_size-transfers*transfer_size;}
 			batch = transfer_size/size/sizeof(DataType);
 			cudaInit();
@@ -1943,78 +1955,88 @@ class DigitizerAutoCorrelationPadCuda
 
 				convert(batch*(2*size+2),
 								gpu_raw+(i-1)*batch*(2*size+2),
-								reinterpret_cast<float*>(gpu_data)+(i-1)*batch*(2*size+2),
-								conv,
+								reinterpret_cast<double*>(gpu_data)+(i-1)*batch*(2*size+2),
+								1.0,
 								offset,
 								streams[0]);
 		
 				rFFT_Block_Async_CUDA(gpu_data+(i-1)*batch*(size+1),plan,streams[0]);
-				autocorrelation_convert(batch*(size+1),
-								gpu_data+(i-1)*batch*(size+1),
-								reinterpret_cast<double*>(gpu_data)+(i-1)*batch*(size+1));
+				autocorrelation_cuda2(batch*(size+1),
+								reinterpret_cast<double*>(gpu_data)+(i-1)*batch*2*(size+1),
+								reinterpret_cast<double*>(gpu_data)+(i-1)*batch*2*(size+1));
 			}
-
 
 			convert(batch*(2*size+2),
 							gpu_raw+(transfers-1)*batch*(2*size+2),
-							reinterpret_cast<float*>(gpu_data)+(transfers-1)*batch*(2*size+2),
-							conv,
+							reinterpret_cast<double*>(gpu_data)+(transfers-1)*batch*(2*size+2),
+							1.0,
 							offset,
 							streams[0]);
 
 			rFFT_Block_Async_CUDA(gpu_data+(transfers-1)*batch*(size+1),plan,streams[0]);
-			autocorrelation_convert(batch*(size+1),
-								gpu_data+(transfers-1)*batch*(size+1),
-								reinterpret_cast<double*>
-								(gpu_data)+(transfers-1)*batch*(size+1));
+
+			autocorrelation_cuda2(batch*(size+1),
+							reinterpret_cast<double*>
+							(gpu_data)+(transfers-1)*2*batch*(size+1),
+							reinterpret_cast<double*>
+							(gpu_data)+(transfers-1)*2*batch*(size+1));
 
 			if(remaining != 0)
 			{
+			
 				cudaMemcpy2DAsync(gpu_raw+transfers*batch*(2*size+2),
 								(2*size+2)*sizeof(DataType),
-								cpu_raw+transfers*transfer_size/sizeof(DataType),
+								cpu_raw+transfers*batch*size,
 								sizeof(DataType)*size,
 								sizeof(DataType)*size,
 								remaining/size/sizeof(DataType),
 								cudaMemcpyHostToDevice,
 								streams[0]);
-
+				
 				convert(remaining/sizeof(DataType)/size*(2*size+2),
-								gpu_raw+transfers*batch*2*size,
-								reinterpret_cast<float*>(gpu_data)+transfers*batch*(2*size+2),
-								conv,
+								gpu_raw+transfers*batch*2*(size+1),
+								reinterpret_cast<double*>(gpu_data)+transfers*batch*(2*size+2),
+								1.0,
 								offset,
 								streams[0]);
 
-				rFFT_Block_Async_CUDA(gpu_data+transfers*batch*(size+1),plan,streams[0]);
-				autocorrelation_convert(remaining/size/sizeof(DataType)*(size+1),
-									gpu_data+transfers*batch*(size+1),
+				rFFT_Block_Async_CUDA(gpu_data+transfers*batch*(size+1),plan2,streams[0]);
+				autocorrelation_cuda2(remaining/size/sizeof(DataType)*(size+1),
 									reinterpret_cast<double*>
-									(gpu_data)+transfers*batch*(size/2+1));
+									(gpu_data)+transfers*batch*2*(size+1),
+									reinterpret_cast<double*>
+									(gpu_data)+transfers*batch*2*(size+1));
 	
-				reduction_general(howmany*(size+1),
-								reinterpret_cast<double*>(gpu_data),size+1);
+				reduction_general(howmany*2*(size+1),
+								reinterpret_cast<double*>(gpu_data),2*size+2);
 			}
-			else{reduction(howmany*(size+1),reinterpret_cast<double*>(gpu_data),size+1);}
-			add_cuda(size+1,reinterpret_cast<double*>(gpu_data),gpu_accumulate);
+			else{reduction_general(howmany*2*(size+1),reinterpret_cast<double*>(gpu_data),2*(size+1));}
+			mul(2*size+2,reinterpret_cast<double*>(gpu_data),1.0/2/size/howmany);
+			irFFT_Block_Async_CUDA(gpu_data,plan_inv,streams[0]);
+			llround(2*size,reinterpret_cast<double*>(gpu_data),
+							reinterpret_cast<long long int*>(gpu_data));
+			add_cuda(2*size,reinterpret_cast<long long int*>(gpu_data),gpu_accumulate);
 			count += 1;
-			cudaMemset(gpu_data,0,howmany*(2*size+2)*sizeof(float));
+			cudaMemset(gpu_data,0,howmany*(2*size+2)*sizeof(double));
 		}
-		py::array_t<double,py::array::c_style> getResult()
+		py::array_t<double,py::array::c_style> getResultTime()
 		{
 			if(count == 0){throw std::runtime_error("U dumbdumb accumulate first");}
-			double* out;
-			out = (double*) malloc((size+1)*sizeof(double));
-			cudaMemcpy(out,gpu_accumulate,(size+1)*sizeof(double),cudaMemcpyDeviceToHost);
-			for(long long int i=0;i<(size+1);i++){out[i] *= 1.0/count/howmany;}
+			long long int* out;
+			out = (long long int*) malloc(size*sizeof(long long int));
+			cudaMemcpy(out,gpu_accumulate,size*sizeof(long long int),cudaMemcpyDeviceToHost);
+			for(long long int i=0;i<(size);i++)
+			{
+					reinterpret_cast<double*>(out)[i] = out[i]/count/(size-i);
+			}
 			py::capsule free_when_done1(out,free);
 			return py::array_t<double,py::array::c_style>
-			({size+1},{sizeof(double)},out,free_when_done1);
+			({size},{sizeof(double)},reinterpret_cast<double*>(out),free_when_done1);
 		}
 		void clear()
 		{
 			count = 0;
-			cudaMemset(gpu_accumulate,0,(size+1)*sizeof(double));
+			cudaMemset(gpu_accumulate,0,(2*size)*sizeof(long long int));
 		}
 };
 
@@ -2235,8 +2257,8 @@ class DigitizerCrossCorrelationPadCuda
 			}
 			else
 			{
-				reduction(howmany*(size+1),reinterpret_cast<double*>(gpu_data1),size+1);
-				reduction(howmany*(size+1),reinterpret_cast<double*>(gpu_data2),size+1);
+				reduction_general(howmany*(size+1),reinterpret_cast<double*>(gpu_data1),size+1);
+				reduction_general(howmany*(size+1),reinterpret_cast<double*>(gpu_data2),size+1);
 			}
 			add_complex_cuda(size+1,
 							reinterpret_cast<double*>(gpu_data1),
@@ -2501,10 +2523,10 @@ class DigitizerCompleteCorrelationPadCuda
 			}
 			else
 			{
-				reduction(howmany*(size+1),reinterpret_cast<double*>(gpu_data1),size+1);
-				reduction(howmany*(size+1),reinterpret_cast<double*>(gpu_data2),size+1);
-				reduction(howmany*(size+1),gpu_data3,size+1);
-				reduction(howmany*(size+1),gpu_data4,size+1);
+				reduction_general(howmany*(size+1),reinterpret_cast<double*>(gpu_data1),size+1);
+				reduction_general(howmany*(size+1),reinterpret_cast<double*>(gpu_data2),size+1);
+				reduction_general(howmany*(size+1),gpu_data3,size+1);
+				reduction_general(howmany*(size+1),gpu_data4,size+1);
 			}
 			add_complex_cuda(size+1,
 							reinterpret_cast<double*>(gpu_data1),

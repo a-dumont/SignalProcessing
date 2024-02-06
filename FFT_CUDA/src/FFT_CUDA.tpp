@@ -411,3 +411,186 @@ void irFFT_CUDA<float>(int n, float* in)
 	}
 	cufftDestroy(plan);
 }
+
+template<class DataType>
+void makePlanInv(cufftHandle* plan,
+				long long int size, long long int batch){}
+
+template<>
+void makePlanInv<double>(cufftHandle* plan, 
+				long long int size, long long int batch)
+{
+	cufftResult_t res = cufftPlan1d(plan, size, CUFFT_Z2D, batch);
+	if (res != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation Failed");
+	}
+}
+
+template<>
+void makePlanInv<float>(cufftHandle* plan, 
+				long long int size, long long int batch)
+{
+	cufftResult_t res = cufftPlan1d(plan, size, CUFFT_C2R, batch);
+	if (res != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation Failed");
+	}
+}
+
+template<class DataType>
+void irFFT_Block_Async_CUDA(DataType* in, cufftHandle plan, cudaStream_t stream){}
+
+template<>
+void irFFT_Block_Async_CUDA<std::complex<double>>(std::complex<double>* in, cufftHandle plan, cudaStream_t stream)
+{
+	cufftSetStream(plan, stream);	
+	if (cufftExecZ2D(plan, reinterpret_cast<cufftDoubleComplex*>(in), 
+							reinterpret_cast<cufftDoubleReal*>(in)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecD2Z Forward failed");
+	}
+}
+
+template<>
+void irFFT_Block_Async_CUDA<std::complex<float>>(std::complex<float>* in, 
+				cufftHandle plan, cudaStream_t stream)
+{
+	cufftSetStream(plan, stream);	
+	if (cufftExecC2R(plan, reinterpret_cast<cufftComplex*>(in), 
+							reinterpret_cast<cufftReal*>(in)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecR2C Forward failed");
+	}
+}
+
+/*
+template<class DataType>
+void filter_single(int64_t N, DataType* data, float* filter, DataType offset)
+{
+	float* gpu;
+	cudaStream_t streams[2];
+	cudaStreamCreate(&streams[0]);
+	cudaStreamCreate(&streams[1]);
+	cufftHandle plan;
+
+	cudaMalloc((void**)&gpu, 3*(N/2+1)*sizeof(float));
+	cudaMemcpyAsync(gpu+(N+2),data,sizeof(DataType)*N,cudaMemcpyHostToDevice,streams[0]);
+	convert<DataType,float>(N,reinterpret_cast<DataType*>(gpu+N+2),gpu,1.0,offset,streams[0]);
+	cudaMemcpyAsync(gpu+(N+2),filter,sizeof(float)*N/2+1,cudaMemcpyHostToDevice,streams[1]);
+
+	if (cufftPlan1d(&plan, N, CUFFT_R2C, 1) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation failed");
+	}
+	if (cufftExecR2C(plan, reinterpret_cast<cufftReal*>(gpu),
+							reinterpret_cast<cufftComplex*>(gpu)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecR2C failed");
+	}
+
+	filter_CUDA<float>(N/2+1,gpu,gpu+(N+2),streams[0]);
+
+	if (cufftPlan1d(&plan, N, CUFFT_C2R, 1) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation failed");
+	}
+	if (cufftExecC2R(plan, reinterpret_cast<cufftComplex*>(gpu),
+							reinterpret_cast<cufftReal*>(gpu)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan);
+		throw std::runtime_error("CUFFT error: ExecC2R failed");
+	}
+
+	rconvert<DataType,float>(N,gpu,reinterpret_cast<DataType*>(gpu),1.0/N,offset,streams[0]);
+	cudaMemcpyAsync(data,gpu,sizeof(DataType)*N,cudaMemcpyDeviceToHost,streams[0]);
+
+	cufftDestroy(plan);
+	cudaStreamDestroy(streams[0]);
+	cudaStreamDestroy(streams[1]);
+	cudaFree(gpu);
+}
+
+template<class DataType>
+void filter_dual(int64_t N, DataType* data1, DataType* data2,
+				float* filter1, float* filter2, DataType offset)
+{
+	float* gpu;
+	cudaStream_t streams[2];
+	cudaStreamCreate(&streams[0]);
+	cudaStreamCreate(&streams[1]);
+	cufftHandle plan1, plan2;
+	cufftSetStream(plan1, streams[0]);
+	cufftSetStream(plan2, streams[1]);
+
+	cudaMalloc((void**)&gpu, 6*(N/2+1)*sizeof(float));
+	cudaMemcpyAsync(gpu+N+2,data1,sizeof(DataType)*N,cudaMemcpyHostToDevice,streams[0]);
+	convert(N,reinterpret_cast<DataType*>(gpu+N+2),gpu,1.0,offset,streams[0]);
+	cudaMemcpyAsync(gpu+(N+2),filter1,sizeof(float)*N/2+1,cudaMemcpyHostToDevice,streams[1]);
+
+	cudaMemcpyAsync(gpu+(5*N/2+3),data2,sizeof(DataType)*N,cudaMemcpyHostToDevice,streams[0]);
+	convert(N,reinterpret_cast<DataType*>(gpu+(5*N/2+3)),gpu+(3*N/2+3),1.0,offset,streams[0]);
+	cudaMemcpyAsync(gpu+(5*N/2+5),filter2,sizeof(float)*N/2+1,cudaMemcpyHostToDevice,streams[1]);
+
+	if (cufftPlan1d(&plan1, N, CUFFT_R2C, 1) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation failed");
+	}
+	if (cufftExecR2C(plan1, reinterpret_cast<cufftReal*>(gpu),
+							reinterpret_cast<cufftComplex*>(gpu)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan1);
+		throw std::runtime_error("CUFFT error: ExecR2C failed");
+	}
+	if (cufftPlan1d(&plan2, N, CUFFT_R2C, 1) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation failed");
+	}
+	if (cufftExecR2C(plan2, reinterpret_cast<cufftReal*>(gpu+(3*N/2+3)),
+							reinterpret_cast<cufftComplex*>(gpu+(3*N/2+3))) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan2);
+		throw std::runtime_error("CUFFT error: ExecR2C failed");
+	}
+
+	filter_CUDA<float>(N/2+1,gpu,gpu+N+2,streams[0]);
+	filter_CUDA<float>(N/2+1,gpu+3*N/2+3,gpu+5*N/2+5,streams[1]);
+
+	if (cufftPlan1d(&plan1, N, CUFFT_C2R, 1) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation failed");
+	}
+	if (cufftExecC2R(plan1, reinterpret_cast<cufftComplex*>(gpu),
+							reinterpret_cast<cufftReal*>(gpu)) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan1);
+		throw std::runtime_error("CUFFT error: ExecC2R failed");
+	}
+	if (cufftPlan1d(&plan2, N, CUFFT_C2R, 1) != CUFFT_SUCCESS)
+	{
+		throw std::runtime_error("CUFFT error: Plan creation failed");
+	}
+	if (cufftExecC2R(plan2, reinterpret_cast<cufftComplex*>(gpu+(3*N/2+3)),
+							reinterpret_cast<cufftReal*>(gpu+(3*N/2+3))) != CUFFT_SUCCESS)
+	{
+		cufftDestroy(plan2);
+		throw std::runtime_error("CUFFT error: ExecC2R failed");
+	}
+
+
+	rconvert(N,gpu,reinterpret_cast<DataType*>(gpu),1.0/N,offset,streams[0]);
+	cudaMemcpyAsync(data1,gpu,sizeof(DataType)*N,cudaMemcpyDeviceToHost,streams[0]);
+
+	rconvert(N,gpu+(3*N/2+3),reinterpret_cast<DataType*>(gpu+(3*N/2+3)),1.0/N,offset,streams[1]);
+	cudaMemcpyAsync(data2,gpu+(3*N/2+3),sizeof(DataType)*N,cudaMemcpyDeviceToHost,streams[0]);
+
+	cufftDestroy(plan1);
+	cufftDestroy(plan2);
+	cudaStreamDestroy(streams[0]);
+	cudaStreamDestroy(streams[1]);
+	cudaFree(gpu);
+}
+*/

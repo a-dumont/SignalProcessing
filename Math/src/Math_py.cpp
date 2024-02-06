@@ -94,6 +94,46 @@ void init_module(py::module &m)
 	m.def("maximum",&max_py<double>,"in"_a);
 	m.def("maximum",&max_py<float>,"in"_a);
 	m.def("maximum",&max_py<long long int>,"in"_a);
+
+	py::class_<DigitizerBlockMaxPy>(m,"DigitizerBlockMax")
+			.def(py::init<int64_t,int64_t,int64_t,int64_t>())
+			.def("accumulate",&DigitizerBlockMaxPy::accumulate_py<uint8_t>)
+			.def("accumulate",&DigitizerBlockMaxPy::accumulate_py<uint16_t>)
+			.def("accumulate",&DigitizerBlockMaxPy::accumulate_py<int16_t>)
+			.def("get_max_hists",&DigitizerBlockMaxPy::get_max_hists_py)
+			.def("get_resolution",&DigitizerBlockMaxPy::get_resolution)
+			.def("get_N",&DigitizerBlockMaxPy::get_N)
+			.def("get_min_size",&DigitizerBlockMaxPy::get_min_size)
+			.def("get_max_size",&DigitizerBlockMaxPy::get_max_size)
+			.def("get_count",&DigitizerBlockMaxPy::get_count)
+			.def("clear",&DigitizerBlockMaxPy::clear);
+
+	py::class_<DigitizerBlockMinPy>(m,"DigitizerBlockMin")
+			.def(py::init<int64_t,int64_t,int64_t,int64_t>())
+			.def("accumulate",&DigitizerBlockMinPy::accumulate_py<uint8_t>)
+			.def("accumulate",&DigitizerBlockMinPy::accumulate_py<uint16_t>)
+			.def("accumulate",&DigitizerBlockMinPy::accumulate_py<int16_t>)
+			.def("get_min_hists",&DigitizerBlockMinPy::get_min_hists_py)
+			.def("get_resolution",&DigitizerBlockMinPy::get_resolution)
+			.def("get_N",&DigitizerBlockMinPy::get_N)
+			.def("get_min_size",&DigitizerBlockMinPy::get_min_size)
+			.def("get_max_size",&DigitizerBlockMinPy::get_max_size)
+			.def("get_count",&DigitizerBlockMinPy::get_count)
+			.def("clear",&DigitizerBlockMinPy::clear);
+
+	py::class_<DigitizerBlockMinMaxPy>(m,"DigitizerBlockMinMax")
+			.def(py::init<int64_t,int64_t,int64_t,int64_t>())
+			.def("accumulate",&DigitizerBlockMinMaxPy::accumulate_py<uint8_t>)
+			.def("accumulate",&DigitizerBlockMinMaxPy::accumulate_py<uint16_t>)
+			.def("accumulate",&DigitizerBlockMinMaxPy::accumulate_py<int16_t>)
+			.def("get_min_hists",&DigitizerBlockMinMaxPy::get_min_hists_py)
+			.def("get_max_hists",&DigitizerBlockMinMaxPy::get_max_hists_py)
+			.def("get_resolution",&DigitizerBlockMinMaxPy::get_resolution)
+			.def("get_N",&DigitizerBlockMinMaxPy::get_N)
+			.def("get_min_size",&DigitizerBlockMinMaxPy::get_min_size)
+			.def("get_max_size",&DigitizerBlockMinMaxPy::get_max_size)
+			.def("get_count",&DigitizerBlockMinMaxPy::get_count)
+			.def("clear",&DigitizerBlockMinMaxPy::clear);
 }
 
 PYBIND11_MODULE(libmath, m)

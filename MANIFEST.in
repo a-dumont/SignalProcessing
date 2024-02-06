@@ -6,7 +6,13 @@ include SignalProcessing/math/libmath.so
 include SignalProcessing/math/libmath.pyd
 include SignalProcessing/histograms/libhistograms.so
 include SignalProcessing/histograms/libhistograms.pyd
+include SignalProcessing/filters/libfilters.so
+include SignalProcessing/filters/libfilters.pyd
 include SignalProcessing/fft/libfftcuda.so
 include SignalProcessing/fft/libfftcuda.pyd
 include SignalProcessing/correlations/libcorrelationscuda.so
 include SignalProcessing/correlations/libcorrelationscuda.pyd
+include SignalProcessing/math/libmathcuda.so
+include SignalProcessing/math/libmathcuda.pyd
+include SignalProcessing/histograms/libhistogramscuda.so
+include SignalProcessing/histograms/libhistogramscuda.pyd

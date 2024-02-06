@@ -32,19 +32,27 @@ void init_correlations(py::module &m)
 					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_autocorrelation_cuda",&digitizer_autocorrelation_cuda_py<uint16_t,double>,
 					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_autocorrelation_cuda",&digitizer_autocorrelation_cuda_py<int16_t,double>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_autocorrelation_cudaf",&digitizer_autocorrelation_cuda_py<uint8_t,float>,
 					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_autocorrelation_cudaf",&digitizer_autocorrelation_cuda_py<uint16_t,float>,
+					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_autocorrelation_cudaf",&digitizer_autocorrelation_cuda_py<int16_t,float>,
 					"In"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 
 	m.def("digitizer_crosscorrelation_cuda",&digitizer_crosscorrelation_cuda_py<uint8_t,double>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_crosscorrelation_cuda",&digitizer_crosscorrelation_cuda_py<uint16_t,double>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_crosscorrelation_cuda",&digitizer_crosscorrelation_cuda_py<int16_t,double>,
+					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_crosscorrelation_cudaf",&digitizer_crosscorrelation_cuda_py<uint8_t,float>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_crosscorrelation_cudaf",&digitizer_crosscorrelation_cuda_py<uint16_t,float>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_crosscorrelation_cudaf",&digitizer_crosscorrelation_cuda_py<int16_t,float>,
+	"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 
 	m.def("digitizer_completecorrelation_cuda",
 					&digitizer_completecorrelation_cuda_py<uint8_t,double>,
@@ -52,11 +60,17 @@ void init_correlations(py::module &m)
 	m.def("digitizer_completecorrelation_cuda",
 					&digitizer_completecorrelation_cuda_py<uint16_t,double>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_completecorrelation_cuda",
+					&digitizer_completecorrelation_cuda_py<int16_t,double>,
+					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_completecorrelation_cudaf",
 					&digitizer_completecorrelation_cuda_py<uint8_t,float>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 	m.def("digitizer_completecorrelation_cudaf",
 					&digitizer_completecorrelation_cuda_py<uint16_t,float>,
+					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
+	m.def("digitizer_completecorrelation_cudaf",
+					&digitizer_completecorrelation_cuda_py<int16_t,float>,
 					"In1"_a.noconvert(),"In2"_a.noconvert(),"size"_a,"conv"_a,"offset"_a);
 
 	py::class_<DigitizerAutoCorrelationCuda<uint8_t>>(m,"DigitizerAutoCorrelationCuda")
@@ -99,13 +113,13 @@ void init_correlations(py::module &m)
 			.def(py::init<llint_t,llint_t,float,llint_t>())
 			.def("accumulate",&DigitizerAutoCorrelationPadCuda<uint8_t>::accumulate)
 			.def("clear",&DigitizerAutoCorrelationPadCuda<uint8_t>::clear)
-			.def("getResult",&DigitizerAutoCorrelationPadCuda<uint8_t>::getResult);
+			.def("getResultTime",&DigitizerAutoCorrelationPadCuda<uint8_t>::getResultTime);
 
 	py::class_<DigitizerAutoCorrelationPadCuda<int16_t>>(m,"DigitizerAutoCorrelationPadCuda16")
 			.def(py::init<llint_t,llint_t,float,llint_t>())
 			.def("accumulate",&DigitizerAutoCorrelationPadCuda<int16_t>::accumulate)
 			.def("clear",&DigitizerAutoCorrelationPadCuda<int16_t>::clear)
-			.def("getResult",&DigitizerAutoCorrelationPadCuda<int16_t>::getResult);
+			.def("getResultTime",&DigitizerAutoCorrelationPadCuda<int16_t>::getResultTime);
 
 	py::class_<DigitizerCrossCorrelationPadCuda<uint8_t>>(m,"DigitizerCrossCorrelationPadCuda")
 			.def(py::init<llint_t,llint_t,float,llint_t>())

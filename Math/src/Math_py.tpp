@@ -348,3 +348,122 @@ py::array_t<DataType,py::array::c_style> division_py(py::array_t<DataType,py::ar
 		free_when_done	
 		);
 }
+
+class DigitizerBlockMaxPy: public DigitizerBlockMax
+{
+	private:
+
+	public:
+		DigitizerBlockMaxPy(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in)
+		:DigitizerBlockMax(N_in,min_size_in,max_size_in,resolution_in){}
+
+	template<class DataType>
+	void accumulate_py(py::array_t<DataType,py::array::c_style> py_in)
+	{
+		py::buffer_info buf = py_in.request();
+		accumulate((DataType*) buf.ptr);
+	}
+
+	py::array_t<uint64_t,py::array::c_style> get_max_hists_py()
+	{
+		uint64_t* out = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+		#pragma omp parallel for
+		for(int64_t i=0;i<hist_size;i++)
+		{
+			out[i] = max_hists[i];
+		}
+		std::vector<int64_t> out_size = {(int64_t)(log2(n_max/n_min)+1),1<<resolution};
+		py::capsule free_when_done(out,free);
+		return py::array_t<uint64_t,py::array::c_style>(
+			out_size,
+			{(1<<resolution)*sizeof(uint64_t),sizeof(uint64_t)},
+			out,
+			free_when_done);
+	}
+};
+
+class DigitizerBlockMinPy: public DigitizerBlockMin
+{
+	private:
+
+	public:
+		DigitizerBlockMinPy(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in)
+		:DigitizerBlockMin(N_in,min_size_in,max_size_in,resolution_in){}
+
+	template<class DataType>
+	void accumulate_py(py::array_t<DataType,py::array::c_style> py_in)
+	{
+		py::buffer_info buf = py_in.request();
+		accumulate((DataType*) buf.ptr);
+	}
+
+	py::array_t<uint64_t,py::array::c_style> get_min_hists_py()
+	{
+		uint64_t* out = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+		#pragma omp parallel for
+		for(int64_t i=0;i<hist_size;i++)
+		{
+			out[i] = min_hists[i];
+		}
+		std::vector<int64_t> out_size = {(int64_t)(log2(n_max/n_min)+1),1<<resolution};
+		py::capsule free_when_done(out,free);
+		return py::array_t<uint64_t,py::array::c_style>(
+			out_size,
+			{(1<<resolution)*sizeof(uint64_t),sizeof(uint64_t)},
+			out,
+			free_when_done);
+	}
+};
+
+class DigitizerBlockMinMaxPy: public DigitizerBlockMinMax
+{
+	private:
+
+	public:
+		DigitizerBlockMinMaxPy(int64_t N_in, int64_t min_size_in, 
+						int64_t max_size_in, int64_t resolution_in)
+		:DigitizerBlockMinMax(N_in,min_size_in,max_size_in,resolution_in){}
+
+	template<class DataType>
+	void accumulate_py(py::array_t<DataType,py::array::c_style> py_in)
+	{
+		py::buffer_info buf = py_in.request();
+		accumulate((DataType*) buf.ptr);
+	}
+
+	py::array_t<uint64_t,py::array::c_style> get_min_hists_py()
+	{
+		uint64_t* out = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+		#pragma omp parallel for
+		for(int64_t i=0;i<hist_size;i++)
+		{
+			out[i] = min_hists[i];
+		}
+		std::vector<int64_t> out_size = {(int64_t)(log2(n_max/n_min)+1),1<<resolution};
+		py::capsule free_when_done(out,free);
+		return py::array_t<uint64_t,py::array::c_style>(
+			out_size,
+			{(1<<resolution)*sizeof(uint64_t),sizeof(uint64_t)},
+			out,
+			free_when_done);
+	}
+	py::array_t<uint64_t,py::array::c_style> get_max_hists_py()
+	{
+		uint64_t* out = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
+		#pragma omp parallel for
+		for(int64_t i=0;i<hist_size;i++)
+		{
+			out[i] = max_hists[i];
+		}
+		std::vector<int64_t> out_size = {(int64_t)(log2(n_max/n_min)+1),1<<resolution};
+		py::capsule free_when_done(out,free);
+		return py::array_t<uint64_t,py::array::c_style>(
+			out_size,
+			{(1<<resolution)*sizeof(uint64_t),sizeof(uint64_t)},
+			out,
+			free_when_done);
+	}
+
+};
