@@ -9,6 +9,13 @@
 #include <chrono>
 #include <immintrin.h>
 
+#if defined(__CYGWIN__) || defined(__MINGW64__)
+    #define _WIN32_WINNT 0x0602 // Windows 8
+    #include <windows.h>
+    #include <Processtopologyapi.h>
+    #include <processthreadsapi.h>
+#endif
+
 #ifdef _WIN64
 	std::string wisdom_path = "FFTW_Wisdom";
 	std::string wisdom_pathf = "FFTW_Wisdomf";

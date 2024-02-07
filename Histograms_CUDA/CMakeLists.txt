@@ -42,10 +42,10 @@ if(MSVC)
     set_target_properties(histogramscuda PROPERTIES PREFIX "lib")
 	
 	# Set python executable
-	set(Python_EXECUTABLE "C:/Anaconda2/python")
+	set(Python_EXECUTABLE "C:/anaconda3/python")
     
 	# Linking
-	find_library(PYLIB NAMES python27 HINTS "C:/Anaconda2/libs")
+	find_library(PYLIB NAMES python310 HINTS "C:/anaconda3/libs")
 	target_link_libraries(histogramscuda ${PYLIB})
     find_library(CUDART NAMES cudart HINTS "${CUDAToolkit_INCLUDE_DIRS}/../lib/x64")
 	target_link_libraries(histogramscuda ${CUDART})

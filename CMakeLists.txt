@@ -4,9 +4,9 @@ project(SignalProcessing VERSION 4.0.0 DESCRIPTION "C++ and CUDA routines wrappe
 
 # Cygwin stuff
 if(CYGWIN)
-	set(Python_EXECUTABLE "/c/Anaconda2/python")
+	set(Python_EXECUTABLE "/c/anaconda3/python")
 elseif(MSVC)
-	set(Python_EXECUTABLE "C:/Anaconda2/python")
+	set(Python_EXECUTABLE "C:/anaconda3/python")
 endif()
 
 # Python

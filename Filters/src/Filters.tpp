@@ -568,6 +568,7 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	free(Nthreads_arr);	
 }
 
+/*
 template<class DataType>
 void overlap_discard(uint64_t Ndata, uint64_t Nfilter, DataType* data, 
 				DataType* out, DataType* filter){}
@@ -626,4 +627,4 @@ void overlap_discard(uint64_t Ndata, uint64_t Nfilter, double* data, double* out
 	// Export and forget the wisdom
     fftw_export_wisdom_to_filename(&wisdom_path[0]);	
 	fftw_forget_wisdom();
-}
+}*/

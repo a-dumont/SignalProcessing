@@ -66,12 +66,12 @@ ACorrCircularFreqAVX_py::ACorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
-		threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+		threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 	#else
 		threads = omp_get_max_threads();
 	#endif
 
-	threads = std::min(threads,(uint64_t) 64);
+	threads = std::min(threads,(uint64_t) 32);
 	if(threads > howmany){threads=1;}
 	howmanyPerThread = howmany/threads;
 			
@@ -131,7 +131,7 @@ ACorrCircularFreqAVX_py::~ACorrCircularFreqAVX_py()
 }
 
 uint64_t ACorrCircularFreqAVX_py::getSize(){return size;}
-uint64_t ACorrCircularFreqAVX_py::getN(){return Npad;}
+uint64_t ACorrCircularFreqAVX_py::getN(){return N;}
 uint64_t ACorrCircularFreqAVX_py::getHowmany(){return howmany;}
 
 void ACorrCircularFreqAVX_py::train()
@@ -218,7 +218,7 @@ ACorrCircularFreqAVX_py::aCorrCircularFreqAVX(py::array_t<double,1> py_in)
 	double* py_ptr = (double*) buf_in.ptr;
 
 	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
-	if ((uint64_t) buf_in.size > Npad){throw std::runtime_error("U dumbdumb input too long.");}
+	if ((uint64_t) buf_in.size > N){throw std::runtime_error("U dumbdumb input too long.");}
 
 	double* result;
 	result = (double*) malloc(cSize*sizeof(double));
@@ -273,7 +273,7 @@ ACorrCircularFreqAVX_py::aCorrCircularFreqAVXf(py::array_t<float,1> py_in)
 	float* py_ptr = (float*) buf_in.ptr;
 
 	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
-	if ((uint64_t) buf_in.size > Npad){throw std::runtime_error("U dumbdumb input too long.");}
+	if ((uint64_t) buf_in.size > N){throw std::runtime_error("U dumbdumb input too long.");}
 
 	float* result;
 	result = (float*) malloc(cSize*sizeof(float));
@@ -331,12 +331,12 @@ DigitizerACorrCircularFreqAVX_py::DigitizerACorrCircularFreqAVX_py(uint64_t N_in
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
-		threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+		threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 	#else
 		threads = omp_get_max_threads();
 	#endif
 
-	threads = std::min(threads,(uint64_t) 64);
+	threads = std::min(threads,(uint64_t) 32);
 	if(threads > howmany){threads=1;}
 	howmanyPerThread = howmany/threads;
 			
@@ -396,7 +396,7 @@ DigitizerACorrCircularFreqAVX_py::~DigitizerACorrCircularFreqAVX_py()
 }
 
 uint64_t DigitizerACorrCircularFreqAVX_py::getSize(){return size;}
-uint64_t DigitizerACorrCircularFreqAVX_py::getN(){return Npad;}
+uint64_t DigitizerACorrCircularFreqAVX_py::getN(){return N;}
 uint64_t DigitizerACorrCircularFreqAVX_py::getHowmany(){return howmany;}
 
 void DigitizerACorrCircularFreqAVX_py::train()
@@ -487,7 +487,7 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVX
 	DataType* py_ptr = (DataType*) buf_in.ptr;
 
 	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
-	if ((uint64_t) buf_in.size > Npad){throw std::runtime_error("U dumbdumb input too long.");}
+	if ((uint64_t) buf_in.size > N){throw std::runtime_error("U dumbdumb input too long.");}
 
 	double* result;
 	result = (double*) malloc(cSize*sizeof(double));
@@ -545,7 +545,7 @@ DigitizerACorrCircularFreqAVX_py::aCorrCircularFreqAVXf
 	DataType* py_ptr = (DataType*) buf_in.ptr;
 
 	if (buf_in.ndim != 1){throw std::runtime_error("U dumbdumb dimension must be 1.");}	
-	if ((uint64_t) buf_in.size > Npad){throw std::runtime_error("U dumbdumb input too long.");}
+	if ((uint64_t) buf_in.size > N){throw std::runtime_error("U dumbdumb input too long.");}
 
 	float* result;
 	result = (float*) malloc(cSize*sizeof(float));
@@ -671,12 +671,12 @@ XCorrCircularFreqAVX_py::XCorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
-		threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+		threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 	#else
 		threads = omp_get_max_threads();
 	#endif
 
-	threads = std::min(threads,(uint64_t) 64);
+	threads = std::min(threads,(uint64_t) 32);
 	if(threads > howmany){threads=1;}
 	howmanyPerThread = howmany/threads;
 			
@@ -744,7 +744,7 @@ XCorrCircularFreqAVX_py::~XCorrCircularFreqAVX_py()
 }
 
 uint64_t XCorrCircularFreqAVX_py::getSize(){return size;}
-uint64_t XCorrCircularFreqAVX_py::getN(){return Npad;}
+uint64_t XCorrCircularFreqAVX_py::getN(){return N;}
 uint64_t XCorrCircularFreqAVX_py::getHowmany(){return howmany;}
 
 void XCorrCircularFreqAVX_py::train()
@@ -839,7 +839,7 @@ XCorrCircularFreqAVX_py::xCorrCircularFreqAVX
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -909,7 +909,7 @@ XCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -979,12 +979,12 @@ DigitizerXCorrCircularFreqAVX_py::DigitizerXCorrCircularFreqAVX_py
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
-		threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+		threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 	#else
 		threads = omp_get_max_threads();
 	#endif
 
-	threads = std::min(threads,(uint64_t) 64);
+	threads = std::min(threads,(uint64_t) 32);
 	if(threads > howmany){threads=1;}
 	howmanyPerThread = howmany/threads;
 			
@@ -1052,7 +1052,7 @@ DigitizerXCorrCircularFreqAVX_py::~DigitizerXCorrCircularFreqAVX_py()
 }
 
 uint64_t DigitizerXCorrCircularFreqAVX_py::getSize(){return size;}
-uint64_t DigitizerXCorrCircularFreqAVX_py::getN(){return Npad;}
+uint64_t DigitizerXCorrCircularFreqAVX_py::getN(){return N;}
 uint64_t DigitizerXCorrCircularFreqAVX_py::getHowmany(){return howmany;}
 
 void DigitizerXCorrCircularFreqAVX_py::train()
@@ -1147,7 +1147,7 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVX
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -1219,7 +1219,7 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -1383,12 +1383,12 @@ FCorrCircularFreqAVX_py::FCorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
-		threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+		threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 	#else
 		threads = omp_get_max_threads();
 	#endif
 
-	threads = std::min(threads,(uint64_t) 64);
+	threads = std::min(threads,(uint64_t) 32);
 	if(threads > howmany){threads=1;}
 	howmanyPerThread = howmany/threads;
 			
@@ -1464,7 +1464,7 @@ FCorrCircularFreqAVX_py::~FCorrCircularFreqAVX_py()
 }
 
 uint64_t FCorrCircularFreqAVX_py::getSize(){return size;}
-uint64_t FCorrCircularFreqAVX_py::getN(){return Npad;}
+uint64_t FCorrCircularFreqAVX_py::getN(){return N;}
 uint64_t FCorrCircularFreqAVX_py::getHowmany(){return howmany;}
 
 void FCorrCircularFreqAVX_py::train()
@@ -1559,7 +1559,7 @@ FCorrCircularFreqAVX_py::fCorrCircularFreqAVX
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -1646,7 +1646,7 @@ FCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -1732,12 +1732,12 @@ DigitizerFCorrCircularFreqAVX_py::DigitizerFCorrCircularFreqAVX_py
 	length[0] = (int) size;
 
 	#ifdef _WIN32_WINNT
-		threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+		threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 	#else
 		threads = omp_get_max_threads();
 	#endif
 
-	threads = std::min(threads,(uint64_t) 64);
+	threads = std::min(threads,(uint64_t) 32);
 	if(threads > howmany){threads=1;}
 	howmanyPerThread = howmany/threads;
 			
@@ -1813,7 +1813,7 @@ DigitizerFCorrCircularFreqAVX_py::~DigitizerFCorrCircularFreqAVX_py()
 }
 
 uint64_t DigitizerFCorrCircularFreqAVX_py::getSize(){return size;}
-uint64_t DigitizerFCorrCircularFreqAVX_py::getN(){return Npad;}
+uint64_t DigitizerFCorrCircularFreqAVX_py::getN(){return N;}
 uint64_t DigitizerFCorrCircularFreqAVX_py::getHowmany(){return howmany;}
 
 void DigitizerFCorrCircularFreqAVX_py::train()
@@ -1909,7 +1909,7 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVX
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
@@ -1998,7 +1998,7 @@ DigitizerFCorrCircularFreqAVX_py::fCorrCircularFreqAVXf
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 1.");
 	}	
-	if ((uint64_t) buf_in1.size > Npad || (uint64_t) buf_in2.size > Npad)
+	if ((uint64_t) buf_in1.size > N || (uint64_t) buf_in2.size > N)
 	{
 		throw std::runtime_error("U dumbdumb input too long.");
 	}
