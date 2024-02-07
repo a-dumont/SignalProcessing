@@ -5,10 +5,12 @@
 *.pyc
 *.dll
 *.a
+*.dll.a
 build/
 build_msvc/
 dist/
 *.egg-info
+
 
 CMakeLists.txt.user
 CMakeCache.txt
