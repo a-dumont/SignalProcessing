@@ -88,7 +88,7 @@ aCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64
 	aCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize,out);
 	
 	// Sum all blocks
-	reduceInPlaceBlockAVX<DataType>(cSize*howmany,2*cSize,out);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany/16,2*cSize,out);
 	
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
