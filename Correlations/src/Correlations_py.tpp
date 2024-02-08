@@ -5,7 +5,6 @@
 //                    / ___ \ |__| (_) | |  | |                  //
 //                   /_/   \_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
-#include <type_traits>
 template<class DataType>
 py::array_t<DataType,py::array::c_style>
 aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
@@ -40,6 +39,56 @@ aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t
 	
 	// Sum all blocks
 	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany,2*cSize,out);
+	
+	// Divide the sum by the number of blocks
+	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
+	
+	// Free intermediate buffer
+	fftw_free(out);
+
+	py::capsule free_when_done( result, free );
+	return py::array_t<DataType, py::array::c_style>
+	(
+		{cSize},
+		{sizeof(DataType)},
+		result,
+		free_when_done
+	);
+}
+
+template<class DataType>
+py::array_t<DataType,py::array::c_style>
+aCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size)
+{
+	py::buffer_info buf_in = py_in.request();
+
+	if (buf_in.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = buf_in.size;
+	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
+	if(size*howmany != N){howmany+=1;}
+
+	// Retreive all pointers
+	DataType* in = (DataType*) buf_in.ptr;
+	
+	DataType* out;
+	out = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	
+	DataType* result;
+   	result = (DataType*) malloc(cSize*sizeof(DataType));
+
+	// Compute rFFT blocks
+	rfftBlock<DataType>((int) N, (int) size, in, reinterpret_cast<std::complex<DataType>*>(out));
+	
+	// Compute product
+	aCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize,out);
+	
+	// Sum all blocks
+	reduceInPlaceBlockAVX<DataType>(cSize*howmany,2*cSize,out);
 	
 	// Divide the sum by the number of blocks
 	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}

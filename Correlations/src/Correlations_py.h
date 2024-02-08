@@ -14,6 +14,10 @@ template<class DataType>
 py::array_t<DataType,py::array::c_style>
 aCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size);
 
+template<class DataType>
+py::array_t<DataType,py::array::c_style>
+aCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64_t size);
+
 class ACorrCircularFreqAVX_py
 {
 	private:
