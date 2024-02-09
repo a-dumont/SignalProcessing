@@ -70,6 +70,7 @@ aCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64
 	uint64_t N = buf_in.size;
 	uint64_t howmany = N/size;
 	uint64_t cSize = size/2+1;
+	uint64_t Nreduce;
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
@@ -88,10 +89,11 @@ aCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in, uint64
 	aCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize,out);
 	
 	// Sum all blocks
-	reduceInPlaceBlockAVX<DataType>(2*cSize*howmany/16,2*cSize,out);
+	Nreduce = 2*cSize*std::max((uint64_t) 1, howmany/16);
+	reduceInPlaceBlockAVX<DataType>(Nreduce,2*cSize,out);
 	
 	// Divide the sum by the number of blocks
-	for(uint64_t i=0;i<(size/2+1);i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
+	for(uint64_t i=0;i<cSize;i++){result[i]=(out[2*i]+out[2*i+1])/howmany;}
 	
 	// Free intermediate buffer
 	fftw_free(out);

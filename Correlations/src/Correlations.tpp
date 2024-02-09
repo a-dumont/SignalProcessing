@@ -40,6 +40,147 @@ template<class DataType>
 void aCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data){}
 
 template<>
+void aCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data)
+{
+	__m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+	__m256 ymm8, ymm9, ymm10, ymm11, ymm12, ymm13, ymm14, ymm15;
+	uint64_t howmany = N/size;
+	uint64_t howmany2 = howmany/16;
+	uint64_t extras = howmany-16*howmany2;
+	uint64_t Nregisters = size/8;
+	uint64_t I = 0;
+	uint64_t J = 0;
+	float temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+	
+	if(howmany == 1){for(uint64_t j=0;j<size;j++){data[j] *= data[j];}return;}
+	if(howmany < 16)
+	{
+		for(uint64_t i=0;i<size;i++)
+		{
+			data[i] *= data[i];
+			for(uint64_t j=1;j<howmany;j++)
+			{
+				data[i] += data[i+j*size]*data[i+j*size]; 
+			}
+		}
+		return;
+	}
+
+	for(uint64_t i=0;i<howmany2;i++)
+	{
+		I = i<<4;
+		for(uint64_t j=0;j<Nregisters;j++)
+		{
+			J = j<<3;
+			ymm0 = _mm256_loadu_ps(data+I*size+J);
+			ymm1 = _mm256_loadu_ps(data+(I+1)*size+J);
+			ymm2 = _mm256_loadu_ps(data+(I+2)*size+J);
+			ymm3 = _mm256_loadu_ps(data+(I+3)*size+J);
+			ymm4 = _mm256_loadu_ps(data+(I+4)*size+J);
+			ymm5 = _mm256_loadu_ps(data+(I+5)*size+J);
+			ymm6 = _mm256_loadu_ps(data+(I+6)*size+J);
+			ymm7 = _mm256_loadu_ps(data+(I+7)*size+J);
+			ymm8 = _mm256_loadu_ps(data+(I+8)*size+J);
+			ymm9 = _mm256_loadu_ps(data+(I+9)*size+J);
+			ymm10 = _mm256_loadu_ps(data+(I+10)*size+J);
+			ymm11 = _mm256_loadu_ps(data+(I+11)*size+J);
+			ymm12 = _mm256_loadu_ps(data+(I+12)*size+J);
+			ymm13 = _mm256_loadu_ps(data+(I+13)*size+J);
+			ymm14 = _mm256_loadu_ps(data+(I+14)*size+J);
+			ymm15 = _mm256_loadu_ps(data+(I+15)*size+J);
+		
+			ymm0 = _mm256_mul_ps(ymm0,ymm0);
+			ymm1 = _mm256_mul_ps(ymm1,ymm1);
+			ymm2 = _mm256_mul_ps(ymm2,ymm2);
+			ymm3 = _mm256_mul_ps(ymm3,ymm3);
+			ymm4 = _mm256_mul_ps(ymm4,ymm4);
+			ymm5 = _mm256_mul_ps(ymm5,ymm5);
+			ymm6 = _mm256_mul_ps(ymm6,ymm6);
+			ymm7 = _mm256_mul_ps(ymm7,ymm7);
+			ymm8 = _mm256_mul_ps(ymm8,ymm8);
+			ymm9 = _mm256_mul_ps(ymm9,ymm9);
+			ymm10 = _mm256_mul_ps(ymm10,ymm10);
+			ymm11 = _mm256_mul_ps(ymm11,ymm11);
+			ymm12 = _mm256_mul_ps(ymm12,ymm12);
+			ymm13 = _mm256_mul_ps(ymm13,ymm13);
+			ymm14 = _mm256_mul_ps(ymm14,ymm14);
+			ymm15 = _mm256_mul_ps(ymm15,ymm15);
+
+			ymm0 = _mm256_add_ps(ymm0,ymm8);
+			ymm1 = _mm256_add_ps(ymm1,ymm9);
+			ymm2 = _mm256_add_ps(ymm2,ymm10);
+			ymm3 = _mm256_add_ps(ymm3,ymm11);
+			ymm4 = _mm256_add_ps(ymm4,ymm12);
+			ymm5 = _mm256_add_ps(ymm5,ymm13);
+			ymm6 = _mm256_add_ps(ymm6,ymm14);
+			ymm7 = _mm256_add_ps(ymm7,ymm15);
+
+			ymm0 = _mm256_add_ps(ymm0,ymm4);
+			ymm1 = _mm256_add_ps(ymm1,ymm5);
+			ymm2 = _mm256_add_ps(ymm2,ymm6);
+			ymm3 = _mm256_add_ps(ymm3,ymm7);
+			
+			ymm0 = _mm256_add_ps(ymm0,ymm2);
+			ymm1 = _mm256_add_ps(ymm1,ymm3);
+
+			ymm0 = _mm256_add_ps(ymm0,ymm1);
+			
+			ymm2 = _mm256_set_ps(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
+			for(uint64_t k=0;k<extras;k++)
+			{
+				ymm1 = _mm256_loadu_ps(data+(16*howmany2+k)*size+J);
+				ymm1 = _mm256_mul_ps(ymm1,ymm1);
+				ymm2 = _mm256_add_ps(ymm2,ymm1);	
+			}
+
+			ymm0 = _mm256_add_ps(ymm0,ymm2);
+
+			_mm256_storeu_ps(data+i*size+J,ymm0);
+		}
+		for(uint64_t j=8*Nregisters;j<size;j++)
+		{
+			temp0 = data[I*size+j]*data[I*size+j];
+			temp0 += data[(I+1)*size+j]*data[(I+1)*size+j];
+			temp1 = data[(I+2)*size+j]*data[(I+2)*size+j];
+			temp1 += data[(I+3)*size+j]*data[(I+3)*size+j];
+			temp2 = data[(I+4)*size+j]*data[(I+4)*size+j];
+			temp2 += data[(I+5)*size+j]*data[(I+5)*size+j];
+			temp3 = data[(I+6)*size+j]*data[(I+6)*size+j];
+			temp3 += data[(I+7)*size+j]*data[(I+7)*size+j];
+			temp4 = data[(I+8)*size+j]*data[(I+8)*size+j];
+			temp4 += data[(I+9)*size+j]*data[(I+9)*size+j];
+			temp5 = data[(I+10)*size+j]*data[(I+10)*size+j];
+			temp5 += data[(I+11)*size+j]*data[(I+11)*size+j];
+			temp6 = data[(I+12)*size+j]*data[(I+12)*size+j];
+			temp6 += data[(I+13)*size+j]*data[(I+13)*size+j];
+			temp7 = data[(I+14)*size+j]*data[(I+14)*size+j];
+			temp7 += data[(I+15)*size+j]*data[(I+15)*size+j];
+
+			temp0 += temp4;
+			temp1 += temp5;
+			temp2 += temp6;
+			temp3 += temp7;
+
+			temp0 += temp2;
+			temp1 += temp3;
+
+			temp0 += temp1;
+
+			temp2 = 0.0;
+			for(uint64_t k=0;k<extras;k++)
+			{
+				temp1 = data[(16*howmany2+k)*size+j]*data[(16*howmany2+k)*size+j];
+				temp2 += temp1;	
+			}
+
+			temp0 += temp2;
+
+			data[i*size+j] = temp0;
+		}
+	}
+}
+
+template<>
 void aCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data)
 {
 	__m256d ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
@@ -53,6 +194,18 @@ void aCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data)
 	double temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	
 	if(howmany == 1){for(uint64_t j=0;j<size;j++){data[j] *= data[j];}return;}
+	if(howmany < 16)
+	{
+		for(uint64_t i=0;i<size;i++)
+		{
+			data[i] *= data[i];
+			for(uint64_t j=1;j<howmany;j++)
+			{
+				data[i] += data[i+j*size]*data[i+j*size]; 
+			}
+		}
+		return;
+	}
 
 	for(uint64_t i=0;i<howmany2;i++)
 	{
@@ -168,134 +321,6 @@ void aCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data)
 	}
 }
 
-template<>
-void aCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data)
-{
-	__m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-	__m256 ymm8, ymm9, ymm10, ymm11, ymm12, ymm13, ymm14, ymm15;
-	uint64_t howmany = N/size;
-	uint64_t howmany2 = howmany/16;
-	uint64_t extras = howmany-16*howmany2;
-	uint64_t Nregisters = size/8;
-	uint64_t I = 0;
-	uint64_t J = 0;
-	float temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-	
-	if(howmany == 1){for(uint64_t j=0;j<size;j++){data[j] *= data[j];}return;}
-
-	for(uint64_t i=0;i<howmany2;i++)
-	{
-		I = i<<4;
-		for(uint64_t j=0;j<Nregisters;j++)
-		{
-			J = j<<3;
-			ymm0 = _mm256_loadu_ps(data+I*size+J);
-			ymm1 = _mm256_loadu_ps(data+(I+1)*size+J);
-			ymm2 = _mm256_loadu_ps(data+(I+2)*size+J);
-			ymm3 = _mm256_loadu_ps(data+(I+3)*size+J);
-			ymm4 = _mm256_loadu_ps(data+(I+4)*size+J);
-			ymm5 = _mm256_loadu_ps(data+(I+5)*size+J);
-			ymm6 = _mm256_loadu_ps(data+(I+6)*size+J);
-			ymm7 = _mm256_loadu_ps(data+(I+7)*size+J);
-			ymm8 = _mm256_loadu_ps(data+(I+8)*size+J);
-			ymm9 = _mm256_loadu_ps(data+(I+9)*size+J);
-			ymm10 = _mm256_loadu_ps(data+(I+10)*size+J);
-			ymm11 = _mm256_loadu_ps(data+(I+11)*size+J);
-			ymm12 = _mm256_loadu_ps(data+(I+12)*size+J);
-			ymm13 = _mm256_loadu_ps(data+(I+13)*size+J);
-			ymm14 = _mm256_loadu_ps(data+(I+14)*size+J);
-			ymm15 = _mm256_loadu_ps(data+(I+15)*size+J);
-		
-			ymm0 = _mm256_mul_ps(ymm0,ymm0);
-			ymm1 = _mm256_mul_ps(ymm1,ymm1);
-			ymm2 = _mm256_mul_ps(ymm2,ymm2);
-			ymm3 = _mm256_mul_ps(ymm3,ymm3);
-			ymm4 = _mm256_mul_ps(ymm4,ymm4);
-			ymm5 = _mm256_mul_ps(ymm5,ymm5);
-			ymm6 = _mm256_mul_ps(ymm6,ymm6);
-			ymm7 = _mm256_mul_ps(ymm7,ymm7);
-			ymm8 = _mm256_mul_ps(ymm8,ymm8);
-			ymm9 = _mm256_mul_ps(ymm9,ymm9);
-			ymm10 = _mm256_mul_ps(ymm10,ymm10);
-			ymm11 = _mm256_mul_ps(ymm11,ymm11);
-			ymm12 = _mm256_mul_ps(ymm12,ymm12);
-			ymm13 = _mm256_mul_ps(ymm13,ymm13);
-			ymm14 = _mm256_mul_ps(ymm14,ymm14);
-			ymm15 = _mm256_mul_ps(ymm15,ymm15);
-
-			ymm0 = _mm256_add_ps(ymm0,ymm8);
-			ymm1 = _mm256_add_ps(ymm1,ymm9);
-			ymm2 = _mm256_add_ps(ymm2,ymm10);
-			ymm3 = _mm256_add_ps(ymm3,ymm11);
-			ymm4 = _mm256_add_ps(ymm4,ymm12);
-			ymm5 = _mm256_add_ps(ymm5,ymm13);
-			ymm6 = _mm256_add_ps(ymm6,ymm14);
-			ymm7 = _mm256_add_ps(ymm7,ymm15);
-
-			ymm0 = _mm256_add_ps(ymm0,ymm4);
-			ymm1 = _mm256_add_ps(ymm1,ymm5);
-			ymm2 = _mm256_add_ps(ymm2,ymm6);
-			ymm3 = _mm256_add_ps(ymm3,ymm7);
-			
-			ymm0 = _mm256_add_ps(ymm0,ymm2);
-			ymm1 = _mm256_add_ps(ymm1,ymm3);
-
-			ymm0 = _mm256_add_ps(ymm0,ymm1);
-			
-			ymm2 = _mm256_set_ps(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
-			for(uint64_t k=0;k<extras;k++)
-			{
-				ymm1 = _mm256_loadu_ps(data+(16*howmany2+k)*size+J);
-				ymm1 = _mm256_mul_ps(ymm1,ymm1);
-				ymm2 = _mm256_add_ps(ymm2,ymm1);	
-			}
-
-			ymm0 = _mm256_add_ps(ymm0,ymm2);
-
-			_mm256_storeu_ps(data+i*size+J,ymm0);
-		}
-		for(uint64_t j=8*Nregisters;j<size;j++)
-		{
-			temp0 = data[I*size+j]*data[I*size+j];
-			temp0 += data[(I+1)*size+j]*data[(I+1)*size+j];
-			temp1 = data[(I+2)*size+j]*data[(I+2)*size+j];
-			temp1 += data[(I+3)*size+j]*data[(I+3)*size+j];
-			temp2 = data[(I+4)*size+j]*data[(I+4)*size+j];
-			temp2 += data[(I+5)*size+j]*data[(I+5)*size+j];
-			temp3 = data[(I+6)*size+j]*data[(I+6)*size+j];
-			temp3 += data[(I+7)*size+j]*data[(I+7)*size+j];
-			temp4 = data[(I+8)*size+j]*data[(I+8)*size+j];
-			temp4 += data[(I+9)*size+j]*data[(I+9)*size+j];
-			temp5 = data[(I+10)*size+j]*data[(I+10)*size+j];
-			temp5 += data[(I+11)*size+j]*data[(I+11)*size+j];
-			temp6 = data[(I+12)*size+j]*data[(I+12)*size+j];
-			temp6 += data[(I+13)*size+j]*data[(I+13)*size+j];
-			temp7 = data[(I+14)*size+j]*data[(I+14)*size+j];
-			temp7 += data[(I+15)*size+j]*data[(I+15)*size+j];
-
-			temp0 += temp4;
-			temp1 += temp5;
-			temp2 += temp6;
-			temp3 += temp7;
-
-			temp0 += temp2;
-			temp1 += temp3;
-
-			temp0 += temp1;
-
-			temp2 = 0.0;
-			for(uint64_t k=0;k<extras;k++)
-			{
-				temp1 = data[(16*howmany2+k)*size+j]*data[(16*howmany2+k)*size+j];
-				temp2 += temp1;	
-			}
-
-			temp0 += temp2;
-
-			data[i*size+j] = temp0;
-		}
-	}
-}
 ///////////////////////////////////////////////////////////////////
 //                      __  ______                               //
 //                      \ \/ / ___|___  _ __ _ __                //
@@ -1044,6 +1069,256 @@ void reduceInPlaceBlockAVX(uint64_t N, uint64_t size, DataType* data){}
 template<>
 void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
 {
+	__m256 ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13,ymm14,ymm15;
+    float temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+    uint64_t J,L, offset, registers, howmany, excess;
+    uint64_t powers[16];
+	
+    howmany = N/size;
+    registers = size/8;
+	excess = size-(registers*8);
+
+    if(howmany <= 1){return;}
+
+    if(howmany < 16)
+    {
+        for(uint64_t i=0;i<size;i++)
+        {
+            for(uint64_t j=1;j<howmany;j++){data[i] += data[howmany*size+i];}
+        }
+        return;
+    }
+
+	for(int i=15;i>=0;i--)
+    {
+        powers[i]=(howmany>>(i<<2));
+        howmany -= powers[i]<<(i<<2);
+    }
+    
+    howmany = N/size;
+
+    offset = powers[0]*16;
+
+    for(uint64_t i=0;i<size;i++)
+    {
+        if(powers[0] == 0){break;}
+        for(uint64_t j=0;j<powers[0];j++)
+        {
+            data[i] += data[(howmany-powers[0]+j)*size+i];
+            offset=0;
+        }
+    }
+
+    for(uint64_t i=1;i<16;i++)
+    {
+        for(uint64_t j=0;j<i;j++)
+        {
+            if(powers[i]==0){break;}
+			J = (1<<((i-j)<<2));
+            for(uint64_t k=0;k<(powers[i]*J);k+=16)
+            {
+                for(uint64_t l=0;l<registers;l++)
+                {
+                    L = 8*l+offset;
+                    ymm0 = _mm256_loadu_ps(data+k*size+L);
+                    ymm1 = _mm256_loadu_ps(data+(k+1)*size+L);
+                    ymm2 = _mm256_loadu_ps(data+(k+2)*size+L);
+                    ymm3 = _mm256_loadu_ps(data+(k+3)*size+L);
+                    ymm4 = _mm256_loadu_ps(data+(k+4)*size+L);
+                    ymm5 = _mm256_loadu_ps(data+(k+5)*size+L);
+                    ymm6 = _mm256_loadu_ps(data+(k+6)*size+L);
+                    ymm7 = _mm256_loadu_ps(data+(k+7)*size+L);
+                    ymm8 = _mm256_loadu_ps(data+(k+8)*size+L);
+                    ymm9 = _mm256_loadu_ps(data+(k+9)*size+L);
+                    ymm10 = _mm256_loadu_ps(data+(k+10)*size+L);
+                    ymm11 = _mm256_loadu_ps(data+(k+11)*size+L);
+                    ymm12 = _mm256_loadu_ps(data+(k+12)*size+L);
+                    ymm13 = _mm256_loadu_ps(data+(k+13)*size+L);
+                    ymm14 = _mm256_loadu_ps(data+(k+14)*size+L);
+                    ymm15 = _mm256_loadu_ps(data+(k+15)*size+L);
+
+                    ymm0 = _mm256_add_ps(ymm0,ymm8);
+                    ymm1 = _mm256_add_ps(ymm1,ymm9);
+                    ymm2 = _mm256_add_ps(ymm2,ymm10);
+                    ymm3 = _mm256_add_ps(ymm3,ymm11);
+                    ymm4 = _mm256_add_ps(ymm4,ymm12);
+                    ymm5 = _mm256_add_ps(ymm5,ymm13);
+                    ymm6 = _mm256_add_ps(ymm6,ymm14);
+                    ymm7 = _mm256_add_ps(ymm7,ymm15);
+
+                    ymm0 = _mm256_add_ps(ymm0,ymm4);
+                    ymm1 = _mm256_add_ps(ymm1,ymm5);
+                    ymm2 = _mm256_add_ps(ymm2,ymm6);
+                    ymm3 = _mm256_add_ps(ymm3,ymm7);
+
+                    ymm0 = _mm256_add_ps(ymm0,ymm2);
+                    ymm1 = _mm256_add_ps(ymm1,ymm3);
+
+                    ymm0 = _mm256_add_ps(ymm0,ymm1);
+                    
+                    _mm256_storeu_ps(data+k/16*size+L,ymm0);
+                }
+                for(uint64_t l=0;l<excess;l++)
+				{
+                    L = 8*registers+offset+l;
+                    temp0 = data[k*size+L]+data[(k+1)*size+L];
+                    temp1 = data[(k+2)*size+L]+data[(k+3)*size+L];
+                    temp2 = data[(k+4)*size+L]+data[(k+5)*size+L];
+                    temp3 = data[(k+6)*size+L]+data[(k+7)*size+L];
+                    temp4 = data[(k+8)*size+L]+data[(k+9)*size+L];
+                    temp5 = data[(k+10)*size+L]+data[(k+11)*size+L];
+                    temp6 = data[(k+12)*size+L]+data[(k+13)*size+L];
+                    temp7 = data[(k+14)*size+L]+data[(k+15)*size+L];
+
+                    temp0 += temp4;
+                    temp1 += temp5;
+                    temp2 += temp6;
+                    temp3 += temp7;
+
+                    temp0 += temp3;
+                    temp1 += temp2;
+
+                    temp0 += temp1;
+				    
+                    data[(k/16)*size+L] = temp0;
+				}
+            }
+        }
+        for(uint64_t j=0;j<size;j++)
+        {
+            for(uint64_t k=1;k<powers[i];k++){data[j] += data[j+size*k+offset];}
+        }
+    }
+}
+
+template<>
+void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
+{
+	__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13,ymm14,ymm15;
+    double temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+    uint64_t J,L, offset, registers, howmany, excess;
+    uint64_t powers[16];
+	
+    howmany = N/size;
+    registers = size/4;
+	excess = size-(registers*4);
+
+    if(howmany <= 1){return;}
+
+    if(howmany < 16)
+    {
+        for(uint64_t i=0;i<size;i++)
+        {
+            for(uint64_t j=1;j<howmany;j++){data[i] += data[howmany*size+i];}
+        }
+        return;
+    }
+
+	for(int i=15;i>=0;i--)
+    {
+        powers[i]=(howmany>>(i<<2));
+        howmany -= powers[i]<<(i<<2);
+    }
+    
+    howmany = N/size;
+
+    offset = powers[0]*16;
+
+    for(uint64_t i=0;i<size;i++)
+    {
+        if(powers[0] == 0){break;}
+        for(uint64_t j=0;j<powers[0];j++)
+        {
+            data[i] += data[(howmany-powers[0]+j)*size+i];
+            offset=0;
+        }
+    }
+
+    for(uint64_t i=1;i<16;i++)
+    {
+        for(uint64_t j=0;j<i;j++)
+        {
+            if(powers[i]==0){break;}
+            J = (1<<((i-j)<<2));
+            for(uint64_t k=0;k<(powers[i]*J);k+=16)
+            {
+                for(uint64_t l=0;l<registers;l++)
+                {
+                    L = 4*l+offset;
+                    ymm0 = _mm256_loadu_pd(data+k*size+L);
+                    ymm1 = _mm256_loadu_pd(data+(k+1)*size+L);
+                    ymm2 = _mm256_loadu_pd(data+(k+2)*size+L);
+                    ymm3 = _mm256_loadu_pd(data+(k+3)*size+L);
+                    ymm4 = _mm256_loadu_pd(data+(k+4)*size+L);
+                    ymm5 = _mm256_loadu_pd(data+(k+5)*size+L);
+                    ymm6 = _mm256_loadu_pd(data+(k+6)*size+L);
+                    ymm7 = _mm256_loadu_pd(data+(k+7)*size+L);
+                    ymm8 = _mm256_loadu_pd(data+(k+8)*size+L);
+                    ymm9 = _mm256_loadu_pd(data+(k+9)*size+L);
+                    ymm10 = _mm256_loadu_pd(data+(k+10)*size+L);
+                    ymm11 = _mm256_loadu_pd(data+(k+11)*size+L);
+                    ymm12 = _mm256_loadu_pd(data+(k+12)*size+L);
+                    ymm13 = _mm256_loadu_pd(data+(k+13)*size+L);
+                    ymm14 = _mm256_loadu_pd(data+(k+14)*size+L);
+                    ymm15 = _mm256_loadu_pd(data+(k+15)*size+L);
+
+                    ymm0 = _mm256_add_pd(ymm0,ymm8);
+                    ymm1 = _mm256_add_pd(ymm1,ymm9);
+                    ymm2 = _mm256_add_pd(ymm2,ymm10);
+                    ymm3 = _mm256_add_pd(ymm3,ymm11);
+                    ymm4 = _mm256_add_pd(ymm4,ymm12);
+                    ymm5 = _mm256_add_pd(ymm5,ymm13);
+                    ymm6 = _mm256_add_pd(ymm6,ymm14);
+                    ymm7 = _mm256_add_pd(ymm7,ymm15);
+
+                    ymm0 = _mm256_add_pd(ymm0,ymm4);
+                    ymm1 = _mm256_add_pd(ymm1,ymm5);
+                    ymm2 = _mm256_add_pd(ymm2,ymm6);
+                    ymm3 = _mm256_add_pd(ymm3,ymm7);
+
+                    ymm0 = _mm256_add_pd(ymm0,ymm2);
+                    ymm1 = _mm256_add_pd(ymm1,ymm3);
+
+                    ymm0 = _mm256_add_pd(ymm0,ymm1);
+                    
+                    _mm256_storeu_pd(data+k/16*size+L,ymm0);
+                }
+                for(uint64_t l=0;l<excess;l++)
+				{
+                    L = 4*registers+offset+l;
+                    temp0 = data[k*size+L]+data[(k+1)*size+L];
+                    temp1 = data[(k+2)*size+L]+data[(k+3)*size+L];
+                    temp2 = data[(k+4)*size+L]+data[(k+5)*size+L];
+                    temp3 = data[(k+6)*size+L]+data[(k+7)*size+L];
+                    temp4 = data[(k+8)*size+L]+data[(k+9)*size+L];
+                    temp5 = data[(k+10)*size+L]+data[(k+11)*size+L];
+                    temp6 = data[(k+12)*size+L]+data[(k+13)*size+L];
+                    temp7 = data[(k+14)*size+L]+data[(k+15)*size+L];
+
+                    temp0 += temp4;
+                    temp1 += temp5;
+                    temp2 += temp6;
+                    temp3 += temp7;
+
+                    temp0 += temp3;
+                    temp1 += temp2;
+
+                    temp0 += temp1;
+				    
+                    data[(k/16)*size+L] = temp0;
+				}
+            }
+        }
+        for(uint64_t j=1;j<size;j++)
+        {
+            for(uint64_t k=0;k<powers[i];k++){data[j] += data[j+size*k+offset];}
+        }
+    }
+}
+/*
+template<>
+void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
+{
 	__m256 ymm0,ymm1;
 
 	uint64_t howmany = N/size;
@@ -1129,4 +1404,4 @@ void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
 			offset += size*powers[i]*(1<<i);
 		}
 	}
-}
+}*/
