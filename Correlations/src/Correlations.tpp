@@ -177,6 +177,7 @@ void aCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data)
 
 			data[i*size+j] = temp0;
 		}
+		extras = 0;
 	}
 }
 
@@ -318,6 +319,7 @@ void aCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data)
 
 			data[i*size+j] = temp0;
 		}
+		extras = 0;
 	}
 }
 
@@ -1071,7 +1073,7 @@ void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
 {
 	__m256 ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13,ymm14,ymm15;
     float temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-    uint64_t J,L, offset, registers, howmany, excess;
+    uint64_t I,J,L, offset, registers, howmany, excess;
     uint64_t powers[16];
 	
     howmany = N/size;
@@ -1084,7 +1086,7 @@ void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
     {
         for(uint64_t i=0;i<size;i++)
         {
-            for(uint64_t j=1;j<howmany;j++){data[i] += data[howmany*size+i];}
+            for(uint64_t j=1;j<howmany;j++){data[i] += data[j*size+i];}
         }
         return;
     }
@@ -1101,20 +1103,22 @@ void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
 
     for(uint64_t i=0;i<size;i++)
     {
-        if(powers[0] == 0){break;}
+        if(offset == 0){break;}
         for(uint64_t j=0;j<powers[0];j++)
         {
             data[i] += data[(howmany-powers[0]+j)*size+i];
-            offset=0;
         }
     }
 
+    offset=0;
+
     for(uint64_t i=1;i<16;i++)
     {
+        I = 1<<(i<<2);
         for(uint64_t j=0;j<i;j++)
         {
             if(powers[i]==0){break;}
-			J = (1<<((i-j)<<2));
+            J = (1<<((i-j)<<2));
             for(uint64_t k=0;k<(powers[i]*J);k+=16)
             {
                 for(uint64_t l=0;l<registers;l++)
@@ -1160,7 +1164,7 @@ void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
                 }
                 for(uint64_t l=0;l<excess;l++)
 				{
-                    L = 8*registers+offset+l;
+                    L = 8*registers+l+offset;
                     temp0 = data[k*size+L]+data[(k+1)*size+L];
                     temp1 = data[(k+2)*size+L]+data[(k+3)*size+L];
                     temp2 = data[(k+4)*size+L]+data[(k+5)*size+L];
@@ -1186,8 +1190,9 @@ void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
         }
         for(uint64_t j=0;j<size;j++)
         {
-            for(uint64_t k=1;k<powers[i];k++){data[j] += data[j+size*k+offset];}
+            for(uint64_t k=(offset == 0);k<powers[i];k++){data[j] += data[j+size*k+offset];}
         }
+        offset += I*powers[i]*size;
     }
 }
 
@@ -1196,7 +1201,7 @@ void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
 {
 	__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13,ymm14,ymm15;
     double temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-    uint64_t J,L, offset, registers, howmany, excess;
+    uint64_t I,J,L, offset, registers, howmany, excess;
     uint64_t powers[16];
 	
     howmany = N/size;
@@ -1209,7 +1214,7 @@ void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
     {
         for(uint64_t i=0;i<size;i++)
         {
-            for(uint64_t j=1;j<howmany;j++){data[i] += data[howmany*size+i];}
+            for(uint64_t j=1;j<howmany;j++){data[i] += data[j*size+i];}
         }
         return;
     }
@@ -1224,18 +1229,21 @@ void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
 
     offset = powers[0]*16;
 
-    for(uint64_t i=0;i<size;i++)
-    {
-        if(powers[0] == 0){break;}
-        for(uint64_t j=0;j<powers[0];j++)
-        {
-            data[i] += data[(howmany-powers[0]+j)*size+i];
-            offset=0;
-        }
-    }
+    if(powers[0] != 0)
+	{
+    	for(uint64_t i=0;i<size;i++)
+    	{
+        	for(uint64_t j=0;j<powers[0];j++)
+        	{
+            	data[i+j*size] += data[(howmany-powers[0]+j)*size+i];
+            	offset=0;
+        	}
+    	}
+	}
 
     for(uint64_t i=1;i<16;i++)
     {
+		I = 1<<(i<<2);
         for(uint64_t j=0;j<i;j++)
         {
             if(powers[i]==0){break;}
@@ -1285,7 +1293,7 @@ void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
                 }
                 for(uint64_t l=0;l<excess;l++)
 				{
-                    L = 4*registers+offset+l;
+                    L = 4*registers+l+offset;
                     temp0 = data[k*size+L]+data[(k+1)*size+L];
                     temp1 = data[(k+2)*size+L]+data[(k+3)*size+L];
                     temp2 = data[(k+4)*size+L]+data[(k+5)*size+L];
@@ -1309,99 +1317,10 @@ void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
 				}
             }
         }
-        for(uint64_t j=1;j<size;j++)
+        for(uint64_t j=0;j<size;j++)
         {
-            for(uint64_t k=0;k<powers[i];k++){data[j] += data[j+size*k+offset];}
+            for(uint64_t k=(offset == 0);k<powers[i];k++){data[j] += data[j+size*k+offset];}
         }
+		offset += I*powers[i]*size;
     }
 }
-/*
-template<>
-void reduceInPlaceBlockAVX<float>(uint64_t N, uint64_t size, float* data)
-{
-	__m256 ymm0,ymm1;
-
-	uint64_t howmany = N/size;
-	uint64_t registers = size/8;
-	uint64_t excess = size-(registers*8);
-
-	uint64_t powers[64];
-	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
-
-	uint64_t offset = powers[0]*size;
-	if(offset != 0 && howmany != 1)
-	{
-		for(uint64_t i=0;i<size;i++){data[i]+=data[N-1-size+i];offset=0;}
-	}
-
-	if(howmany > 1)
-	{
-		for(uint8_t i=1;i<63;i++)
-		{
-			for(uint8_t j=0;j<i;j++)
-			{
-				for(uint64_t k=0;k<size*powers[i]*(1<<(i-j));k+=2*size)
-				{
-					for(uint64_t l=0;l<registers;l++)
-					{
-						ymm0 = _mm256_loadu_ps(data+k+l*8+offset);
-						ymm1 = _mm256_loadu_ps(data+k+l*8+size+offset);
-						ymm0 = _mm256_add_ps(ymm0,ymm1);
-						_mm256_storeu_ps(data+k/2+l*8,ymm0);
-					}
-					for(uint64_t l=0;l<excess;l++)
-					{
-						data[k/2+8*registers+l] = data[k+8*registers+l+offset]
-														+data[k+8*registers+size+l+offset];
-					}
-				}
-			}
-			offset += size*powers[i]*(1<<i);
-		}
-	}
-}
-
-template<>
-void reduceInPlaceBlockAVX<double>(uint64_t N, uint64_t size, double* data)
-{
-	__m256d ymm0,ymm1;
-
-	uint64_t howmany = N/size;
-	uint64_t registers = size/4;
-	uint64_t excess = size-(registers*4);
-
-	uint64_t powers[64];
-	for(int i=63;i>=0;i--){powers[i]=(howmany>>i)&1;}
-	
-	uint64_t offset = powers[0]*size;
-	if(offset != 0 && howmany != 1)
-	{
-		for(uint64_t i=0;i<size;i++){data[i]+=data[N-1-size+i];offset=0;}
-	}
-
-	if(howmany > 1)
-	{
-		for(uint8_t i=1;i<63;i++)
-		{
-			for(uint8_t j=0;j<i;j++)
-			{
-				for(uint64_t k=0;k<size*powers[i]*(1<<(i-j));k+=2*size)
-				{
-					for(uint64_t l=0;l<registers;l++)
-					{
-						ymm0 = _mm256_loadu_pd(data+k+l*4+offset);
-						ymm1 = _mm256_loadu_pd(data+k+l*4+size+offset);
-						ymm0 = _mm256_add_pd(ymm0,ymm1);
-						_mm256_storeu_pd(data+k/2+l*4,ymm0);
-					}
-					for(uint64_t l=0;l<excess;l++)
-					{
-						data[k/2+4*registers+l] = data[k+4*registers+l+offset]
-														+data[k+4*registers+size+l+offset];
-					}
-				}
-			}	
-			offset += size*powers[i]*(1<<i);
-		}
-	}
-}*/
