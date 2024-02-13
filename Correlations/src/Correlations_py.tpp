@@ -722,6 +722,66 @@ xCorrCircularFreqAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	);
 }
 
+template<class DataType>
+py::array_t<std::complex<DataType>,py::array::c_style>
+xCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1, 
+				py::array_t<DataType,py::array::c_style> py_in2, uint64_t size)
+{
+	py::buffer_info buf_in1 = py_in1.request();
+	py::buffer_info buf_in2 = py_in2.request();
+
+	if (buf_in1.ndim != 1 || buf_in2.ndim != 1)
+	{
+		throw std::runtime_error("U dumbdumb dimension must be 1.");
+	}
+
+	uint64_t N = std::min(buf_in1.size,buf_in2.size);
+	uint64_t howmany = N/size;
+	uint64_t cSize = size/2+1;
+	if(size*howmany != N){howmany+=1;}
+
+	// Retreive all pointers
+	DataType* in1 = (DataType*) buf_in1.ptr;
+	DataType* in2 = (DataType*) buf_in2.ptr;
+	
+	DataType *out1, *out2;
+	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	
+	DataType* result;
+   	result = (DataType*) malloc(2*cSize*sizeof(DataType));
+
+	// Compute rFFT blocks
+	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
+
+	// Compute product
+	xCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize,out1, out2);
+	
+	// Sum all blocks
+	uint64_t Nreduce = std::max((uint64_t) 1, howmany/16);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out1);
+
+	// Divide the sum by the number of blocks
+	for(uint64_t i=0;i<(2*(size/2+1));i++)
+	{
+		result[i]=out1[i]/howmany;
+	}
+	
+	// Free intermediate buffer
+	fftw_free(out1);
+	fftw_free(out2);
+
+	py::capsule free_when_done(result, free);
+	return py::array_t<std::complex<DataType>, py::array::c_style>
+	(
+		{cSize},
+		{2*sizeof(DataType)},
+		reinterpret_cast<std::complex<DataType>*>(result),
+		free_when_done
+	);
+}
+
 XCorrCircularFreqAVX_py::XCorrCircularFreqAVX_py(uint64_t N_in, uint64_t size_in)
 {
 	N = N_in;
