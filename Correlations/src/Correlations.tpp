@@ -445,7 +445,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm0 = _mm256_permute_ps(ymm12,0b11011000);
@@ -455,7 +455,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm1 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -466,7 +466,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm1 = _mm256_permute_ps(ymm12,0b11011000);
@@ -476,7 +476,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm2 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -488,7 +488,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm1 = _mm256_permute_ps(ymm12,0b11011000);
@@ -498,7 +498,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm2 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -509,7 +509,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm2 = _mm256_permute_ps(ymm12,0b11011000);
@@ -519,7 +519,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm3 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -532,7 +532,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm4 = _mm256_permute_ps(ymm12,0b11011000);
@@ -542,7 +542,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm5 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -553,7 +553,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm5 = _mm256_permute_ps(ymm12,0b11011000);
@@ -563,7 +563,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm6 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -575,7 +575,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm5 = _mm256_permute_ps(ymm12,0b11011000);
@@ -585,7 +585,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm6 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -596,7 +596,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
 			ymm6 = _mm256_permute_ps(ymm12,0b11011000);
@@ -606,7 +606,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-			ymm12 = _mm256_mul_ps(ymm12,ymm13);
+			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm7 = _mm256_permute_ps(ymm12,0b11011000);
 			
@@ -623,7 +623,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 				ymm14 = _mm256_mul_ps(ymm12,ymm13);
 				ymm13 = _mm256_mul_ps(ymm13,ymm15);
 				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
-				ymm12 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
 				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 				ymm7 = _mm256_permute_ps(ymm12,0b11011000);
 				ymm1 = _mm256_add_ps(ymm1,ymm7);	
@@ -632,7 +632,7 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm0 = _mm256_add_ps(ymm0,ymm1);
 
 			_mm256_storeu_ps(data1+i*size+J,ymm0);
-		}/*
+		}
 		for(uint64_t j=8*Nregisters;j<size;j+=2)
 		{
 			temp0 = data1[I*size+j]*data2[I*size+j]+data1[I*size+j+1]*data2[I*size+j+1];
@@ -747,10 +747,10 @@ void xCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 
 			temp0 += temp2;
 			temp1 += temp3;
-
+			
 			data1[i*size+j] = temp0;
 			data1[i*size+j+1] = temp1;
-		}*/
+		}
 		extras = 0;
 	}
 }
