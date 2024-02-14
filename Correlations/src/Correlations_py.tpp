@@ -1349,6 +1349,7 @@ DigitizerXCorrCircularFreqAVX_py::xCorrCircularFreqAVXf
 	float* result;
 	result = (float*) malloc(2*cSize*sizeof(float));
 	std::memset(result,0.0,2*cSize*sizeof(float));
+	uint64_t Nreduce = std::max((uint64_t) 1, howmanyPerThread/16);
 			
 	#pragma omp parallel for
 	for(uint64_t i=0;i<threads;i++)
