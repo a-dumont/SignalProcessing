@@ -767,7 +767,7 @@ void xCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data1, do
 	uint64_t cSize = size/2;
 	uint64_t I = 0;
 	uint64_t J = 0;
-	float temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9;
+	double temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9;
 	
 	if(howmany == 1)
 	{
@@ -987,7 +987,7 @@ void xCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data1, do
 
 			_mm256_storeu_pd(data1+i*size+J,ymm0);
 		}
-		for(uint64_t j=8*Nregisters;j<size;j+=2)
+		for(uint64_t j=4*Nregisters;j<size;j+=2)
 		{
 			temp0 = data1[I*size+j]*data2[I*size+j]+data1[I*size+j+1]*data2[I*size+j+1];
 			temp0 += data1[(I+1)*size+j]*data2[(I+1)*size+j];
