@@ -91,6 +91,11 @@ void init_correlations(py::module &m)
 	m.def("fCorrCircularFreqAVX",&fCorrCircularFreqAVX_py<double>, 
 					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
 
+	m.def("fCorrCircFreqReduceAVX",&fCorrCircFreqReduceAVX_py<float>, 
+					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
+	//m.def("xCorrCircFreqReduceAVX",&xCorrCircFreqReduceAVX_py<double>, 
+	//				"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
+
 	py::class_<FCorrCircularFreqAVX_py>(m,"FCorrCircularFreqAVX")
 			.def(py::init<uint64_t,uint64_t>())
 			.def("fCorrCircularFreqAVX",&FCorrCircularFreqAVX_py::fCorrCircularFreqAVX,
