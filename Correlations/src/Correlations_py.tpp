@@ -1521,6 +1521,7 @@ fCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	uint64_t N = std::min(buf_in1.size,buf_in2.size);
 	uint64_t howmany = N/size;
 	uint64_t cSize = size/2+1;
+	uint64_t factor = sizeof(double)/sizeof(DataType);
 	if(size*howmany != N){howmany+=1;}
 
 	// Retreive all pointers
@@ -1549,14 +1550,26 @@ fCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out2);
 
 	// Divide the sum by the number of blocks
-	for(uint64_t i=0;i<cSize;i++)
+	if(factor == 2)
 	{
-		result1[i]=out1[2*i-(i%2)]/howmany;
-		result2[i]=out1[2*(i+1)-(i%2)-(2*(i+1)-(i%2))/(2*cSize)]/howmany;
-		result3[2*i]=out2[2*i]/howmany;
-		result3[2*i+1]=out2[2*i+1]/howmany;
+		for(uint64_t i=0;i<cSize;i++)
+		{
+			result1[i]=out1[2*i-(i%2)]/howmany;
+			result2[i]=out1[2*(i+1)-(i%2)-(2*(i+1)-(i%2))/(2*cSize)]/howmany;
+			result3[2*i]=out2[2*i]/howmany;
+			result3[2*i+1]=out2[2*i+1]/howmany;
+		}
 	}
-	
+	else
+	{
+		for(uint64_t i=0;i<cSize;i++)
+		{
+			result1[i]=out1[2*i]/howmany;
+			result2[i]=out1[2*i+1]/howmany;
+			result3[2*i]=out2[2*i]/howmany;
+			result3[2*i+1]=out2[2*i+1]/howmany;
+		}
+	}
 	// Free intermediate buffer
 	fftw_free(out1);
 	fftw_free(out2);

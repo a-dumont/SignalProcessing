@@ -1661,8 +1661,12 @@ void fCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data1, do
 			J = j<<1;
 			temp0 = data1[J]*data2[J]+data1[J+1]*data2[J+1];
 			temp1 = data1[J+1]*data2[J]-data1[J]*data2[J+1];
-			data1[J] = temp0;
-			data1[J+1] = temp1;
+			temp2 = data1[J]*data1[J]+data1[J+1]*data1[J+1];
+			temp3 = data2[J]*data2[J]+data2[J+1]*data2[J+1];
+			data1[J] = temp2;
+			data1[J+1] = temp3;
+			data2[J] = temp0;
+			data2[J+1] = temp1;
 		}
 		return;
 	}
@@ -1673,20 +1677,29 @@ void fCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data1, do
 			I = i<<1;
 			temp0 = data1[I]*data2[I]+data1[I+1]*data2[I+1];
 			temp1 = data1[I+1]*data2[I]-data1[I]*data2[I+1];
-			data1[I] = temp0;
-			data1[I+1] = temp1;
+			temp2 = data1[I]*data1[I]+data1[I+1]*data1[I+1];
+			temp3 = data2[I]*data2[I]+data2[I+1]*data2[I+1];
+			data1[I] = temp2;
+			data1[I+1] = temp3;
+			data2[I] = temp0;
+			data2[I+1] = temp1;
 			for(uint64_t j=1;j<howmany;j++)
 			{
 				J = I+j*size;
 				temp0 = data1[J]*data2[J]+data1[J+1]*data2[J+1];
 				temp1 = data1[J+1]*data2[J]-data1[J]*data2[J+1];
-				data1[I] += temp0; 
-				data1[I+1] += temp1; 
+				temp2 = data1[J]*data1[J]+data1[J+1]*data1[J+1];
+				temp3 = data2[J]*data2[J]+data2[J+1]*data2[J+1];
+				data1[I] += temp2;
+				data1[I+1] += temp3;
+				data2[I] += temp0;
+				data2[I+1] += temp1;
 			}
+
 		}
 		return;
 	}
-	
+
 	ymm15 = _mm256_set_pd(-1.0,1.0,-1.0,1.0);
 	
 	for(uint64_t i=0;i<howmany2;i++)
