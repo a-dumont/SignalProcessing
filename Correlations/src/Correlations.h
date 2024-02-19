@@ -11,6 +11,13 @@
 #include <cstring>
 #include <numeric>
 
+#if defined(__CYGWIN__) || defined(__MINGW64__)
+    #define _WIN32_WINNT 0x0602 // Windows 8
+    #include <windows.h>
+    #include <Processtopologyapi.h>
+    #include <processthreadsapi.h>
+#endif
+
 #ifdef _WIN64
 	std::string wisdom_path = "FFTW_Wisdom";
 	std::string wisdom_pathf = "FFTW_Wisdomf";
@@ -25,16 +32,15 @@ void manage_thread_affinity();
 
 // Acorr
 template<class DataType>
-void aCorrCircularFreqAVX(uint64_t N, DataType* in, DataType* out);
+void aCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data);
 
 // Xcorr
 template<class DataType>
-void xCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, DataType* out);
+void xCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2);
 
 // Combined Acorr and Xcorr
 template<class DataType>
-void fCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, 
-				DataType* out1, DataType* out2, DataType* out3);
+void fCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2);
 
 // rFFT
 template<class DataType>

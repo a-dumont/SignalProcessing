@@ -314,7 +314,7 @@ class FFT_Block_py
 			length[0] = (int) size;
 
 			#ifdef _WIN32_WINNT
-				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+				threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 			#else
 				threads = omp_get_max_threads();
 			#endif
@@ -979,7 +979,7 @@ class RFFT_Block_py
 			length[0] = (int) size;
 
 			#ifdef _WIN32_WINNT
-				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+				threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 			#else
 				threads = omp_get_max_threads();
 			#endif
@@ -1509,7 +1509,7 @@ class IFFT_Block_py
 			normf = 1.0/size;
 
 			#ifdef _WIN32_WINNT
-				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+				threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 			#else
 				threads = omp_get_max_threads();
 			#endif
@@ -2048,7 +2048,7 @@ class IRFFT_Block_py
 			normf = 1.0/size;
 
 			#ifdef _WIN32_WINNT
-				threads = (uint64_t) omp.omp_get_max_threads()*GetActiveProcessorGroupCount();
+				threads = (uint64_t) omp_get_max_threads()*GetActiveProcessorGroupCount();
 			#else
 				threads = omp_get_max_threads();
 			#endif
