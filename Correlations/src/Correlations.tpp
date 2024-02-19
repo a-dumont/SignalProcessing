@@ -1327,16 +1327,21 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			J = j<<3;
 			ymm12 = _mm256_loadu_ps(data1+I*size+J);
 			ymm13 = _mm256_loadu_ps(data2+I*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm8 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm0 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+1)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+1)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1344,20 +1349,27 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm1 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm10 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm8 = _mm256_add_ps(ymm8,ymm10);
 			ymm0 = _mm256_add_ps(ymm0,ymm1);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+2)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+2)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm9 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm1 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+3)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+3)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1365,21 +1377,29 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm2 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm10 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm9 = _mm256_add_ps(ymm9,ymm10);
+			ymm8 = _mm256_add_ps(ymm8,ymm9);
 			ymm1 = _mm256_add_ps(ymm1,ymm2);
 			ymm0 = _mm256_add_ps(ymm0,ymm1);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+4)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+4)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm7 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm1 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+5)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+5)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1387,20 +1407,27 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm2 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm6 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm9 = _mm256_add_ps(ymm6,ymm7);
 			ymm1 = _mm256_add_ps(ymm1,ymm2);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+6)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+6)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm7 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm2 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+7)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+7)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1408,22 +1435,31 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm3 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm6 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm7 = _mm256_add_ps(ymm7,ymm6);
+			ymm9 = _mm256_add_ps(ymm7,ymm9);
+			ymm8 = _mm256_add_ps(ymm8,ymm9);
 			ymm2 = _mm256_add_ps(ymm2,ymm3);
 			ymm1 = _mm256_add_ps(ymm1,ymm2);
 			ymm0 = _mm256_add_ps(ymm0,ymm1);
 			//
 			ymm12 = _mm256_loadu_ps(data1+(I+8)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+8)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm7 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm4 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+9)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+9)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1431,42 +1467,57 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm5 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm6 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm4 = _mm256_add_ps(ymm4,ymm5);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+10)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+10)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm10 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm6 = _mm256_add_ps(ymm6,ymm10);
 			ymm5 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+11)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+11)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
-			ymm6 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm10 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm7 = _mm256_add_ps(ymm7,ymm10);
+			ymm9 = _mm256_add_ps(ymm6,ymm7);
+			ymm6 = _mm256_permute_ps(ymm12,0b11011000);	
 			ymm5 = _mm256_add_ps(ymm5,ymm6);
 			ymm4 = _mm256_add_ps(ymm4,ymm5);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+12)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+12)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 	
+			ymm3 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm5 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+13)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+13)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1474,20 +1525,27 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm6 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm2 = _mm256_hadd_ps(ymm10,ymm11);
 			ymm5 = _mm256_add_ps(ymm5,ymm6);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+14)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+14)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
 			ymm13 = _mm256_mul_ps(ymm12,ymm13);
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
-	
+
+			ymm10 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm3 = _mm256_add_ps(ymm3,ymm10);	
 			ymm6 = _mm256_permute_ps(ymm12,0b11011000);
 
 			ymm12 = _mm256_loadu_ps(data1+(I+15)*size+J);
 			ymm13 = _mm256_loadu_ps(data2+(I+15)*size+J);
+			ymm10 = _mm256_mul_ps(ymm12,ymm12);
+			ymm11 = _mm256_mul_ps(ymm13,ymm13);
 			ymm14 = _mm256_mul_ps(ymm12,ymm13);
 			ymm13 = _mm256_mul_ps(ymm13,ymm15);
 			ymm13 = _mm256_permute_ps(ymm13,0b10110001);
@@ -1495,6 +1553,11 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			ymm12 = _mm256_hadd_ps(ymm14,ymm13);
 			ymm7 = _mm256_permute_ps(ymm12,0b11011000);
 			
+			ymm10 = _mm256_hadd_ps(ymm10,ymm11);
+			ymm2 = _mm256_add_ps(ymm2,ymm10);	
+			ymm2 = _mm256_add_ps(ymm2,ymm3);	
+			ymm9 = _mm256_add_ps(ymm2,ymm9);	
+			ymm8 = _mm256_add_ps(ymm8,ymm9);	
 			ymm6 = _mm256_add_ps(ymm6,ymm7);
 			ymm5 = _mm256_add_ps(ymm5,ymm6);
 			ymm4 = _mm256_add_ps(ymm4,ymm5);
@@ -1516,7 +1579,8 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 
 			ymm0 = _mm256_add_ps(ymm0,ymm1);
 
-			_mm256_storeu_ps(data1+i*size+J,ymm0);
+			_mm256_storeu_ps(data1+i*size+J,ymm8);
+			_mm256_storeu_ps(data2+i*size+J,ymm0);
 		}
 		for(uint64_t j=8*Nregisters;j<size;j+=2)
 		{
@@ -1633,8 +1697,8 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			temp0 += temp2;
 			temp1 += temp3;
 			
-			data1[i*size+j] = temp0;
-			data1[i*size+j+1] = temp1;
+			data2[i*size+j] = temp0;
+			data2[i*size+j+1] = temp1;
 		}
 		extras = 0;
 	}
