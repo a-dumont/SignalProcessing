@@ -1208,6 +1208,8 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 	uint64_t K = 0;
 	uint64_t L = 0;
 	float temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9;
+	float temp10, temp11, temp12, temp13, temp14, temp15, temp16, temp17, temp18, temp19;
+	float temp20, temp21;
 	
 	if(howmany == 1)
 	{
@@ -1681,22 +1683,156 @@ void fCorrCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data1, floa
 			temp0 += temp2;
 			temp1 += temp3;
 
-			temp2 = 0.0;
-			temp3 = 0.0;
+			temp2 = data1[I*size+j]*data1[I*size+j];
+			temp2 += data1[(I+8)*size+j]*data1[(I+8)*size+j];
+			temp3 = data1[I*size+j+1]*data1[I*size+j+1];
+			temp3 += data1[(I+8)*size+j+1]*data1[(I+8)*size+j+1];
+			
+			temp4 = data2[I*size+j]*data2[I*size+j];
+			temp4 += data2[(I+8)*size+j]*data2[(I+8)*size+j];
+			temp5 = data2[I*size+j+1]*data2[I*size+j+1];
+			temp5 += data2[(I+8)*size+j+1]*data2[(I+8)*size+j+1];
+			
+			temp6 = data1[(I+1)*size+j]*data1[(I+1)*size+j];
+			temp6 += data1[(I+9)*size+j]*data1[(I+9)*size+j];
+			temp7 = data1[(I+1)*size+j+1]*data1[(I+1)*size+j+1];
+			temp7 += data1[(I+9)*size+j+1]*data1[(I+9)*size+j+1];
+			
+			temp8 = data2[(I+1)*size+j]*data2[(I+1)*size+j];
+			temp8 += data2[(I+9)*size+j]*data2[(I+9)*size+j];
+			temp9 = data2[(I+1)*size+j+1]*data2[(I+1)*size+j+1];
+			temp9 += data2[(I+9)*size+j+1]*data2[(I+9)*size+j+1];
+			
+			temp10 = data1[(I+2)*size+j]*data1[(I+2)*size+j];
+			temp10 += data1[(I+10)*size+j]*data1[(I+10)*size+j];
+			temp11 = data1[(I+2)*size+j+1]*data1[(I+2)*size+j+1];
+			temp11 += data1[(I+10)*size+j+1]*data1[(I+10)*size+j+1];
+			
+			temp12 = data2[(I+2)*size+j]*data2[(I+2)*size+j];
+			temp12 += data2[(I+10)*size+j]*data2[(I+10)*size+j];
+			temp13 = data2[(I+2)*size+j+1]*data2[(I+2)*size+j+1];
+			temp13 += data2[(I+10)*size+j+1]*data2[(I+10)*size+j+1];
+			
+			temp14 = data1[(I+3)*size+j]*data1[(I+3)*size+j];
+			temp14 += data1[(I+11)*size+j]*data1[(I+11)*size+j];
+			temp15 = data1[(I+3)*size+j+1]*data1[(I+3)*size+j+1];
+			temp15 += data1[(I+11)*size+j+1]*data1[(I+11)*size+j+1];
+			
+			temp16 = data2[(I+3)*size+j]*data2[(I+3)*size+j];
+			temp16 += data2[(I+11)*size+j]*data2[(I+11)*size+j];
+			temp17 = data2[(I+3)*size+j+1]*data2[(I+3)*size+j+1];
+			temp17 += data2[(I+11)*size+j+1]*data2[(I+11)*size+j+1];
+			
+			temp2 += temp10;
+			temp3 += temp11;
+			temp4 += temp12;
+			temp5 += temp13;
+			temp6 += temp14;
+			temp7 += temp15;
+			temp8 += temp16;
+			temp9 += temp17;
+
+			temp2 += temp6;
+			temp3 += temp7;
+			temp4 += temp8;
+			temp5 += temp9;
+
+			temp6 = data1[(I+4)*size+j]*data1[(I+4)*size+j];
+			temp6 += data1[(I+12)*size+j]*data1[(I+12)*size+j];
+			temp7 = data1[(I+4)*size+j+1]*data1[(I+4)*size+j+1];
+			temp7 += data1[(I+12)*size+j+1]*data1[(I+12)*size+j+1];
+			
+			temp8 = data2[(I+4)*size+j]*data2[(I+4)*size+j];
+			temp8 += data2[(I+12)*size+j]*data2[(I+12)*size+j];
+			temp9 = data2[(I+4)*size+j+1]*data2[(I+4)*size+j+1];
+			temp9 += data2[(I+12)*size+j+1]*data2[(I+12)*size+j+1];
+			
+			temp10 = data1[(I+5)*size+j]*data1[(I+5)*size+j];
+			temp10 += data1[(I+13)*size+j]*data1[(I+13)*size+j];
+			temp11 = data1[(I+5)*size+j+1]*data1[(I+5)*size+j+1];
+			temp11 += data1[(I+13)*size+j+1]*data1[(I+13)*size+j+1];
+			
+			temp12 = data2[(I+5)*size+j]*data2[(I+5)*size+j];
+			temp12 += data2[(I+13)*size+j]*data2[(I+13)*size+j];
+			temp13 = data2[(I+5)*size+j+1]*data2[(I+5)*size+j+1];
+			temp13 += data2[(I+13)*size+j+1]*data2[(I+13)*size+j+1];
+			
+			temp14 = data1[(I+6)*size+j]*data1[(I+6)*size+j];
+			temp14 += data1[(I+14)*size+j]*data1[(I+14)*size+j];
+			temp15 = data1[(I+6)*size+j+1]*data1[(I+6)*size+j+1];
+			temp15 += data1[(I+14)*size+j+1]*data1[(I+14)*size+j+1];
+			
+			temp16 = data2[(I+6)*size+j]*data2[(I+6)*size+j];
+			temp16 += data2[(I+14)*size+j]*data2[(I+14)*size+j];
+			temp17 = data2[(I+6)*size+j+1]*data2[(I+6)*size+j+1];
+			temp17 += data2[(I+14)*size+j+1]*data2[(I+14)*size+j+1];
+			
+			temp18 = data1[(I+7)*size+j]*data1[(I+7)*size+j];
+			temp18 += data1[(I+15)*size+j]*data1[(I+15)*size+j];
+			temp19 = data1[(I+7)*size+j+1]*data1[(I+7)*size+j+1];
+			temp19 += data1[(I+15)*size+j+1]*data1[(I+15)*size+j+1];
+			
+			temp20 = data2[(I+7)*size+j]*data2[(I+7)*size+j];
+			temp20 += data2[(I+15)*size+j]*data2[(I+15)*size+j];
+			temp21 = data2[(I+7)*size+j+1]*data2[(I+7)*size+j+1];
+			temp21 += data2[(I+15)*size+j+1]*data2[(I+15)*size+j+1];
+			
+			temp6 += temp14;
+			temp7 += temp15;
+			temp8 += temp16;
+			temp9 += temp17;
+			temp10 += temp18;
+			temp11 += temp19;
+			temp12 += temp20;
+			temp13 += temp21;
+
+			temp6 += temp10;
+			temp7 += temp11;
+			temp8 += temp12;
+			temp9 += temp13;
+
+			temp2 += temp6;
+			temp3 += temp7;
+			temp4 += temp8;
+			temp5 += temp9;
+
+			temp6 = 0.0;
+			temp7 = 0.0;
+			temp8 = 0.0;
+			temp9 = 0.0;
+			temp10 = 0.0;
+			temp11 = 0.0;
 			for(uint64_t k=0;k<extras;k++)
 			{
-				temp4 = data1[(16*howmany2+k)*size+j]*data2[(16*howmany2+k)*size+j];
-				temp4 += data1[(16*howmany2+k)*size+j+1]*data2[(16*howmany2+k)*size+j+1];
-				temp5 = data1[(16*howmany2+k)*size+j+1]*data2[(16*howmany2+k)*size+j];
-				temp5 -= data1[(16*howmany2+k)*size+j]*data2[(16*howmany2+k)*size+j+1];
+				temp12 = data1[(16*howmany2+k)*size+j]*data2[(16*howmany2+k)*size+j];
+				temp12 += data1[(16*howmany2+k)*size+j+1]*data2[(16*howmany2+k)*size+j+1];
+				temp13 = data1[(16*howmany2+k)*size+j+1]*data2[(16*howmany2+k)*size+j];
+				temp13 -= data1[(16*howmany2+k)*size+j]*data2[(16*howmany2+k)*size+j+1];
 
-				temp2 += temp4;
-				temp3 += temp5;
+				temp14 = data1[(16*howmany2+k)*size+j]*data1[(16*howmany2+k)*size+j];
+				temp15 = data1[(16*howmany2+k)*size+j+1]*data1[(16*howmany2+k)*size+j+1];
+				temp16 = data2[(16*howmany2+k)*size+j]*data2[(16*howmany2+k)*size+j];
+				temp17 = data2[(16*howmany2+k)*size+j+1]*data2[(16*howmany2+k)*size+j+1];
+				
+				temp6 += temp12;
+				temp7 += temp13;
+				temp8 += temp14;
+				temp9 += temp15;
+				temp10 += temp16;
+				temp11 += temp17;
 			}
 
-			temp0 += temp2;
-			temp1 += temp3;
+			temp0 += temp6;
+			temp1 += temp7;
+			temp2 += temp8;
+			temp3 += temp9;
+			temp4 += temp10;
+			temp5 += temp11;
+			temp2 += temp3;
+			temp4 += temp5;
 			
+			data1[i*size+j] = temp2;
+			data1[i*size+j+1] = temp4;
 			data2[i*size+j] = temp0;
 			data2[i*size+j+1] = temp1;
 		}
