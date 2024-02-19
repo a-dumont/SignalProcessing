@@ -163,10 +163,10 @@ class FCorrCircularFreqAVX_py
 	private:
 		fftw_plan plan, plan2;
 		fftwf_plan planf, plan2f;
-		double *in, *out1, *out2, *out3;
-		float *inf, *out1f, *out2f, *out3f;
-		double **inThreads, **outThreads1, **outThreads2, **outThreads3;
-		float **inThreadsf, **outThreads1f, **outThreads2f, **outThreads3f;
+		double *in, *out1, *out2;
+		float *inf, *out1f, *out2f;
+		double **inThreads, **outThreads1, **outThreads2;
+		float **inThreadsf, **outThreads1f, **outThreads2f;
 		uint64_t N, size, cSize, howmany, Npad, threads, howmanyPerThread;
 		int length[1];
 		uint64_t transferSize;
