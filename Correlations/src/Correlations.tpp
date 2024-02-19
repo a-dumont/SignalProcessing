@@ -6,37 +6,6 @@
 //                   /_/   \_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
 template<class DataType>
-void aCorrCircularFreqAVX(uint64_t N, DataType* in, DataType* out){}
-
-template<>
-void aCorrCircularFreqAVX<float>(uint64_t N, float* in, float* out)
-{
-	__m256 ymm0;
-	uint64_t howmany = N/8;
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		ymm0 = _mm256_loadu_ps(in+8*i);
-		ymm0 = _mm256_mul_ps(ymm0,ymm0);
-		_mm256_storeu_ps(out+8*i,ymm0);
-	}
-	for(uint64_t i=(8*howmany);i<N;i++){out[i] = in[i]*in[i];}
-}
-
-template<>
-void aCorrCircularFreqAVX<double>(uint64_t N, double* in, double* out)
-{
-	__m256d ymm0;
-	uint64_t howmany = N/4;
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		ymm0 = _mm256_loadu_pd(in+4*i);
-		ymm0 = _mm256_mul_pd(ymm0,ymm0);
-		_mm256_storeu_pd(out+4*i,ymm0);
-	}
-	for(uint64_t j=(4*howmany);j<N;j++){out[j] = in[j]*in[j];}
-}
-
-template<class DataType>
 void aCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data){}
 
 template<>
@@ -330,58 +299,6 @@ void aCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data)
 //                       /  \ |__| (_) | |  | |                  //
 //                      /_/\_\____\___/|_|  |_|                  //
 ///////////////////////////////////////////////////////////////////
-template<class DataType>
-void xCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, DataType* out){}
-
-template<>
-void xCorrCircularFreqAVX<float>(uint64_t N, float* in1, float* in2, float* out)
-{
-	__m256 ymm0, ymm1, ymm2, ymm3, ymm4;
-	uint64_t howmany = N/8;
-	ymm4 = _mm256_set_ps(-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0);
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		ymm0 = _mm256_loadu_ps(in1+8*i);
-		ymm1 = _mm256_loadu_ps(in2+8*i);
-		ymm2 = _mm256_mul_ps(ymm0,ymm1);
-		ymm1 = _mm256_mul_ps(ymm1,ymm4);
-		ymm1 = _mm256_permute_ps(ymm1,0b10110001);
-		ymm3 = _mm256_mul_ps(ymm0,ymm1);
-		ymm0 = _mm256_hadd_ps(ymm2,ymm3);
-		ymm0 = _mm256_permute_ps(ymm0,0b11011000);
-		_mm256_storeu_ps(out+8*i,ymm0);
-	}
-	for(uint64_t i=(8*howmany);i<N;i+=2)
-	{
-		out[i] = in1[i]*in2[i]+in1[i+1]*in2[i+1];
-		out[i+1] = in1[i+1]*in2[i]-in1[i]*in2[i+1];
-	}
-}
-
-template<>
-void xCorrCircularFreqAVX<double>(uint64_t N, double* in1, double* in2, double* out)
-{
-	__m256d ymm0, ymm1, ymm2, ymm3, ymm4;
-	uint64_t howmany = N/4;
-	ymm4 = _mm256_set_pd(-1.0,1.0,-1.0,1.0);
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		ymm0 = _mm256_loadu_pd(in1+4*i);
-		ymm1 = _mm256_loadu_pd(in2+4*i);
-		ymm2 = _mm256_mul_pd(ymm0,ymm1);
-		ymm1 = _mm256_mul_pd(ymm1,ymm4);
-		ymm1 = _mm256_permute_pd(ymm1,0b00000101);
-		ymm3 = _mm256_mul_pd(ymm0,ymm1);
-		ymm0 = _mm256_hadd_pd(ymm2,ymm3);
-		_mm256_storeu_pd(out+4*i,ymm0);
-	}
-	for(uint64_t i=(4*howmany);i<N;i+=2)
-	{
-		out[i] = in1[i]*in2[i]+in1[i+1]*in2[i+1];
-		out[i+1] = in1[i+1]*in2[i]-in1[i]*in2[i+1];
-	}
-}
-
 template<class DataType>
 void xCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2){}
 
@@ -1115,81 +1032,6 @@ void xCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data1, do
 //                      |  _|| |__| (_) | |  | |                 //
 //                      |_|   \____\___/|_|  |_|                 //
 ///////////////////////////////////////////////////////////////////
-template<class DataType>
-void fCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, 
-				DataType* out1, DataType* out2, DataType* out3){}
-
-template<>
-void fCorrCircularFreqAVX<float>(uint64_t N, float* in1, float* in2, 
-				float* out1, float* out2, float* out3)
-{
-	float temp1, temp2, temp3, temp4;
-	__m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6;
-	uint64_t howmany = N/8;
-	ymm4 = _mm256_set_ps(-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0);
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		ymm0 = _mm256_loadu_ps(in1+8*i);
-		ymm1 = _mm256_loadu_ps(in2+8*i);
-		ymm5 = _mm256_mul_ps(ymm0,ymm0);
-		ymm6 = _mm256_mul_ps(ymm1,ymm1);
-		_mm256_storeu_ps(out1+8*i,ymm5);
-		_mm256_storeu_ps(out2+8*i,ymm6);
-		ymm2 = _mm256_mul_ps(ymm0,ymm1);
-		ymm1 = _mm256_mul_ps(ymm1,ymm4);
-		ymm1 = _mm256_permute_ps(ymm1,0b10110001);
-		ymm3 = _mm256_mul_ps(ymm0,ymm1);
-		ymm0 = _mm256_hadd_ps(ymm2,ymm3);
-		ymm0 = _mm256_permute_ps(ymm0,0b11011000);
-		_mm256_storeu_ps(out3+8*i,ymm0);
-	}
-	for(uint64_t i=(8*howmany);i<N;i+=2)
-	{
-		temp1 = in1[i]; temp2 = in1[i+1]; temp3 = in2[i]; temp4 = in2[i+1];
-		out1[i] = temp1*temp1;
-		out1[i+1] = temp2*temp2;
-		out2[i] = temp3*temp3;
-		out2[i+1] = temp4*temp4;
-		out3[i] = temp1*temp3+temp2*temp4;
-		out3[i+1] = temp2*temp3-temp1*temp4;
-	}
-}
-
-template<>
-void fCorrCircularFreqAVX<double>(uint64_t N, double* in1, double* in2, 
-				double* out1, double* out2, double* out3)
-{
-	double temp1, temp2, temp3, temp4;
-	__m256d ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6;
-	uint64_t howmany = N/4;
-	ymm4 = _mm256_set_pd(-1.0,1.0,-1.0,1.0);
-	for(uint64_t i=0;i<howmany;i++)
-	{
-		ymm0 = _mm256_loadu_pd(in1+4*i);
-		ymm1 = _mm256_loadu_pd(in2+4*i);
-		ymm5 = _mm256_mul_pd(ymm0,ymm0);
-		ymm6 = _mm256_mul_pd(ymm1,ymm1);
-		_mm256_storeu_pd(out1+4*i,ymm5);
-		_mm256_storeu_pd(out2+4*i,ymm6);
-		ymm2 = _mm256_mul_pd(ymm0,ymm1);
-		ymm1 = _mm256_mul_pd(ymm1,ymm4);
-		ymm1 = _mm256_permute_pd(ymm1,0b00000101);
-		ymm3 = _mm256_mul_pd(ymm0,ymm1);
-		ymm0 = _mm256_hadd_pd(ymm2,ymm3);
-		_mm256_storeu_pd(out3+4*i,ymm0);
-	}
-	for(uint64_t i=(4*howmany);i<N;i+=2)
-	{
-		temp1 = in1[i]; temp2 = in1[i+1]; temp3 = in2[i]; temp4 = in2[i+1];
-		out1[i] = temp1*temp1;
-		out1[i+1] = temp2*temp2;
-		out2[i] = temp3*temp3;
-		out2[i+1] = temp4*temp4;
-		out3[i] = temp1*temp3+temp2*temp4;
-		out3[i+1] = temp2*temp3-temp1*temp4;
-	}
-}
-
 template<class DataType>
 void fCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2){}
 

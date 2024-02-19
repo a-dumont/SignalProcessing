@@ -3,9 +3,6 @@
 void init_correlations(py::module &m)
 {
 	// Acorr
-	m.def("aCorrCircularFreqAVX",&aCorrCircularFreqAVX_py<float>, "In"_a.noconvert(),"size"_a);
-	m.def("aCorrCircularFreqAVX",&aCorrCircularFreqAVX_py<double>, "In"_a.noconvert(),"size"_a);
-	
 	m.def("aCorrCircFreqReduceAVX",&aCorrCircFreqReduceAVX_py<float>, "In"_a.noconvert(),"size"_a);
 	m.def("aCorrCircFreqReduceAVX",&aCorrCircFreqReduceAVX_py<double>, "In"_a.noconvert(),"size"_a);
 	
@@ -43,11 +40,6 @@ void init_correlations(py::module &m)
 
 	
 	// Xcorr
-	m.def("xCorrCircularFreqAVX",&xCorrCircularFreqAVX_py<float>, 
-					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
-	m.def("xCorrCircularFreqAVX",&xCorrCircularFreqAVX_py<double>, 
-					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
-
 	m.def("xCorrCircFreqReduceAVX",&xCorrCircFreqReduceAVX_py<float>, 
 					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
 	m.def("xCorrCircFreqReduceAVX",&xCorrCircFreqReduceAVX_py<double>, 
@@ -86,11 +78,6 @@ void init_correlations(py::module &m)
 			.def("train",&DigitizerXCorrCircularFreqAVX_py::train);
 					
 	// Combined Acorr and Xcorr
-	m.def("fCorrCircularFreqAVX",&fCorrCircularFreqAVX_py<float>, 
-					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
-	m.def("fCorrCircularFreqAVX",&fCorrCircularFreqAVX_py<double>, 
-					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
-
 	m.def("fCorrCircFreqReduceAVX",&fCorrCircFreqReduceAVX_py<float>, 
 					"In1"_a.noconvert(), "In2"_a.noconvert(), "size"_a);
 	m.def("fCorrCircFreqReduceAVX",&fCorrCircFreqReduceAVX_py<double>, 

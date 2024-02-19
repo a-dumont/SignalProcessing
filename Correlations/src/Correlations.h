@@ -32,19 +32,15 @@ void manage_thread_affinity();
 
 // Acorr
 template<class DataType>
-void aCorrCircularFreqAVX(uint64_t N, DataType* in, DataType* out);
-
-template<class DataType>
 void aCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data);
 
 // Xcorr
 template<class DataType>
-void xCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, DataType* out);
+void xCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2);
 
 // Combined Acorr and Xcorr
 template<class DataType>
-void fCorrCircularFreqAVX(uint64_t N, DataType* in1, DataType* in2, 
-				DataType* out1, DataType* out2, DataType* out3);
+void fCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2);
 
 // rFFT
 template<class DataType>
