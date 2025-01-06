@@ -192,7 +192,7 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
         ymm4 = _mm256_broadcast_sd(in2+3);
 			
         ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm1));
-		out[N-k-1] = res[0];
+		out[N-k-1] = res[3];
         ymm5 = _mm256_permute4x64_pd(ymm5,0b10010011);
 
         ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm2));
