@@ -641,7 +641,7 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	}
 	
 	filterEdgeLeftAVX<DataTypeIn,DataTypeOut>(Nfilter,data,filter,out);
-	filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-1-Nfilter,filter,out+Ndata+Nfilter-2);
+	filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-Nfilter,filter,out+Ndata+Nfilter-2);
 	
 	free(Nthreads_arr);	
 }
