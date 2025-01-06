@@ -59,32 +59,71 @@ void filterEdgeLeftAVX(uint64_t N, DataTypeIn* in1, DataTypeOut* in2, DataTypeOu
 template<>
 void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, double* out)
 {
-	uint64_t N2 = (N-1)/4;
+	uint64_t N2 = N/4;
 	#pragma omp parallel for schedule(dynamic,1)
 	for(uint64_t j=0;j<N2;j++)
 	{
-		__m256d ymm0,ymm1,ymm2;
-		uint64_t k;
-		double* res = (double*)&ymm2;
+		__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8;
+		uint64_t k, offset;
+		
+        double* res = (double*)&ymm5;
 		k = 4*j;
-		ymm2 = _mm256_setzero_pd();
-		for(uint64_t i=0;i<k;i++)
-		{
-			ymm0 = _mm256_broadcast_sd(in1+i);
-			ymm1 = _mm256_loadu_pd(in2+N-4-k+i);
-			ymm1 = _mm256_permute4x64_pd(ymm1,0b00011011);
-			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
-		}
-		ymm0 = _mm256_loadu_pd(in1+k); 
-		for(uint64_t i=k;i<(k+4);i++)
-		{
-			ymm1 = _mm256_broadcast_sd(in2+N-1-i);
-			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
-			out[i] = res[0];
-			ymm2 = _mm256_permute4x64_pd(ymm2,0b00111001);
-		}
+
+		ymm0 = _mm256_loadu_pd(in1+k);
+        ymm5 = _mm256_setzero_pd();
+        ymm8 = _mm256_setzero_pd();
+
+		ymm1 = _mm256_broadcast_sd(in2+N-1);
+        ymm2 = _mm256_broadcast_sd(in2+N-1-1);
+        ymm3 = _mm256_broadcast_sd(in2+N-1-2);
+        ymm4 = _mm256_broadcast_sd(in2+N-1-3);
+			
+        ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm1));
+		out[k] = res[0];
+        ymm5 = _mm256_permute4x64_pd(ymm5,0b00111001);
+
+        ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm2));
+		out[k+1] = res[0];
+        ymm5 = _mm256_permute4x64_pd(ymm5,0b00111001);
+            
+        ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm3));
+		out[k+2] = res[0];
+        ymm5 = _mm256_permute4x64_pd(ymm5,0b00111001);
+            
+        ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm4));
+		out[k+3] = res[0];
+        ymm5 = _mm256_permute4x64_pd(ymm5,0b00111001);
+		
+        for(uint64_t i=0;i<j;i++)
+        {
+            ymm0 = _mm256_broadcast_sd(in1+4*i);
+            ymm1 = _mm256_broadcast_sd(in1+4*i+1);
+            ymm2 = _mm256_broadcast_sd(in1+4*i+2);
+            ymm3 = _mm256_broadcast_sd(in1+4*i+3);
+            
+            ymm4 = _mm256_loadu_pd(in2+N-4*(j+1-i));
+            ymm5 = _mm256_loadu_pd(in2+N-4*(j+1-i)+1);
+            ymm6 = _mm256_loadu_pd(in2+N-4*(j+1-i)+2);
+            ymm7 = _mm256_loadu_pd(in2+N-4*(j+1-i)+3);
+            
+            ymm0 = _mm256_mul_pd(ymm0,ymm4);
+            ymm1 = _mm256_mul_pd(ymm1,ymm5);
+            ymm2 = _mm256_mul_pd(ymm2,ymm6);
+            ymm3 = _mm256_mul_pd(ymm3,ymm7);
+
+            ymm0 = _mm256_add_pd(ymm0,ymm2);
+            ymm1 = _mm256_add_pd(ymm1,ymm3);
+
+            ymm0 = _mm256_add_pd(ymm0,ymm1);
+
+            ymm8 = _mm256_add_pd(ymm8,ymm0);
+        }
+        ymm8 = _mm256_permute4x64_pd(ymm8,0b00011011);
+        ymm0 = _mm256_loadu_pd(out+k);
+        ymm8 = _mm256_add_pd(ymm0,ymm8);
+        _mm256_storeu_pd(out+k,ymm8);
 	}
-	for(uint64_t j=(4*N2);j<(N-1);j++)
+    for(uint64_t j=(4*N2);j<N;j++)
 	{
 		out[j] = std::inner_product(in2+N-j-1,in2+N,in1,0.0);
 	}
@@ -121,7 +160,7 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
 			ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm4);
 		}
 	}
-	for(uint64_t j=(8*N2);j<(N-1);j++)
+	for(uint64_t j=(8*N2);j<N;j++)
 	{
 		out[j] = std::inner_product(in2+N-j-1,in2+N,in1,0.0);
 	}
