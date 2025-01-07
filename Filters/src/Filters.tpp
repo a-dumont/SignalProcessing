@@ -65,6 +65,8 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
 	{
 		__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13;
 		
+		uint64_t k;
+		
         double* res = (double*) &ymm10;
         double* res2 = (double*) &ymm11;
 		
@@ -265,7 +267,7 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
 	for(uint64_t j=0;j<N2;j++)
 	{
 		__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13;
-		uint64_t k, offset;
+		uint64_t k;
 		
         double* res = (double*) &ymm10;
         double* res2 = (double*) &ymm11;
