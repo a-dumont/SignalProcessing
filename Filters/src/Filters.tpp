@@ -64,7 +64,6 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
 	for(uint64_t j=0;j<N2;j++)
 	{
 		__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13;
-		uint64_t k, offset;
 		
         double* res = (double*) &ymm10;
         double* res2 = (double*) &ymm11;
@@ -342,14 +341,14 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
             ymm2 = _mm256_broadcast_sd(in1+N-1-8*i-2);
             ymm3 = _mm256_broadcast_sd(in1+N-1-8*i-3);
 
-            ymm4 = _mm256_loadu_pd(in2+12*(j-i));
-            ymm5 = _mm256_loadu_pd(in2+12*(j-i)-4);
-            ymm6 = _mm256_loadu_pd(in2+12*(j-i)-1);
-            ymm7 = _mm256_loadu_pd(in2+12*(j-i)-5);
-            ymm8 = _mm256_loadu_pd(in2+12*(j-i)-2);
-            ymm9 = _mm256_loadu_pd(in2+12*(j-i)-6);
-            ymm10 = _mm256_loadu_pd(in2+12*(j-i)-3);
-            ymm11 = _mm256_loadu_pd(in2+12*(j-i)-7);
+            ymm4 = _mm256_loadu_pd(in2+8*(j-i)+4);
+            ymm5 = _mm256_loadu_pd(in2+8*(j-i));
+            ymm6 = _mm256_loadu_pd(in2+8*(j-i)+3);
+            ymm7 = _mm256_loadu_pd(in2+8*(j-i)-1);
+            ymm8 = _mm256_loadu_pd(in2+8*(j-i)+2);
+            ymm9 = _mm256_loadu_pd(in2+8*(j-i)-2);
+            ymm10 = _mm256_loadu_pd(in2+8*(j-i)+1);
+            ymm11 = _mm256_loadu_pd(in2+8*(j-i)-3);
             
             ymm4 = _mm256_mul_pd(ymm0,ymm4);
             ymm5 = _mm256_mul_pd(ymm0,ymm5);
@@ -376,14 +375,14 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
             ymm2 = _mm256_broadcast_sd(in1+N-1-8*i-6);
             ymm3 = _mm256_broadcast_sd(in1+N-1-8*i-7);
 
-            ymm4 = _mm256_loadu_pd(in2+12*(j-i)-4);
-            ymm5 = _mm256_loadu_pd(in2+12*(j-i)-8);
-            ymm6 = _mm256_loadu_pd(in2+12*(j-i)-5);
-            ymm7 = _mm256_loadu_pd(in2+12*(j-i)-9);
-            ymm8 = _mm256_loadu_pd(in2+12*(j-i)-6);
-            ymm9 = _mm256_loadu_pd(in2+12*(j-i)-10);
-            ymm10 = _mm256_loadu_pd(in2+12*(j-i)-7);
-            ymm11 = _mm256_loadu_pd(in2+12*(j-i)-11);
+            ymm4 = _mm256_loadu_pd(in2+8*(j-i));
+            ymm5 = _mm256_loadu_pd(in2+8*(j-i)-4);
+            ymm6 = _mm256_loadu_pd(in2+8*(j-i)-1);
+            ymm7 = _mm256_loadu_pd(in2+8*(j-i)-5);
+            ymm8 = _mm256_loadu_pd(in2+8*(j-i)-2);
+            ymm9 = _mm256_loadu_pd(in2+8*(j-i)-6);
+            ymm10 = _mm256_loadu_pd(in2+8*(j-i)-3);
+            ymm11 = _mm256_loadu_pd(in2+8*(j-i)-7);
             
             ymm4 = _mm256_mul_pd(ymm0,ymm4);
             ymm5 = _mm256_mul_pd(ymm0,ymm5);
@@ -419,6 +418,7 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
 		out[N-1-j] = std::inner_product(in2,in2+j+1,in1+N-1-j,0.0);
 	}
 }
+		
 /*
 {
 	uint64_t N2 = N/4;
