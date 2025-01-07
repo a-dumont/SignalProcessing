@@ -625,7 +625,7 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 {
 	uint64_t threads,Nthreads;
 	if(Ndata < 1<<16){threads = 1;Nthreads = Ndata-Nfilter;}
-	else{threads = getThreads<uint64_t>();Nthreads = (Ndata-Nfilter)/threads;}
+	else{threads = getThreads<uint64_t>()/2;Nthreads = (Ndata-Nfilter)/threads;}
 
 	uint64_t* Nthreads_arr = (uint64_t*) malloc(threads*sizeof(uint64_t));
 	for(uint64_t i=0;i<threads;i++){Nthreads_arr[i]=Nthreads;}
