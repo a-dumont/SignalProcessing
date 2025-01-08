@@ -272,7 +272,7 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
 		ymm11 = _mm256_add_ps(ymm11,ymm12);
         out[k] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
-        res[07] = res2[0];
+        res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
 		ymm12 = _mm256_mul_ps(ymm0,ymm3);	
@@ -537,9 +537,8 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
         ymm12 = _mm256_add_ps(ymm1,ymm12);
         _mm256_storeu_ps(out+k,ymm13);
         _mm256_storeu_ps(out+k+8,ymm12);
-	}
-    
-    for(uint64_t j=(8*N2);j<N;j++)
+	} 
+    for(uint64_t j=(16*N2);j<N;j++)
 	{
 		out[j] = std::inner_product(in2+N-j-1,in2+N,in1,0.0);
 	}
