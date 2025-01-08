@@ -1395,7 +1395,7 @@ void applyFilterAVX(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 		filterAVX<DataTypeIn,DataTypeOut>(Nthreads_arr[i],Nfilter,sData,filter,sOut);
 	}
 	
-	//filterEdgeLeftAVX<DataTypeIn,DataTypeOut>(Nfilter,data,filter,out);
+	filterEdgeLeftAVX<DataTypeIn,DataTypeOut>(Nfilter,data,filter,out);
 	filterEdgeRightAVX<DataTypeIn,DataTypeOut>(Nfilter,data+Ndata-Nfilter,filter,out+Ndata-1);
 	
 	free(Nthreads_arr);	
