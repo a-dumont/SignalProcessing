@@ -81,14 +81,14 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
         ymm1 = _mm256_loadu_pd(in1+k+4);
 
 		ymm2 = _mm256_broadcast_sd(in2+N-1);
-        ymm3 = _mm256_broadcast_sd(in2+N-1-1);
-        ymm4 = _mm256_broadcast_sd(in2+N-1-2);
-        ymm5 = _mm256_broadcast_sd(in2+N-1-3);
+        ymm3 = _mm256_broadcast_sd(in2+N-2);
+        ymm4 = _mm256_broadcast_sd(in2+N-3);
+        ymm5 = _mm256_broadcast_sd(in2+N-4);
         
-        ymm6 = _mm256_broadcast_sd(in2+N-1-4);
-        ymm7 = _mm256_broadcast_sd(in2+N-1-5);
-        ymm8 = _mm256_broadcast_sd(in2+N-1-6);
-        ymm9 = _mm256_broadcast_sd(in2+N-1-7);
+        ymm6 = _mm256_broadcast_sd(in2+N-5);
+        ymm7 = _mm256_broadcast_sd(in2+N-6);
+        ymm8 = _mm256_broadcast_sd(in2+N-7);
+        ymm9 = _mm256_broadcast_sd(in2+N-8);
 			
         ymm10 = _mm256_add_pd(ymm10,_mm256_mul_pd(ymm0,ymm2));
 		ymm11 = _mm256_add_pd(ymm11,_mm256_mul_pd(ymm1,ymm2));
@@ -509,42 +509,7 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
 	}
 
 }
-/*
-{
-	uint64_t N2 = (N-1)/8;
-	#pragma omp parallel for schedule(dynamic,1)
-	for(uint64_t j=0;j<N2;j++)
-	{
-		__m256 ymm0,ymm1,ymm2;
-		__m256i ymm3,ymm4;
-		ymm3 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
-		ymm4 = _mm256_set_epi32(0,7,6,5,4,3,2,1);
-		uint64_t k;
-		float* res = (float*)&ymm2;
-		k = 8*j;
-		ymm2 = _mm256_setzero_ps();
-		for(uint64_t i=0;i<k;i++)
-		{
-			ymm0 = _mm256_broadcast_ss(in1+i);
-			ymm1 = _mm256_loadu_ps(in2+N-8-k+i);
-			ymm1 = _mm256_permutevar8x32_ps(ymm1,ymm3);
-			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
-		}
-		ymm0 = _mm256_loadu_ps(in1+k); 
-		for(uint64_t i=k;i<(k+8);i++)
-		{
-			ymm1 = _mm256_broadcast_ss(in2+N-1-i);
-			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
-			out[i] = res[0];
-			ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm4);
-		}
-	}
-	for(uint64_t j=(8*N2);j<N;j++)
-	{
-		out[j] = std::inner_product(in2+N-j-1,in2+N,in1,0.0);
-	}
-}
-*/
+
 template<class DataTypeIn, class DataTypeOut>
 void filterEdgeRightAVX(uint64_t N, DataTypeIn* in1, DataTypeOut* in2, DataTypeOut* out){}
 
@@ -628,9 +593,9 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
         for(uint64_t i=0;i<j;i++)
         {
             ymm0 = _mm256_broadcast_sd(in1+N-1-8*i);
-            ymm1 = _mm256_broadcast_sd(in1+N-1-8*i-1);
-            ymm2 = _mm256_broadcast_sd(in1+N-1-8*i-2);
-            ymm3 = _mm256_broadcast_sd(in1+N-1-8*i-3);
+            ymm1 = _mm256_broadcast_sd(in1+N-2-8*i);
+            ymm2 = _mm256_broadcast_sd(in1+N-3-8*i);
+            ymm3 = _mm256_broadcast_sd(in1+N-4-8*i);
 
             ymm4 = _mm256_loadu_pd(in2+8*(j-i)+4);
             ymm5 = _mm256_loadu_pd(in2+8*(j-i));
@@ -661,10 +626,10 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
             ymm12 = _mm256_add_pd(ymm12,ymm4);
             ymm13 = _mm256_add_pd(ymm13,ymm5);
 
-            ymm0 = _mm256_broadcast_sd(in1+N-1-8*i-4);
-            ymm1 = _mm256_broadcast_sd(in1+N-1-8*i-5);
-            ymm2 = _mm256_broadcast_sd(in1+N-1-8*i-6);
-            ymm3 = _mm256_broadcast_sd(in1+N-1-8*i-7);
+            ymm0 = _mm256_broadcast_sd(in1+N-5-8*i);
+            ymm1 = _mm256_broadcast_sd(in1+N-6-8*i);
+            ymm2 = _mm256_broadcast_sd(in1+N-7-8*i);
+            ymm3 = _mm256_broadcast_sd(in1+N-8-8*i);
 
             ymm4 = _mm256_loadu_pd(in2+8*(j-i));
             ymm5 = _mm256_loadu_pd(in2+8*(j-i)-4);
@@ -848,13 +813,13 @@ void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* 
         for(uint64_t i=0;i<j;i++)
         {
             ymm0 = _mm256_broadcast_ss(in1+N-1-16*i);
-            ymm1 = _mm256_broadcast_ss(in1+N-1-16*i-1);
-            ymm2 = _mm256_broadcast_ss(in1+N-1-16*i-2);
-            ymm3 = _mm256_broadcast_ss(in1+N-1-16*i-3);
-            ymm4 = _mm256_broadcast_ss(in1+N-1-16*i-4);
-            ymm5 = _mm256_broadcast_ss(in1+N-1-16*i-5);
-            ymm6 = _mm256_broadcast_ss(in1+N-1-16*i-6);
-            ymm7 = _mm256_broadcast_ss(in1+N-1-16*i-7);
+            ymm1 = _mm256_broadcast_ss(in1+N-2-16*i);
+            ymm2 = _mm256_broadcast_ss(in1+N-3-16*i);
+            ymm3 = _mm256_broadcast_ss(in1+N-4-16*i);
+            ymm4 = _mm256_broadcast_ss(in1+N-5-16*i);
+            ymm5 = _mm256_broadcast_ss(in1+N-6-16*i);
+            ymm6 = _mm256_broadcast_ss(in1+N-7-16*i);
+            ymm7 = _mm256_broadcast_ss(in1+N-8-16*i);
 
             ymm8 = _mm256_loadu_ps(in2+16*(j-i)+8);
             ymm9 = _mm256_loadu_ps(in2+16*(j-i)+7);
@@ -916,14 +881,14 @@ void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* 
             ymm8 = _mm256_add_ps(ymm8,ymm9);
             ymm13 = _mm256_add_ps(ymm13,ymm8);
 
-            ymm0 = _mm256_broadcast_ss(in1+N-1-16*i-8);
-            ymm1 = _mm256_broadcast_ss(in1+N-1-16*i-9);
-            ymm2 = _mm256_broadcast_ss(in1+N-1-16*i-10);
-            ymm3 = _mm256_broadcast_ss(in1+N-1-16*i-11);
-            ymm4 = _mm256_broadcast_ss(in1+N-1-16*i-12);
-            ymm5 = _mm256_broadcast_ss(in1+N-1-16*i-13);
-            ymm6 = _mm256_broadcast_ss(in1+N-1-16*i-14);
-            ymm7 = _mm256_broadcast_ss(in1+N-1-16*i-15);
+            ymm0 = _mm256_broadcast_ss(in1+N-9-16*i);
+            ymm1 = _mm256_broadcast_ss(in1+N-10-16*i);
+            ymm2 = _mm256_broadcast_ss(in1+N-11-16*i);
+            ymm3 = _mm256_broadcast_ss(in1+N-12-16*i);
+            ymm4 = _mm256_broadcast_ss(in1+N-13-16*i);
+            ymm5 = _mm256_broadcast_ss(in1+N-14-16*i);
+            ymm6 = _mm256_broadcast_ss(in1+N-15-16*i);
+            ymm7 = _mm256_broadcast_ss(in1+N-16-16*i);
 
             ymm8 = _mm256_loadu_ps(in2+16*(j-i));
             ymm9 = _mm256_loadu_ps(in2+16*(j-i)-1);
@@ -999,42 +964,6 @@ void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* 
 		out[N-1-j] = std::inner_product(in2,in2+j+1,in1+N-1-j,0.0);
 	}
 }
-/*
-{
-	uint64_t N2 = N/8;
-
-	#pragma omp parallel for schedule(dynamic,1)
-	for(uint64_t j=0;j<N2;j++)
-	{
-		__m256 ymm0,ymm1,ymm2;
-		__m256i ymm3,ymm4;
-		ymm3 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
-		ymm4 = _mm256_set_epi32(0,7,6,5,4,3,2,1);
-		uint64_t k;
-		float* res = (float*)&ymm2;
-		k = 8*j;
-		ymm2 = _mm256_setzero_ps();
-		for(uint64_t i=0;i<k;i++)
-		{
-			ymm0 = _mm256_broadcast_ss(in1-i);
-			ymm1 = _mm256_loadu_ps(in2+N-8-i);
-			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
-		}
-		ymm0 = _mm256_loadu_ps(in1-7-k); 
-		ymm0 = _mm256_permutevar8x32_ps(ymm0,ymm3);
-		for(uint64_t i=k;i<(k+8);i++)
-		{
-			ymm1 = _mm256_broadcast_ss(in2+i-k);
-			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
-			(out-i)[0] = res[0];
-			ymm2 = _mm256_permutevar8x32_ps(ymm2,ymm4);
-		}
-	}
-	for(uint64_t j=(8*N2);j<N;j++)
-	{
-		(out-j)[0] = std::inner_product(in2,in2+j+1,in1-j,0.0);
-	}
-}*/
 
 template<class DataTypeIn, class DataTypeOut>
 void filterAVX(uint64_t N, uint64_t Nfilter, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
