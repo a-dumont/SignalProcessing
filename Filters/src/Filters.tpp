@@ -726,6 +726,133 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
 template<>
 void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* out)
 {
+	uint64_t N2 = N/8;
+	#pragma omp parallel for schedule(dynamic,1)
+	for(uint64_t j=0;j<N2;j++)
+	{
+		__m256 ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13;
+        __m256i ymm14,ymm15;
+        
+		uint64_t k;
+
+        ymm14 = _mm256_set_epi32(6,5,4,3,2,1,0,7);
+        ymm15 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
+		
+        float* res = (float*) &ymm10;
+        float* res2 = (float*) &ymm11;
+		
+        k = 8*j;
+
+        ymm10 = _mm256_setzero_ps();
+        ymm11 = _mm256_setzero_ps();
+
+        ymm0 = _mm256_loadu_ps(in1+N-k-8);
+
+		ymm2 = _mm256_broadcast_ss(in2);
+        ymm3 = _mm256_broadcast_ss(in2+1);
+        ymm4 = _mm256_broadcast_ss(in2+2);
+        ymm5 = _mm256_broadcast_ss(in2+3);
+        ymm6 = _mm256_broadcast_ss(in2+4);
+        ymm7 = _mm256_broadcast_ss(in2+5);
+        ymm8 = _mm256_broadcast_ss(in2+6);
+        ymm9 = _mm256_broadcast_ss(in2+7);
+			
+		ymm12 = _mm256_mul_ps(ymm0,ymm2);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-1] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+
+		ymm12 = _mm256_mul_ps(ymm0,ymm3);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-2] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+        
+		ymm12 = _mm256_mul_ps(ymm0,ymm4);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-3] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+
+		ymm12 = _mm256_mul_ps(ymm0,ymm5);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-4] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+
+		ymm12 = _mm256_mul_ps(ymm0,ymm6);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-5] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+
+		ymm12 = _mm256_mul_ps(ymm0,ymm7);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-6] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+
+		ymm12 = _mm256_mul_ps(ymm0,ymm8);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-7] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+
+		ymm12 = _mm256_mul_ps(ymm0,ymm9);	
+        ymm10 = _mm256_add_ps(ymm10,ymm12);
+        out[N-k-8] = res[7];
+        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
+		
+        ymm12 = _mm256_setzero_ps();
+        ymm13 = _mm256_setzero_ps();
+        for(uint64_t i=0;i<j;i++)
+        {
+            ymm0 = _mm256_broadcast_ss(in1+N-1-8*i);
+            ymm1 = _mm256_broadcast_ss(in1+N-2-8*i);
+            ymm2 = _mm256_broadcast_ss(in1+N-3-8*i);
+            ymm3 = _mm256_broadcast_ss(in1+N-4-8*i);
+            ymm4 = _mm256_broadcast_ss(in1+N-5-8*i);
+            ymm5 = _mm256_broadcast_ss(in1+N-6-8*i);
+            ymm6 = _mm256_broadcast_ss(in1+N-7-8*i);
+            ymm7 = _mm256_broadcast_ss(in1+N-8-8*i);
+
+            ymm8 = _mm256_loadu_ps(in2+8*(j-i)+8);
+            ymm9 = _mm256_loadu_ps(in2+8*(j-i)+7);
+            ymm10 = _mm256_loadu_ps(in2+8*(j-i)+6);
+            ymm11 = _mm256_loadu_ps(in2+8*(j-i)+5);
+
+            ymm8 = _mm256_mul_ps(ymm0,ymm8);
+            ymm9 = _mm256_mul_ps(ymm1,ymm9);
+            ymm10 = _mm256_mul_ps(ymm2,ymm10);
+            ymm11 = _mm256_mul_ps(ymm3,ymm11);
+
+            ymm8 = _mm256_add_ps(ymm8,ymm10);
+            ymm9 = _mm256_add_ps(ymm9,ymm11);
+            ymm8 = _mm256_add_ps(ymm8,ymm9);
+            ymm12 = _mm256_add_ps(ymm12,ymm8);
+
+            ymm8 = _mm256_loadu_ps(in2+8*(j-i)+4);
+            ymm9 = _mm256_loadu_ps(in2+8*(j-i)+3);
+            ymm10 = _mm256_loadu_ps(in2+8*(j-i)+2);
+            ymm11 = _mm256_loadu_ps(in2+8*(j-i)+1);
+
+            ymm8 = _mm256_mul_ps(ymm4,ymm8);
+            ymm9 = _mm256_mul_ps(ymm5,ymm9);
+            ymm10 = _mm256_mul_ps(ymm6,ymm10);
+            ymm11 = _mm256_mul_ps(ymm7,ymm11);
+
+            ymm8 = _mm256_add_ps(ymm8,ymm10);
+            ymm9 = _mm256_add_ps(ymm9,ymm11);
+            ymm8 = _mm256_add_ps(ymm8,ymm9);
+            ymm12 = _mm256_add_ps(ymm12,ymm8);
+
+        }
+        ymm12 = _mm256_permutevar8x32_ps(ymm12,ymm15);
+        ymm0 = _mm256_loadu_ps(out+N-k-8);
+        ymm12 = _mm256_add_ps(ymm1,ymm12);
+        _mm256_storeu_ps(out+N-k-8,ymm12);
+	}
+    for(uint64_t j=(8*N2);j<N;j++)
+	{
+		out[N-1-j] = std::inner_product(in2,in2+j+1,in1+N-1-j,0.0);
+	}
+}
+/*
+{
 	uint64_t N2 = N/16;
 	#pragma omp parallel for schedule(dynamic,1)
 	for(uint64_t j=0;j<N2;j++)
@@ -1035,6 +1162,7 @@ void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* 
 		out[N-1-j] = std::inner_product(in2,in2+j+1,in1+N-1-j,0.0);
 	}
 }
+*/
 
 template<class DataTypeIn, class DataTypeOut>
 void filterAVX(uint64_t N, uint64_t Nfilter, DataTypeIn* in1, DataTypeIn* in2, DataTypeOut* out){}
