@@ -5,6 +5,7 @@
 #include <numeric>
 #include <stdlib.h>
 #include <cmath>
+#include <complex>
 #include <omp.h>
 #include <cstdint>
 #include <fftw3.h>
