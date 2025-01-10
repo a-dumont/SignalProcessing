@@ -127,7 +127,6 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
         out[k+3] = res[0];
         ymm10 = _mm256_permute4x64_pd(ymm10,0b00111001);
         res[3] = res2[0];
-        //ymm11 = _mm256_permute4x64_pd(ymm11,0b00111001);
 
         ymm6 = _mm256_broadcast_sd(in2+N-5);
         ymm7 = _mm256_broadcast_sd(in2+N-6);
@@ -152,7 +151,6 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
         ymm2 = _mm256_mul_pd(ymm0,ymm9);
         ymm10 = _mm256_add_pd(ymm10,ymm2);
         out[k+7] = res[0];
-        //ymm10 = _mm256_permute4x64_pd(ymm10,0b00111001);
 		
         for(uint64_t i=0;i<j;i++)
         {
@@ -344,7 +342,6 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
         out[k+7] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
-        //ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
         ymm2 = _mm256_broadcast_ss(in2+N-9);
         ymm3 = _mm256_broadcast_ss(in2+N-10);
@@ -393,7 +390,6 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
 		ymm12 = _mm256_mul_ps(ymm0,ymm9);	
         ymm10 = _mm256_add_ps(ymm10,ymm12);
         out[k+15] = res[0];
-        //ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 		
         ymm12 = _mm256_setzero_ps();
         ymm13 = _mm256_setzero_ps();
@@ -803,7 +799,6 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
         out[N-k-4] = res[3];
         ymm10 = _mm256_permute4x64_pd(ymm10,0b10010011);
         res[0] = res2[3];
-        ymm11 = _mm256_permute4x64_pd(ymm11,0b10010011);
 
         ymm6 = _mm256_broadcast_sd(in2+4);
         ymm7 = _mm256_broadcast_sd(in2+5);
@@ -828,7 +823,6 @@ void filterEdgeRightAVX<double,double>(uint64_t N, double* in1, double* in2, dou
 		ymm2 = _mm256_mul_pd(ymm0,ymm9);	
         ymm10 = _mm256_add_pd(ymm10,ymm2);
         out[N-k-8] = res[3];
-        ymm10 = _mm256_permute4x64_pd(ymm10,0b10010011);
 		
         for(uint64_t i=0;i<j;i++)
         {
@@ -1020,7 +1014,6 @@ void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* 
         out[N-k-8] = res[7];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[0] = res2[7];
-        ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
         ymm2 = _mm256_broadcast_ss(in2+8);
         ymm3 = _mm256_broadcast_ss(in2+9);
@@ -1069,7 +1062,6 @@ void filterEdgeRightAVX<float,float>(uint64_t N, float* in1, float* in2, float* 
 		ymm12 = _mm256_mul_ps(ymm0,ymm9);	
         ymm10 = _mm256_add_ps(ymm10,ymm12);
         out[N-k-16] = res[7];
-        ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 		
         ymm12 = _mm256_setzero_ps();
         ymm13 = _mm256_setzero_ps();
