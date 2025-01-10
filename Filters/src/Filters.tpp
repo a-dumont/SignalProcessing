@@ -1451,46 +1451,60 @@ void filterAVX<double,double>(uint64_t N, uint64_t Nfilter, double* data, double
 		{
 			ymm0 = _mm256_loadu_pd(data+k+i); 
 			ymm1 = _mm256_broadcast_sd(filter+i);
-			ymm2 = _mm256_add_pd(ymm2,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm2 = _mm256_add_pd(ymm2,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+4); 
-			ymm3 = _mm256_add_pd(ymm3,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm3 = _mm256_add_pd(ymm3,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+8); 
-			ymm4 = _mm256_add_pd(ymm4,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm4 = _mm256_add_pd(ymm4,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+12); 
-			ymm5 = _mm256_add_pd(ymm5,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm5 = _mm256_add_pd(ymm5,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+16); 
-			ymm6 = _mm256_add_pd(ymm6,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm6 = _mm256_add_pd(ymm6,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+20); 
-			ymm7 = _mm256_add_pd(ymm7,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm7 = _mm256_add_pd(ymm7,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+24); 
-			ymm8 = _mm256_add_pd(ymm8,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm8 = _mm256_add_pd(ymm8,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+28); 
-			ymm9 = _mm256_add_pd(ymm9,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm9 = _mm256_add_pd(ymm9,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+32); 
-			ymm10 = _mm256_add_pd(ymm10,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm10 = _mm256_add_pd(ymm10,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+36); 
-			ymm11 = _mm256_add_pd(ymm11,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm11 = _mm256_add_pd(ymm11,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+40); 
-			ymm12 = _mm256_add_pd(ymm12,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm12 = _mm256_add_pd(ymm12,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+44); 
-			ymm13 = _mm256_add_pd(ymm13,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm13 = _mm256_add_pd(ymm13,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+48); 
-			ymm14 = _mm256_add_pd(ymm14,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm14 = _mm256_add_pd(ymm14,ymm0);
 			
 			ymm0 = _mm256_loadu_pd(data+k+i+52); 
-			ymm15 = _mm256_add_pd(ymm15,_mm256_mul_pd(ymm0,ymm1));
+			ymm0 = _mm256_mul_pd(ymm0,ymm1);
+			ymm15 = _mm256_add_pd(ymm15,ymm0);
 		}
 		_mm256_storeu_pd(res1,ymm2);
 		_mm256_storeu_pd(res2,ymm3);
@@ -1555,46 +1569,60 @@ void filterAVX<float,float>(uint64_t N, uint64_t Nfilter, float* data, float* fi
 		{
 			ymm0 = _mm256_loadu_ps(data+k+i); 
 			ymm1 = _mm256_broadcast_ss(filter+i);
-			ymm2 = _mm256_add_ps(ymm2,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm2 = _mm256_add_ps(ymm2,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+8); 
-			ymm3 = _mm256_add_ps(ymm3,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm3 = _mm256_add_ps(ymm3,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+16); 
-			ymm4 = _mm256_add_ps(ymm4,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm4 = _mm256_add_ps(ymm4,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+24); 
-			ymm5 = _mm256_add_ps(ymm5,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm5 = _mm256_add_ps(ymm5,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+32); 
-			ymm6 = _mm256_add_ps(ymm6,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm6 = _mm256_add_ps(ymm6,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+40); 
-			ymm7 = _mm256_add_ps(ymm7,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm7 = _mm256_add_ps(ymm7,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+48); 
-			ymm8 = _mm256_add_ps(ymm8,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm8 = _mm256_add_ps(ymm8,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+56); 
-			ymm9 = _mm256_add_ps(ymm9,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm9 = _mm256_add_ps(ymm9,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+64); 
-			ymm10 = _mm256_add_ps(ymm10,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm10 = _mm256_add_ps(ymm10,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+72); 
-			ymm11 = _mm256_add_ps(ymm11,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm11 = _mm256_add_ps(ymm11,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+80); 
-			ymm12 = _mm256_add_ps(ymm12,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm12 = _mm256_add_ps(ymm12,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+88); 
-			ymm13 = _mm256_add_ps(ymm13,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm13 = _mm256_add_ps(ymm13,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+96); 
-			ymm14 = _mm256_add_ps(ymm14,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm14 = _mm256_add_ps(ymm14,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+104); 
-			ymm15 = _mm256_add_ps(ymm15,_mm256_mul_ps(ymm0,ymm1));
+			ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			ymm15 = _mm256_add_ps(ymm15,ymm0);
 		}
 		_mm256_storeu_ps(res1,ymm2);
 		_mm256_storeu_ps(res2,ymm3);
