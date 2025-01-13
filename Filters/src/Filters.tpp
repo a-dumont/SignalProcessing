@@ -1873,7 +1873,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
         std::complex<double>* c = (std::complex<double>*)(data+j);
         temp = std::inner_product(a,b,c,temp,sum_complex<double>,prod_complex<double>);
         out[j] = temp.real();
-        out[j+1] = temp.imag();
+        out[j+1] = -temp.imag();
 	}
 }
 
