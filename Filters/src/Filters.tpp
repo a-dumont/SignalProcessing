@@ -1531,7 +1531,7 @@ template<>
 void filterAVX<float,float>(uint64_t N, uint64_t Nfilter, float* data, float* filter, float* out)
 {
 	__m256 ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13,ymm14,ymm15;
-	float *res1,*res2,*res3,*res4,*res5,*res6,*res7,*res8,*res9,*res10,*res11;
+	float *res1,*res2,*res3,*res4,*res5,*res6,*res7,*res8,*res9,*res10,*res11,*res12,*res13,*res14;
 	uint64_t N2 = N/112;
 	uint64_t k = 0;
 	for(uint64_t j=0;j<N2;j++)
@@ -1730,7 +1730,7 @@ template<>
 void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, double* filter, double* out)
 {
 	__m256d ymm0,ymm1,ymm2,ymm3,ymm4,ymm5,ymm6,ymm7,ymm8,ymm9,ymm10,ymm11,ymm12,ymm13,ymm14,ymm15;
-	double *res1,*res2,*res3,*res4,*res5,*res6,*res7,*res8,*res9,*res10,*res11,*res12,*res13,*res14;
+	double *res1,*res2,*res3,*res4,*res5,*res6,*res7,*res8,*res9,*res10,*res11;
 	uint64_t N2 = N/44;
 	uint64_t k = 0;
 	ymm15 = _mm256_set_pd(-1.0,1.0,-1.0,1.0);
