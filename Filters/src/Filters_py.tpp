@@ -105,7 +105,7 @@ customFilterAVX_c_py(py::array_t<std::complex<DataTypeIn>,py::array::c_style> da
 
 	py::capsule free_when_done(out,free);
 	return py::array_t<std::complex<DataTypeOut>,py::array::c_style>
-			({Ndata+Nfilter-2},
+			({(Ndata+Nfilter)/2-1},
 			 {2*sizeof(DataTypeOut)},
 			 reinterpret_cast<std::complex<DataTypeOut>*>(out),
 			 free_when_done);
