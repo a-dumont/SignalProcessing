@@ -91,7 +91,7 @@ customFilterAVX_c_py(py::array_t<std::complex<DataTypeIn>,py::array::c_style> da
 
 	py::buffer_info filter_buf = filter_py.request();
 	uint64_t Nfilter = 2*filter_buf.size;
-	std::complex<DataTypeIn>* filter; 
+	DataTypeIn* filter; 
 	filter = (DataTypeIn*) malloc(sizeof(DataTypeIn)*Nfilter);
 	std::memcpy(filter,(DataTypeIn*) filter_buf.ptr,Nfilter*sizeof(DataTypeIn));
 	//std::reverse(filter,filter+(Nfilter/2));
