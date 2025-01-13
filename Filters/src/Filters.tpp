@@ -1778,7 +1778,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm3 = _mm256_add_pd(ymm2,ymm14);
+			ymm3 = _mm256_add_pd(ymm3,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+8);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1786,7 +1786,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm4 = _mm256_add_pd(ymm2,ymm14);
+			ymm4 = _mm256_add_pd(ymm4,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+12);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1794,7 +1794,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm5 = _mm256_add_pd(ymm2,ymm14);
+			ymm5 = _mm256_add_pd(ymm5,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+16);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1802,7 +1802,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm6 = _mm256_add_pd(ymm2,ymm14);
+			ymm6 = _mm256_add_pd(ymm6,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+20);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1810,7 +1810,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm7 = _mm256_add_pd(ymm2,ymm14);
+			ymm7 = _mm256_add_pd(ymm7,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+24);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1818,7 +1818,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm8 = _mm256_add_pd(ymm2,ymm14);
+			ymm8 = _mm256_add_pd(ymm8,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+28);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1826,7 +1826,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm9 = _mm256_add_pd(ymm2,ymm14);
+			ymm9 = _mm256_add_pd(ymm9,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+32);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1834,7 +1834,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm10 = _mm256_add_pd(ymm2,ymm14);
+			ymm10 = _mm256_add_pd(ymm10,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+36);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1842,7 +1842,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm11 = _mm256_add_pd(ymm2,ymm14);
+			ymm11 = _mm256_add_pd(ymm11,ymm14);
 
 			ymm1 = _mm256_loadu_pd(data+k+i+40);
 	        ymm13 = _mm256_mul_pd(ymm1,ymm0);
@@ -1850,7 +1850,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 			ymm14 = _mm256_permute_pd(ymm14,0b00000101);
 			ymm14 = _mm256_mul_pd(ymm1,ymm14);
         	ymm14 = _mm256_hadd_pd(ymm13,ymm14);
-			ymm12 = _mm256_add_pd(ymm2,ymm14);
+			ymm12 = _mm256_add_pd(ymm12,ymm14);
 						
 		}
 		_mm256_storeu_pd(res1,ymm2);
