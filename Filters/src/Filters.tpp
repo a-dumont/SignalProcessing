@@ -1759,6 +1759,7 @@ void filterAVX_c<double,double>(uint64_t N, uint64_t Nfilter, double* data, doub
 		ymm9 = _mm256_setzero_pd();
 		ymm10 = _mm256_setzero_pd();
 		ymm11 = _mm256_setzero_pd();
+		ymm12 = _mm256_setzero_pd();
 		for(uint64_t i=0;i<Nfilter;i++)
 		{
 			ymm0 = _mm256_broadcast_pd((__m128d*) &filter[2*i]);
