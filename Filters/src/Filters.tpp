@@ -376,7 +376,7 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
             ymm11 = _mm256_loadu_ps(in2+N-16*(j+1-i)+7);
 
 			ymm8 = _mm256_mul_ps(ymm4,ymm8);
-            ymm8 = _mm256_fmadd_ps(ym62,ymm10,ymm8);
+            ymm8 = _mm256_fmadd_ps(ym6,ymm10,ymm8);
             ymm9 = _mm256_mul_ps(ymm5,ymm9);
             ymm9 = _mm256_fmadd_ps(ymm7,ymm11,ymm9);
             ymm8 = _mm256_add_ps(ymm8,ymm9);
