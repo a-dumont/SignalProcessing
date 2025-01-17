@@ -93,10 +93,12 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
         ymm4 = _mm256_broadcast_sd(in2+N-3);
         ymm5 = _mm256_broadcast_sd(in2+N-4);
         
-        ymm6 = _mm256_mul_pd(ymm0,ymm2);
-        ymm10 = _mm256_add_pd(ymm10,ymm6);
-        ymm6 = _mm256_mul_pd(ymm1,ymm2);
-		ymm11 = _mm256_add_pd(ymm11,ymm6);
+        //ymm6 = _mm256_mul_pd(ymm0,ymm2);
+        //ymm10 = _mm256_add_pd(ymm10,ymm6);
+		ymm10 = _mm256_fmadd_pd(ymm0,ymm2,ymm10);
+        //ymm6 = _mm256_mul_pd(ymm1,ymm2);
+		//ymm11 = _mm256_add_pd(ymm11,ymm6);
+		ymm11 = _mm256_fmadd_pd(ymm1,ymm2,ymm11);
         out[k] = res[0];
         ymm10 = _mm256_permute4x64_pd(ymm10,0b00111001);
         res[3] = res2[0];
