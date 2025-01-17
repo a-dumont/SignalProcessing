@@ -184,21 +184,7 @@ void filterEdgeLeftAVX<double,double>(uint64_t N, double* in1, double* in2, doub
             ymm9 = _mm256_loadu_pd(in2+N-8*(j+1-i)+10);
             ymm10 = _mm256_loadu_pd(in2+N-8*(j+1-i)+7);
             ymm11 = _mm256_loadu_pd(in2+N-8*(j+1-i)+11);
-            /*
-            ymm4 = _mm256_mul_pd(ymm0,ymm4);
-            ymm5 = _mm256_mul_pd(ymm0,ymm5);
-            ymm6 = _mm256_mul_pd(ymm1,ymm6);
-            ymm7 = _mm256_mul_pd(ymm1,ymm7);
-            ymm8 = _mm256_mul_pd(ymm2,ymm8);
-            ymm9 = _mm256_mul_pd(ymm2,ymm9);
-            ymm10 = _mm256_mul_pd(ymm3,ymm10);
-            ymm11 = _mm256_mul_pd(ymm3,ymm11);
 
-            ymm4 = _mm256_add_pd(ymm4,ymm6);
-            ymm5 = _mm256_add_pd(ymm5,ymm7);
-            ymm8 = _mm256_add_pd(ymm8,ymm10);
-            ymm9 = _mm256_add_pd(ymm9,ymm11);
-            */
 			ymm4 = _mm256_mul_pd(ymm0,ymm4);
 			ymm4 = _mm256_fmadd_pd(ymm1,ymm6,ymm4);
 			ymm5 = _mm256_mul_pd(ymm0,ymm5);
@@ -264,73 +250,57 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
         ymm8 = _mm256_broadcast_ss(in2+N-7);
         ymm9 = _mm256_broadcast_ss(in2+N-8);
 		
-		ymm12 = _mm256_mul_ps(ymm0,ymm2);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm2);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
-        out[k] = res[0];
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm2,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm2,ymm11);
+		out[k] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm3);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm3);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm3,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm3,ymm11);
         out[k+1] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
         
-		ymm12 = _mm256_mul_ps(ymm0,ymm4);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm4);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm4,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm4,ymm11);
         out[k+2] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm5);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm5);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm5,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm5,ymm11);
         out[k+3] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm6);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm6);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm6,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm6,ymm11);
         out[k+4] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm7);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm7);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm7,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm7,ymm11);
         out[k+5] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm8);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm8);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm8,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm8,ymm11);
         out[k+6] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
         ymm11 = _mm256_permutevar8x32_ps(ymm11,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm9);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
-		ymm12 = _mm256_mul_ps(ymm1,ymm9);	
-		ymm11 = _mm256_add_ps(ymm11,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm9,ymm10);
+        ymm11 = _mm256_fmadd_ps(ymm1,ymm9,ymm11);
         out[k+7] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
         res[7] = res2[0];
@@ -344,43 +314,35 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
         ymm8 = _mm256_broadcast_ss(in2+N-15);
         ymm9 = _mm256_broadcast_ss(in2+N-16);
         
-		ymm12 = _mm256_mul_ps(ymm0,ymm2);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm2,ymm10);
         out[k+8] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm3);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm3,ymm10);
         out[k+9] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm4);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm4,ymm10);
         out[k+10] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm5);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm5,ymm10);
         out[k+11] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm6);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm6,ymm10);
         out[k+12] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm7);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm7,ymm10);
         out[k+13] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm8);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm8,ymm10);
         out[k+14] = res[0];
         ymm10 = _mm256_permutevar8x32_ps(ymm10,ymm14);
 
-		ymm12 = _mm256_mul_ps(ymm0,ymm9);	
-        ymm10 = _mm256_add_ps(ymm10,ymm12);
+		ymm10 = _mm256_fmadd_ps(ymm0,ymm9,ymm10);
         out[k+15] = res[0];
 		
         ymm12 = _mm256_setzero_ps();
