@@ -362,7 +362,13 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
             ymm9 = _mm256_loadu_ps(in2+N-16*(j+1-i)+1);
             ymm10 = _mm256_loadu_ps(in2+N-16*(j+1-i)+2);
             ymm11 = _mm256_loadu_ps(in2+N-16*(j+1-i)+3);
+			
+            ymm8 = _mm256_mul_ps(ymm0,ymm8);
+            ymm8 = _mm256_fmadd_ps(ymm2,ymm10,ymm8);
+            ymm9 = _mm256_mul_ps(ymm1,ymm9);
+            ymm9 = _mm256_fmadd_ps(ymm3,ymm11,ymm9);
 
+			/*
             ymm8 = _mm256_mul_ps(ymm0,ymm8);
             ymm9 = _mm256_mul_ps(ymm1,ymm9);
             ymm10 = _mm256_mul_ps(ymm2,ymm10);
@@ -371,7 +377,7 @@ void filterEdgeLeftAVX<float,float>(uint64_t N, float* in1, float* in2, float* o
             ymm8 = _mm256_add_ps(ymm8,ymm10);
             ymm9 = _mm256_add_ps(ymm9,ymm11);
             ymm8 = _mm256_add_ps(ymm8,ymm9);
-            ymm12 = _mm256_add_ps(ymm12,ymm8);
+            ymm12 = _mm256_add_ps(ymm12,ymm8);*/
 
             ymm8 = _mm256_loadu_ps(in2+N-16*(j+1-i)+4);
             ymm9 = _mm256_loadu_ps(in2+N-16*(j+1-i)+5);
