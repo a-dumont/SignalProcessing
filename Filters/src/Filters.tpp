@@ -1852,16 +1852,19 @@ void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, Dat
 		Ski = wc*std::sin((2*i+order-1)*pi/2.0/order);
 		for(uint32_t j=1;j<(order+1);j++)
 		{
-			Ar *= wc;
-			Ai *= wc;
-			if (j!=i)
+			if(j==i)
+			{
+				Ar *= wc;
+				Ai *= wc;
+			}
+			else
 			{
 				Sjr = Skr-wc*std::cos((2*j+order-1)*pi/2.0/order);
 				Sji = Ski-wc*std::sin((2*j+order-1)*pi/2.0/order);
 				Br = (Ar*Sjr - Ai*Sji)/(Sjr*Sjr+Sji*Sji);
 				Bi = (Ar*Sji + Ai*Sjr)/(Sjr*Sjr+Sji*Sji);
-				Ar = Br;
-				Ai = Bi;
+				Ar = wc*Br;
+				Ai = wc*Bi;
 			}
 		}
 		for(uint32_t k=0;k<N;k++)
