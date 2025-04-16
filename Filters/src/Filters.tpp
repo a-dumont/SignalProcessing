@@ -1843,13 +1843,14 @@ void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, Dat
 {
 	DataType Ar, Ai, Br, Bi, Skr, Ski, Sjr, Sji;
 	DataType pi =  3.141592653589793;
-	DataType wc = 2*pi*fc;
+	DataType wc = 2.0*pi*fc;
+	DataType od = 1.0*order;
 	std::memset(out,0,N*sizeof(DataType));
 	for(uint32_t i=1;i<(order+1);i++)
 	{
 		Ar = 1.0; Ai = 0.0;
-		Skr = wc*std::cos((2*i+order-1)*pi/2.0/order);
-		Ski = wc*std::sin((2*i+order-1)*pi/2.0/order);
+		Skr = wc*std::cos((2*i+order-1)*pi/2.0/od);
+		Ski = wc*std::sin((2*i+order-1)*pi/2.0/od);
 		for(uint32_t j=1;j<(order+1);j++)
 		{
 			if(j==i)
@@ -1859,8 +1860,8 @@ void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, Dat
 			}
 			else
 			{
-				Sjr = Skr-wc*std::cos((2*j+order-1)*pi/2.0/order);
-				Sji = Ski-wc*std::sin((2*j+order-1)*pi/2.0/order);
+				Sjr = Skr-wc*std::cos((2*j+order-1)*pi/2.0/od);
+				Sji = Ski-wc*std::sin((2*j+order-1)*pi/2.0/od);
 				Br = (Ar*Sjr + Ai*Sji)/(Sjr*Sjr+Sji*Sji);
 				Bi = (Ai*Sjr - Ar*Sji)/(Sjr*Sjr+Sji*Sji);
 				Ar = wc*Br;
