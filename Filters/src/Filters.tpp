@@ -1844,7 +1844,7 @@ void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, Dat
 	DataType Ar, Ai, Br, Bi, Skr, Ski, Sjr, Sji;
 	DataType pi =  3.141592653589793;
 	DataType wc = 2*pi*fc;
-	std::memset(out,out+N,(DataType) 0);
+	std::memset(out,0,N*sizeof(DataType));
 	for(uint32_t i=0;i<(order+1);i++)
 	{
 		Ar = 1.0; Ai = 0.0;
