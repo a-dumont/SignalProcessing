@@ -1870,9 +1870,10 @@ void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, Dat
 		}
 		for(uint32_t k=0;k<N;k++)
 		{
-			out[k] += std::exp(Skr*(k*dt))*(Ar*std::cos(Ski*(k*dt))-Ai*std::sin(Ski*(k*dt)))*dt;
+			out[k] += std::exp(Skr*(k*dt))*(Ar*std::cos(Ski*(k*dt))-Ai*std::sin(Ski*(k*dt)));
 		}
 	}
+	for(uint32_t k=0;k<N;k++){out[k] *= dt;}
 }
 
 /*
