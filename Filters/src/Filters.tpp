@@ -1839,7 +1839,7 @@ void applyFilterAVX_c(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 }
 
 template<class DataType>
-void butterWorthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, DataType* out)
+void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, DataType* out)
 {
 	DataType Ar, Ai, Br, Bi, Skr, Ski, Sjr, Sji;
 	DataType pi =  3.141592653589793;
