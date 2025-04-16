@@ -1861,8 +1861,8 @@ void butterworthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, Dat
 			{
 				Sjr = Skr-wc*std::cos((2*j+order-1)*pi/2.0/order);
 				Sji = Ski-wc*std::sin((2*j+order-1)*pi/2.0/order);
-				Br = (Ar*Sjr - Ai*Sji)/(Sjr*Sjr+Sji*Sji);
-				Bi = (Ar*Sji + Ai*Sjr)/(Sjr*Sjr+Sji*Sji);
+				Br = (Ar*Sjr + Ai*Sji)/(Sjr*Sjr+Sji*Sji);
+				Bi = (Ai*Sjr - Ar*Sji)/(Sjr*Sjr+Sji*Sji);
 				Ar = wc*Br;
 				Ai = wc*Bi;
 			}
