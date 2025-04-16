@@ -1841,7 +1841,7 @@ void applyFilterAVX_c(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 template<class DataType>
 void butterWorthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, DataType* out)
 {
-	DataType Ar, Ai, Br, Bi, Skr, Ski, Sjr, Sji, dt;
+	DataType Ar, Ai, Br, Bi, Skr, Ski, Sjr, Sji;
 	DataType pi =  3.141592653589793;
 	DataType wc = 2*pi*fc;
 	std::memset(out,out+N,(DataType) 0);
