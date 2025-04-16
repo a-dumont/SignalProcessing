@@ -110,3 +110,20 @@ customFilterAVX_c_py(py::array_t<std::complex<DataTypeIn>,py::array::c_style> da
 			 reinterpret_cast<std::complex<DataTypeOut>*>(out),
 			 free_when_done);
 }
+
+template<class DataType>
+py::array_t<DataType,py::array::c_style> 
+butterWorthKernel_py(uint32_t N, DataType dt, uint32_t order, DataType fc)
+{
+	DataType* out = (DataType*) malloc(sizeof(DataType)*N);
+	butterWorthKernel(N,dt,order,fc,out);
+
+	py::capsule free_when_done(out,free);
+	return py::array_t<DataType,py::array::c_style>
+			({N},
+			 {sizeof(DataType)},
+			 out,
+			 free_when_done);
+
+}
+

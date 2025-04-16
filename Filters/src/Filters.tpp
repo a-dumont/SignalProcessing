@@ -1838,6 +1838,39 @@ void applyFilterAVX_c(uint64_t Ndata, uint64_t Nfilter, DataTypeIn* data,
 	free(Nthreads_arr);	
 }
 
+template<class DataType>
+void butterWorthKernel(uint32_t N, DataType dt, uint32_t order, DataType fc, DataType* out)
+{
+	DataType Ar, Ai, Br, Bi, Skr, Ski, Sjr, Sji, dt;
+	DataType pi =  3.141592653589793;
+	DataType wc = 2*pi*fc;
+	std::memset(out,out+N,(DataType) 0);
+	for(uint32_t i=0;i<(order+1);i++)
+	{
+		Ar = 1.0; Ai = 0.0;
+		Skr = wc*std::cos((2*i+n-1)*pi/2.0/n);
+		Ski = wc*std::sin((2*i+n-1)*pi/2.0/n);
+		for(uint32_t j=0;i<(order+1);j++)
+		{
+			Ar *= wc;
+			Ai *= wc;
+			if (j!=i)
+			{
+				Sjr = Skr-wc*std::cos((2*j+n-1)*pi/2.0/n);
+				Sji = Ski-wc*std::sin((2*j+n-1)*pi/2.0/n);
+				Br = (Ar*Sjr - Ai*Sji)/(Sjr*Sjr+Sji*Sji);
+				Bi = (Ar*Sji + Ai*Sjr)/(Sjr*Sjr+Sji*Sji);
+				Ar = Br;
+				Ai = Bi;
+			}
+			for(uint32_t k=0;k<N;k++)
+			{
+				out[k] += std::exp(Skr*k*dt)*(Ar*std::cos(Ski*k*dt)-Ai*std::sin(Ski*k*dt))*dt;
+			}
+		}
+	}
+}
+
 /*
 template<class DataType>
 void overlap_discard(uint64_t Ndata, uint64_t Nfilter, DataType* data, 
