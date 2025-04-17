@@ -1426,60 +1426,74 @@ void filterAVX<float,float>(uint64_t N, uint64_t Nfilter, float* data, float* fi
 		{
 			ymm0 = _mm256_loadu_ps(data+k+i); 
 			ymm1 = _mm256_broadcast_ss(filter+i);
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm2 = _mm256_add_ps(ymm2,ymm0);
+			ymm2 = _mm256_fmadd_ps(ymm0,ymm1,ymm2)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm2 = _mm256_add_ps(ymm2,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+8); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm3 = _mm256_add_ps(ymm3,ymm0);
+			ymm3 = _mm256_fmadd_ps(ymm0,ymm1,ymm3)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm3 = _mm256_add_ps(ymm3,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+16); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm4 = _mm256_add_ps(ymm4,ymm0);
+			ymm4 = _mm256_fmadd_ps(ymm0,ymm1,ymm4)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm4 = _mm256_add_ps(ymm4,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+24); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm5 = _mm256_add_ps(ymm5,ymm0);
+			ymm5 = _mm256_fmadd_ps(ymm0,ymm1,ymm5)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm5 = _mm256_add_ps(ymm5,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+32); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm6 = _mm256_add_ps(ymm6,ymm0);
+			ymm6 = _mm256_fmadd_ps(ymm0,ymm1,ymm6)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm6 = _mm256_add_ps(ymm6,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+40); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm7 = _mm256_add_ps(ymm7,ymm0);
+			ymm7 = _mm256_fmadd_ps(ymm0,ymm1,ymm7)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm7 = _mm256_add_ps(ymm7,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+48); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm8 = _mm256_add_ps(ymm8,ymm0);
+			ymm8 = _mm256_fmadd_ps(ymm0,ymm1,ymm8)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm8 = _mm256_add_ps(ymm8,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+56); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm9 = _mm256_add_ps(ymm9,ymm0);
+			ymm9 = _mm256_fmadd_ps(ymm0,ymm1,ymm9)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm9 = _mm256_add_ps(ymm9,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+64); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm10 = _mm256_add_ps(ymm10,ymm0);
+			ymm10 = _mm256_fmadd_ps(ymm0,ymm1,ymm10)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm10 = _mm256_add_ps(ymm10,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+72); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm11 = _mm256_add_ps(ymm11,ymm0);
+			ymm11 = _mm256_fmadd_ps(ymm0,ymm1,ymm11)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm11 = _mm256_add_ps(ymm11,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+80); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm12 = _mm256_add_ps(ymm12,ymm0);
+			ymm12 = _mm256_fmadd_ps(ymm0,ymm1,ymm12)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm12 = _mm256_add_ps(ymm12,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+88); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm13 = _mm256_add_ps(ymm13,ymm0);
+			ymm13 = _mm256_fmadd_ps(ymm0,ymm1,ymm13)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm13 = _mm256_add_ps(ymm13,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+96); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm14 = _mm256_add_ps(ymm14,ymm0);
+			ymm14 = _mm256_fmadd_ps(ymm0,ymm1,ymm14)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm14 = _mm256_add_ps(ymm14,ymm0);
 			
 			ymm0 = _mm256_loadu_ps(data+k+i+104); 
-			ymm0 = _mm256_mul_ps(ymm0,ymm1);
-			ymm15 = _mm256_add_ps(ymm15,ymm0);
+			ymm15 = _mm256_fmadd_ps(ymm0,ymm1,ymm15)
+			//ymm0 = _mm256_mul_ps(ymm0,ymm1);
+			//ymm15 = _mm256_add_ps(ymm15,ymm0);
 		}
 		_mm256_storeu_ps(res1,ymm2);
 		_mm256_storeu_ps(res2,ymm3);
@@ -1496,11 +1510,10 @@ void filterAVX<float,float>(uint64_t N, uint64_t Nfilter, float* data, float* fi
 		_mm256_storeu_ps(res13,ymm14);
 		_mm256_storeu_ps(res14,ymm15);
 	}
-	/*
 	for(uint64_t j=(112*N2);j<N;j++)
 	{
 		out[j] = std::inner_product(filter,filter+Nfilter,data+j,0.0);
-	}*/
+	}
 }
 
 template<>
