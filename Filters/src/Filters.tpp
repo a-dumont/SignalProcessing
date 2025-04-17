@@ -1496,10 +1496,11 @@ void filterAVX<float,float>(uint64_t N, uint64_t Nfilter, float* data, float* fi
 		_mm256_storeu_ps(res13,ymm14);
 		_mm256_storeu_ps(res14,ymm15);
 	}
+	/*
 	for(uint64_t j=(112*N2);j<N;j++)
 	{
 		out[j] = std::inner_product(filter,filter+Nfilter,data+j,0.0);
-	}
+	}*/
 }
 
 template<>
