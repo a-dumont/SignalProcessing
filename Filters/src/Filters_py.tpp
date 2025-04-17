@@ -118,7 +118,7 @@ butterworthKernel_py(uint32_t N, DataType dt, uint32_t order, DataType fc)
 	DataType* out = (DataType*) malloc(sizeof(DataType)*N);
 	long double* temp = (long double*) malloc(sizeof(long double)*N);
 	butterworthKernel(N, (long double) dt, order, (long double) fc, temp);
-	for(uint32_t k=0;k<N;k++){out[k] *= (DataType) temp[k];}
+	for(uint32_t k=0;k<N;k++){out[k] = (DataType) temp[k];}
 	free(temp);
 
 	py::capsule free_when_done(out,free);
