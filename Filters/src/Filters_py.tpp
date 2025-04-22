@@ -1,3 +1,4 @@
+#include <cmath>
 template<class DataTypeIn, class DataTypeOut>
 py::array_t<DataTypeOut,py::array::c_style>
 boxcarFilter_py(py::array_t<DataTypeIn,py::array::c_style> data_py, uint64_t order)
@@ -59,11 +60,12 @@ customFilterAVX_py(py::array_t<DataTypeIn,py::array::c_style> data_py,
 	uint64_t Ndata = data_buf.size;
 
 	py::buffer_info filter_buf = filter_py.request();
-	//DataTypeIn* filter = (DataTypeIn*) filter_buf.ptr;
+	DataTypeIn* filter_in = (DataTypeIn*) filter_buf.ptr;
 	uint64_t Nfilter = filter_buf.size;
 	DataTypeIn* filter = (DataTypeIn*) malloc(sizeof(DataTypeIn)*Nfilter);
-	std::memcpy(filter,(DataTypeIn*) filter_buf.ptr,Nfilter*sizeof(DataTypeIn));
-	std::reverse(filter,filter+Nfilter);
+	for(uint32_t i=0;i<Nfilter;i++){filter[i] = filter_in[Nfilter-i];}
+	//std::memcpy(filter,(DataTypeIn*) filter_buf.ptr,Nfilter*sizeof(DataTypeIn));
+	//std::reverse(filter,filter+Nfilter);
 	
 	DataTypeOut* out = (DataTypeOut*) malloc((Ndata+Nfilter-1)*sizeof(DataTypeOut));
 	std::memset(out,0,(Ndata+Nfilter-1)*sizeof(DataTypeOut));
@@ -118,7 +120,7 @@ butterworthKernel_py(uint32_t N, DataType dt, uint32_t order, DataType fc)
 	DataType* out = (DataType*) malloc(sizeof(DataType)*N);
 	long double* temp = (long double*) malloc(sizeof(long double)*N);
 	butterworthKernel(N, (long double) dt, order, (long double) fc, temp);
-	for(uint32_t k=0;k<N;k++){out[k] = (DataType) temp[k];}
+	for(uint32_t k=0;k<N;k++){out[k] = (DataType) (temp[k]*std::isnormal((DataType) temp[k]));}
 	free(temp);
 
 	py::capsule free_when_done(out,free);

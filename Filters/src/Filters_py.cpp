@@ -14,8 +14,8 @@ void init_module(py::module &m)
 	m.def("filterAVX",&customFilterAVX_py<float,float>,"Signal"_a.noconvert(),"filter"_a.noconvert());
 	m.def("filterAVX",&customFilterAVX_c_py<double,double>,"Signal"_a.noconvert(),"filter"_a.noconvert());
 	//m.def("filterAVX",&customFilterAVX_py<uint8_t,uint32_t>,"Signal"_a.noconvert(),"filter"_a.noconvert());
-	//m.def("butterworthKernel",&butterworthKernel_py<float>,"N"_a,"dt"_a.noconvert(),"order"_a,"fc"_a.noconvert());
 	m.def("butterworthKernel",&butterworthKernel_py<double>,"N"_a,"dt"_a,"order"_a,"fc"_a);
+	m.def("butterworthKernelf",&butterworthKernel_py<float>,"N"_a,"dt"_a,"order"_a,"fc"_a);
 }
 
 PYBIND11_MODULE(libfilters, m)
