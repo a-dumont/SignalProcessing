@@ -1431,7 +1431,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	
 	DataType *out1, *out2;
 	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
-	out2 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
+	out2 = (DataType*) fftw_malloc((2*cSize*howmany+2)*sizeof(DataType));
 	
 	DataType *result1, *result2, *result3;
    	result1 = (DataType*) malloc(cSize*sizeof(DataType));
@@ -1445,21 +1445,17 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	// Roll data 
 	for(uint64_t i=0; i<howmany; i++)
 	{
-		result1[0] = out2[2*cSize*i];
-		result1[1] = out2[2*cSize*i+1];
-		out2[2*cSize*i] = out2[2*(cSize+1)*i-2];
-		out2[2*cSize*i+1] = out2[2*(cSize+1)*i-1];
-		out2[2*(cSize+1)*i-2] = result1[0];
-		out2[2*(cSize+1)*i-1] = result1[1];
+		result1[0] = out2[2*cSize*i+2];
+		result1[1] = out2[2*cSize*i+1+2];
 	}
 
 	// Compute product
-	fCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize, out1, out2);
+	fCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize, out1, out2+2);
 	
 	// Sum all blocks
 	uint64_t Nreduce = std::max((uint64_t) 1, howmany/16);
 	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out1);
-	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out2);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out2+2);
 
 	// Divide the sum by the number of blocks
 	if(factor == 2)
