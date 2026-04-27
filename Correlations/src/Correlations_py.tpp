@@ -1488,9 +1488,13 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	}
 
 	// Unroll data
-	out1[0] = result2[cSize];
-	result2[cSize] = result2[0];
-	result2[0] = out1[0];
+	out1[0] = result2[cSize-1];
+	for(uint64_t i=0;i<cSize;i++)
+	{
+		out1[1] = result2[i];
+		result2[i] = out1[0];
+		out1[0] = out1[1];
+	}
 
 	// Free intermediate buffer
 	fftw_free(out1);
