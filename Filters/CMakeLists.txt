@@ -20,9 +20,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 
 # Compiler options
 if(CYGWIN)
-    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd -DMS_WIN64 -D_hypot=hypot)
+    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd -DMS_WIN64 -D_hypot=hypot -std=c++14)
 else()
-    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd)
+    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd -std=c++14)
 endif()
 
 # Sources
