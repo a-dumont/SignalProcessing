@@ -1442,11 +1442,19 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
 	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
 	
-	// Roll data 
-	for(uint64_t i=0; i<howmany; i++)
+	// Roll data
+	result1[0] = out2[2+cSize-2]; 
+	result1[1] = out2[2+cSize-1];
+	out2[2+cSize-2] = out2[0];
+	out2[2+cSize-1] = out2[1];
+	for(uint64_t i=1; i<howmany; i++)
 	{
-		result1[0] = out2[2*cSize*i+2];
-		result1[1] = out2[2*cSize*i+1+2];
+		result1[2] = out2[2+2*cSize*(i+1)-2];
+		result1[3] = out2[2+2*cSize*(i+1)-1];
+		out2[2+2*cSize*(i+1)-2] = result1[0];
+		out2[2+2*cSize*(i+1)-1] = result1[1];
+		result1[0] = result1[2];
+		result1[1] = result1[3];
 	}
 
 	// Compute product
@@ -1464,8 +1472,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		{
 			result1[i]=out1[2*i-(i%2)]/howmany;
 			result2[i]=out1[2*(i+1)-(i%2)-(2*(i+1)-(i%2))/(2*cSize)]/howmany;
-			result3[2*i]=out2[2*i]/howmany;
-			result3[2*i+1]=out2[2*i+1]/howmany;
+			result3[2*i]=out2[2+2*i]/howmany;
+			result3[2*i+1]=out2[2+2*i+1]/howmany;
 		}
 	}
 	else
@@ -1474,8 +1482,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		{
 			result1[i]=out1[2*i]/howmany;
 			result2[i]=out1[2*i+1]/howmany;
-			result3[2*i]=out2[2*i]/howmany;
-			result3[2*i+1]=out2[2*i+1]/howmany;
+			result3[2*i]=out2[2+2*i]/howmany;
+			result3[2*i+1]=out2[2+2*i+1]/howmany;
 		}
 	}
 
