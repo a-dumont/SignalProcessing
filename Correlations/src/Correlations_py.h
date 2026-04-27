@@ -158,6 +158,13 @@ py::array_t<std::complex<DataType>,py::array::c_style>>
 fCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1, 
 				py::array_t<DataType,py::array::c_style> py_in2, uint64_t size);
 
+template<class DataType>
+std::tuple<py::array_t<DataType,py::array::c_style>,
+py::array_t<DataType,py::array::c_style>,
+py::array_t<std::complex<DataType>,py::array::c_style>>
+fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1, 
+				py::array_t<DataType,py::array::c_style> py_in2, uint64_t size);
+
 class FCorrCircularFreqAVX_py
 {
 	private:
@@ -183,7 +190,7 @@ class FCorrCircularFreqAVX_py
 		
 		std::tuple<py::array_t<float,1>,py::array_t<float,1>,py::array_t<std::complex<float>,1>>
 		fCorrCircularFreqAVXf(py::array_t<float,1> py_in1, py::array_t<float,1> py_in2);
-
+		
 		uint64_t getSize();
 		uint64_t getN();
 		uint64_t getHowmany();
