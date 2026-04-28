@@ -1488,7 +1488,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	}
 
 	// Compute rFFT blocks
-	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out1));
 	std::memcpy(out2,out1,2*cSize*howmany*sizeof(DataType));
 	
 	// Roll data
