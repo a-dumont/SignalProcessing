@@ -1434,7 +1434,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	out1 = (DataType*) fftw_malloc(2*cSize*howmany*sizeof(DataType));
 	out2 = (DataType*) fftw_malloc((2*cSize*howmany+2)*sizeof(DataType));
 	
-	DataType *result1, *result2, *result3;
+	DataType *result1, *result2, *result3, *result4;
    	result1 = (DataType*) malloc(cSize*sizeof(DataType));
    	result2 = (DataType*) malloc(2*cSize*sizeof(DataType));
    	result3 = (DataType*) malloc(cSize*sizeof(DataType));
@@ -1442,7 +1442,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 	// Compute rFFT blocks
 	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
-	std::memcpy(out2+2,out1;2*cSize*howmany*sizeof(DataType));
+	std::memcpy(out2+2,out1,2*cSize*howmany*sizeof(DataType));
 	
 	// Roll data
 	result3[0] = out2[2+cSize-2]; 
@@ -1489,7 +1489,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 	// Compute rFFT blocks
 	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
-	std::memcpy(out2+2,out1;2*cSize*howmany*sizeof(DataType));
+	std::memcpy(out2+2,out1,2*cSize*howmany*sizeof(DataType));
 	
 	// Roll data
 	result3[0] = out2[2+cSize-2]; 
