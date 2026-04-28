@@ -1473,8 +1473,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		for(uint64_t i=0;i<cSize;i++)
 		{
 			result1[i]=out1[2*i-(i%2)]/howmany;
-			result2[2*i]=out2[2+2*i]/howmany;
-			result2[2*i+1]=out2[2+2*i+1]/howmany;
+			result2[(2*(i+1))%(2*cSize)]=out2[2+2*i]/howmany;
+			result2[(2*(i+1)+1)%(2*cSize)]=out2[2+2*i+1]/howmany;
 		}
 	}
 	else
@@ -1482,8 +1482,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		for(uint64_t i=0;i<cSize;i++)
 		{
 			result1[i]=out1[2*i]/howmany;
-			result2[2*i]=out2[2+2*i]/howmany;
-			result2[2*i+1]=out2[2+2*i+1]/howmany;
+			result2[(2*(i+1))%(2*cSize)]=out2[2+2*i]/howmany;
+			result2[(2*(i+1)+1)%(2*cSize)]=out2[2+2*i+1]/howmany;
 		}
 	}
 
@@ -1519,8 +1519,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		for(uint64_t i=0;i<cSize;i++)
 		{
 			result3[i]=out1[2*i-(i%2)]/howmany;
-			result4[2*i]=out2[2+2*i]/howmany;
-			result4[2*i+1]=out2[2+2*i+1]/howmany;
+			result4[(2*(i+1))%(2*cSize)]=out2[2+2*i]/howmany;
+			result4[(2*(i+1)+1)%(2*cSize)]=out2[2+2*i+1]/howmany;
 		}
 	}
 	else
@@ -1528,8 +1528,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		for(uint64_t i=0;i<cSize;i++)
 		{
 			result3[i]=out1[2*i]/howmany;
-			result4[2*i]=out2[2+2*i]/howmany;
-			result4[2*i+1]=out2[2+2*i+1]/howmany;
+			result4[(2*(i+1))%(2*cSize)]=out2[2+2*i]/howmany;
+			result4[(2*(i+1)+1)%(2*cSize)]=out2[2+2*i+1]/howmany;
 		}
 	}
 
