@@ -160,6 +160,7 @@ fCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 
 template<class DataType>
 std::tuple<py::array_t<DataType,py::array::c_style>,
+py::array_t<std::complex<DataType>,py::array::c_style>,
 py::array_t<DataType,py::array::c_style>,
 py::array_t<std::complex<DataType>,py::array::c_style>>
 fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1, 

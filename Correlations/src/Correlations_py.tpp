@@ -1406,6 +1406,7 @@ fCorrCircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 template<class DataType>
 std::tuple<
 py::array_t<DataType,py::array::c_style>,
+py::array_t<std::complex<DataType>,py::array::c_style>,
 py::array_t<DataType,py::array::c_style>,
 py::array_t<std::complex<DataType>,py::array::c_style>>
 fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1, 
@@ -1435,26 +1436,27 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	
 	DataType *result1, *result2, *result3;
    	result1 = (DataType*) malloc(cSize*sizeof(DataType));
-   	result2 = (DataType*) malloc(cSize*sizeof(DataType));
-   	result3 = (DataType*) malloc(2*cSize*sizeof(DataType));
+   	result2 = (DataType*) malloc(2*cSize*sizeof(DataType));
+   	result3 = (DataType*) malloc(cSize*sizeof(DataType));
+   	result4 = (DataType*) malloc(2*cSize*sizeof(DataType));
 
 	// Compute rFFT blocks
 	rfftBlock<DataType>((int) N, (int) size, in1,reinterpret_cast<std::complex<DataType>*>(out1));
-	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
+	std:memcpy(out2+2,out1;2*cSize*howmany*sizeof(DataType));
 	
 	// Roll data
-	result1[0] = out2[2+cSize-2]; 
-	result1[1] = out2[2+cSize-1];
+	result3[0] = out2[2+cSize-2]; 
+	result3[1] = out2[2+cSize-1];
 	out2[2+cSize-2] = out2[0];
 	out2[2+cSize-1] = out2[1];
 	for(uint64_t i=1; i<howmany; i++)
 	{
-		result1[2] = out2[2+2*cSize*(i+1)-2];
-		result1[3] = out2[2+2*cSize*(i+1)-1];
-		out2[2+2*cSize*(i+1)-2] = result1[0];
-		out2[2+2*cSize*(i+1)-1] = result1[1];
-		result1[0] = result1[2];
-		result1[1] = result1[3];
+		result3[2] = out2[2+2*cSize*(i+1)-2];
+		result3[3] = out2[2+2*cSize*(i+1)-1];
+		out2[2+2*cSize*(i+1)-2] = result3[0];
+		out2[2+2*cSize*(i+1)-1] = result3[1];
+		result3[0] = result3[2];
+		result3[1] = result3[3];
 	}
 
 	// Compute product
@@ -1471,9 +1473,8 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		for(uint64_t i=0;i<cSize;i++)
 		{
 			result1[i]=out1[2*i-(i%2)]/howmany;
-			result2[i]=out1[2*(i+1)-(i%2)-(2*(i+1)-(i%2))/(2*cSize)]/howmany;
-			result3[2*i]=out2[2+2*i]/howmany;
-			result3[2*i+1]=out2[2+2*i+1]/howmany;
+			result2[2*i]=out2[2+2*i]/howmany;
+			result2[2*i+1]=out2[2+2*i+1]/howmany;
 		}
 	}
 	else
@@ -1481,19 +1482,56 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		for(uint64_t i=0;i<cSize;i++)
 		{
 			result1[i]=out1[2*i]/howmany;
-			result2[i]=out1[2*i+1]/howmany;
-			result3[2*i]=out2[2+2*i]/howmany;
-			result3[2*i+1]=out2[2+2*i+1]/howmany;
+			result2[2*i]=out2[2+2*i]/howmany;
+			result2[2*i+1]=out2[2+2*i+1]/howmany;
 		}
 	}
 
-	// Unroll data
-	out1[0] = result2[cSize-1];
-	for(uint64_t i=0;i<cSize;i++)
+	// Compute rFFT blocks
+	rfftBlock<DataType>((int) N, (int) size, in2,reinterpret_cast<std::complex<DataType>*>(out2));
+	std:memcpy(out2+2,out1;2*cSize*howmany*sizeof(DataType));
+	
+	// Roll data
+	result3[0] = out2[2+cSize-2]; 
+	result3[1] = out2[2+cSize-1];
+	out2[2+cSize-2] = out2[0];
+	out2[2+cSize-1] = out2[1];
+	for(uint64_t i=1; i<howmany; i++)
 	{
-		out1[1] = result2[i];
-		result2[i] = out1[0];
-		out1[0] = out1[1];
+		result3[2] = out2[2+2*cSize*(i+1)-2];
+		result3[3] = out2[2+2*cSize*(i+1)-1];
+		out2[2+2*cSize*(i+1)-2] = result3[0];
+		out2[2+2*cSize*(i+1)-1] = result3[1];
+		result3[0] = result3[2];
+		result3[1] = result3[3];
+	}
+
+	// Compute product
+	fCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize, out1, out2+2);
+	
+	// Sum all blocks
+	uint64_t Nreduce = std::max((uint64_t) 1, howmany/16);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out1);
+	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out2+2);
+
+	// Divide the sum by the number of blocks
+	if(factor == 2)
+	{
+		for(uint64_t i=0;i<cSize;i++)
+		{
+			result3[i]=out1[2*i-(i%2)]/howmany;
+			result4[2*i]=out2[2+2*i]/howmany;
+			result4[2*i+1]=out2[2+2*i+1]/howmany;
+		}
+	}
+	else
+	{
+		for(uint64_t i=0;i<cSize;i++)
+		{
+			result3[i]=out1[2*i]/howmany;
+			result4[2*i]=out2[2+2*i]/howmany;
+			result4[2*i+1]=out2[2+2*i+1]/howmany;
+		}
 	}
 
 	// Free intermediate buffer
@@ -1503,6 +1541,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	py::capsule free_when_done1(result1, free);
 	py::capsule free_when_done2(result2, free);
 	py::capsule free_when_done3(result3, free);
+	py::capsule free_when_done4(result4, free);
 	return std::make_tuple(
 	py::array_t<DataType, py::array::c_style>
 	(
@@ -1511,19 +1550,26 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 		result1,
 		free_when_done1
 	),
+	py::array_t<std::complex<DataType>, py::array::c_style>
+	(
+		{cSize},
+		{2*sizeof(DataType)},
+		result2,
+		free_when_done2
+	),
 	py::array_t<DataType, py::array::c_style>
 	(
 		{cSize},
 		{sizeof(DataType)},
-		result2,
-		free_when_done2
+		result3,
+		free_when_done3
 	),
 	py::array_t<std::complex<DataType>, py::array::c_style>
 	(
 		{cSize},
 		{2*sizeof(DataType)},
-		reinterpret_cast<std::complex<DataType>*>(result3),
-		free_when_done3
+		reinterpret_cast<std::complex<DataType>*>(result4),
+		free_when_done4
 	));
 }
 
