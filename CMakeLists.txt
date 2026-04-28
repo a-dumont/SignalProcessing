@@ -26,7 +26,7 @@ if($ENV{ENABLE_VULKAN})
 		add_subdirectory(Correlations_VULKAN)
 		add_subdirectory(Math_VULKAN)
 		add_subdirectory(Histograms_VULKAN)
-endif($ENV{ENABLE_VUKLAN})
+endif($ENV{ENABLE_VULKAN})
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
@@ -44,7 +44,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/Filters/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/filters
 		FILES_MATCHING PATTERN "libfilters.*")
 
-if($ENV{ENABLE_vulkan})
+if($ENV{ENABLE_VULKAN})
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_vulkan/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
 		FILES_MATCHING PATTERN "libfftcuda.*")
@@ -57,4 +57,4 @@ if($ENV{ENABLE_vulkan})
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_vulkan/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
 		FILES_MATCHING PATTERN "libhistogramscuda.*")
-endif($ENV{ENABLE_vulkan})
+endif($ENV{ENABLE_VULKAN})
