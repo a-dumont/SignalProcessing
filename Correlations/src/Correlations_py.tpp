@@ -1510,7 +1510,6 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	fCorrCircFreqReduceAVX<DataType>(2*cSize*howmany,2*cSize, out1, out2+2);
 	
 	// Sum all blocks
-	uint64_t Nreduce = std::max((uint64_t) 1, howmany/16);
 	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out1);
 	reduceInPlaceBlockAVX<DataType>(2*cSize*Nreduce, 2*cSize, out2+2);
 
