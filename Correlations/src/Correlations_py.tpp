@@ -1554,7 +1554,7 @@ fCorrNVNACircFreqReduceAVX_py(py::array_t<DataType,py::array::c_style> py_in1,
 	(
 		{cSize},
 		{2*sizeof(DataType)},
-		result2,
+		reinterpret_cast<std::complex<DataType>*>(result2),
 		free_when_done2
 	),
 	py::array_t<DataType, py::array::c_style>
