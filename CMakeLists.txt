@@ -28,6 +28,14 @@ if($ENV{ENABLE_VULKAN})
 		add_subdirectory(Histograms_VULKAN)
 endif($ENV{ENABLE_VULKAN})
 
+if($ENV{ENABLE_CUDA})
+		message(STATUS "Building the CUDA modules")
+		add_subdirectory(FFT_CUDA)
+		add_subdirectory(Correlations_CUDA)
+		add_subdirectory(Math_CUDA)
+		add_subdirectory(Histograms_CUDA)
+endif($ENV{ENABLE_VULKAN})
+
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
 		FILES_MATCHING PATTERN "libfft.*")
@@ -58,3 +66,18 @@ if($ENV{ENABLE_VULKAN})
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
 		FILES_MATCHING PATTERN "libhistogramscuda.*")
 endif($ENV{ENABLE_VULKAN})
+
+if($ENV{ENABLE_CUDA})
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_CUDA/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
+		FILES_MATCHING PATTERN "libfftcuda.*")
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_CUDA/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
+		FILES_MATCHING PATTERN "libcorrelationscuda.*")
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math_CUDA/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
+		FILES_MATCHING PATTERN "libmathcuda.*")
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_CUDA/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
+		FILES_MATCHING PATTERN "libhistogramscuda.*")
+endif($ENV{ENABLE_CUDA})

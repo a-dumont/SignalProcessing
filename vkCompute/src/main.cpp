@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
 
 	// Print device
 	std::cout<<logicalDevice.getPhysicalDeviceInfo()->getProperties().deviceName<<std::endl;
+	logicalDevice.getPhysicalDeviceInfo()->printDeviceInfo();
 	
 	// Pipeline init
 	t1 = std::chrono::steady_clock::now();
