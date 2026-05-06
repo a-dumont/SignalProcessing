@@ -64,39 +64,6 @@ py::array_t<DataType, py::array::c_style> gradient2_py(
 }
 
 template<class DataType>
-py::array_t<DataType, py::array::c_style> rolling_average_py(
-				py::array_t<DataType, py::array::c_style> py_in, long long int size)
-{
-	py::buffer_info buf_x = py_in.request();
-
-	if (buf_x.ndim != 1)
-	{
-		throw std::runtime_error("U dumbdumb dimension must be 1.");
-	}	
-	
-	if (buf_x.size < size)
-	{
-		throw std::runtime_error("U dumbdumb window must be smaller than array.");
-	}	
-
-	long long int n = buf_x.size;
-
-	DataType* in = (DataType*) buf_x.ptr;
-	DataType* out = (DataType*) malloc(sizeof(DataType)*(n-size+1));
-	std::memset(out,0,(n-size+1)*sizeof(DataType));
-	rolling_average(n, in, out, size);
-
-	py::capsule free_when_done( out, free );
-	return py::array_t<DataType, py::array::c_style> 
-	(
-		{n-size+1},
-		{sizeof(DataType)},
-		out,
-		free_when_done	
-	);
-}
-
-template<class DataType>
 py::array_t<DataType, py::array::c_style> finite_difference_coefficients_py(int M, int N)
 {
 	DataType* coeff = (DataType*) malloc((M+1)*(2*N+1)*(2*N+1)*sizeof(DataType));

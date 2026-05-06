@@ -34,7 +34,7 @@ if($ENV{ENABLE_CUDA})
 		add_subdirectory(Correlations_CUDA)
 		add_subdirectory(Math_CUDA)
 		add_subdirectory(Histograms_CUDA)
-endif($ENV{ENABLE_VULKAN})
+endif($ENV{ENABLE_CUDA})
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
