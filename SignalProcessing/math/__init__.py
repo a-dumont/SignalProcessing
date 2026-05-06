@@ -8,6 +8,14 @@ if os.name == "nt" and s not in os.environ["PATH"]:
 
 from .libmath import *
 
+try:
+    from .libmathcuda import *
+    del libmathcuda
+except ImportError:
+    print("No CUDA support")
+except ModuleNotFoundError:
+    print("No CUDA support")
+
 del s
 del os
 del libmath
