@@ -347,13 +347,13 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = buf_in1.shape(0);
-	long long int nc = buf_in1.shape(1);
+	long long int nr = buf_in1.shape[0];
+	long long int nc = buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -395,13 +395,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = 2*buf_in1.shape(0);
-	long long int nc = 2*buf_in1.shape(1);
+	long long int nr = 2*buf_in1.shape[0];
+	long long int nc = 2*buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -443,13 +443,13 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = buf_in1.shape(0);
-	long long int nc = buf_in1.shape(1);
+	long long int nr = buf_in1.shape[0];
+	long long int nc = buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -491,13 +491,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = 2*buf_in1.shape(0);
-	long long int nc = 2*buf_in1.shape(1);
+	long long int nr = 2*buf_in1.shape[0];
+	long long int nc = 2*buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -539,13 +539,13 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = buf_in1.shape(0);
-	long long int nc = buf_in1.shape(1);
+	long long int nr = buf_in1.shape[0];
+	long long int nc = buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -587,13 +587,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = 2*buf_in1.shape(0);
-	long long int nc = 2*buf_in1.shape(1);
+	long long int nr = 2*buf_in1.shape[0];
+	long long int nc = 2*buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -635,13 +635,13 @@ py::array_t<DataType,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = buf_in1.shape(0);
-	long long int nc = buf_in1.shape(1);
+	long long int nr = buf_in1.shape[0];
+	long long int nc = buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
@@ -683,13 +683,13 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	{
 		throw std::runtime_error("U dumbdumb dimension must be 2.");
 	}	
-	if (buf_in1.shape(0) != buf_in2.shape(0) || buf_in1.shape(1) != buf_in2.shape(1))
+	if (buf_in1.shape[0] != buf_in2.shape[0] || buf_in1.shape[0] != buf_in2.shape[1])
 	{
 		throw std::runtime_error("U dumbdumb shapes must be same.");
 	}	
 
-	long long int nr = 2*buf_in1.shape(0);
-	long long int nc = 2*buf_in1.shape(1);
+	long long int nr = 2*buf_in1.shape[0];
+	long long int nc = 2*buf_in1.shape[1];
 	long long int n = nr*nc;
 	
 	DataType* in1 = (DataType*) buf_in1.ptr;
