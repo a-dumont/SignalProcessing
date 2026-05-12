@@ -4,16 +4,16 @@ void PhysicalDeviceInfoPy::initPy()
 {
 	uint32_t n = getHowmanyQueueFamilies();
 	queueFamiliesInfoPy = (QueueFamilyInfoPy*) malloc(n*sizeof(QueueFamilyInfoPy));
+	isInitPy = true;
 	for(uint32_t i=0;i<n;i++)
 	{
 		queueFamiliesInfoPy[i].init(getQueueFamilies()[i]);
 	}
-	isInitPy = true;
 }
 
 PhysicalDeviceInfoPy::~PhysicalDeviceInfoPy()
 {
-	if(isInitPy){free(queueFamiliesInfoPy);}
+	if(isInitPy){free(queueFamiliesInfoPy);isInitPy=false;}
 }
 
 uint32_a PhysicalDeviceInfoPy::getGraphicsFamiliesPy()
@@ -43,6 +43,11 @@ py::list PhysicalDeviceInfoPy::getQueueFamiliesInfoPy()
 		out.append(queueFamiliesInfoPy[i]);
 	}
 	return out;
+}
+
+std::string PhysicalDeviceInfoPy::getDeviceName()
+{
+	return std::string(getProperties().deviceName);
 }
 
 VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : VulkanBasePy::VulkanBase{nReqLayers,reqLayers}
@@ -124,6 +129,7 @@ void init_vkTools(py::module &m)
 			.def("getHowmanyGraphicsFamilies",&PhysicalDeviceInfoPy::getHowmanyGraphicsFamilies)
 			.def("getHowmanyComputeFamilies",&PhysicalDeviceInfoPy::getHowmanyComputeFamilies)
 			.def("hasSwapChainSupport",&PhysicalDeviceInfoPy::hasSwapChainSupport)
+			.def("getDeviceName",&PhysicalDeviceInfoPy::getDeviceName)
 			.def("printDeviceInfo",&PhysicalDeviceInfoPy::printDeviceInfo);
 
 	// Vulkan base

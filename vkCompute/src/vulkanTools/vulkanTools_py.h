@@ -38,6 +38,7 @@ class PhysicalDeviceInfoPy: public vkTools::PhysicalDeviceInfo
 	uint32_a getComputeFamiliesPy();
 	
 	py::list getQueueFamiliesInfoPy();
+	std::string getDeviceName();
 
 	private:
 	bool isInitPy = false;
