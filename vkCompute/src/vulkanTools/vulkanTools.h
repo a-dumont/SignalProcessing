@@ -13,6 +13,8 @@
 #include <cmath>
 #include <array>
 #include <iostream>
+//#include <cstring>
+//#include <glm/ext/vector_float2.hpp>
 
 namespace vkTools
 {
@@ -38,7 +40,6 @@ class QueueFamilyInfo
 		bool hasVideoEncodeSupport();
 		bool hasOpticalFlowNVRSupport();
 		bool isProtected();
-		uint32_t getIndex();
 		uint32_t getQueueCount();
 		VkQueueFlags getFlags();
 		VkQueueFamilyProperties getQueueFamily();

@@ -1,5 +1,21 @@
 #include "vulkanTools_py.h"
 
+void PhysicalDeviceInfoPy::initPy()
+{
+	uint32_t n = getHowmanyQueueFamilies();
+	queueFamiliesInfoPy = (QueueFamilyInfoPy*) malloc(n*sizeof(QueueFamilyInfoPy));
+	for(uint32_t i=0;i<n;i++)
+	{
+		queueFamiliesInfoPy[i].init(getQueueFamilies()[i]);
+	}
+	isInitPy = true;
+}
+
+PhysicalDeviceInfoPy::~PhysicalDeviceInfoPy()
+{
+	if(isInitPy){free(queueFamiliesInfoPy);}
+}
+
 uint32_a PhysicalDeviceInfoPy::getGraphicsFamiliesPy()
 {
 	return uint32_a
@@ -16,6 +32,34 @@ uint32_a PhysicalDeviceInfoPy::getComputeFamiliesPy()
 			 PhysicalDeviceInfoPy::getHowmanyComputeFamilies(),
 			 PhysicalDeviceInfoPy::getComputeFamilies()
 			);
+}
+
+py::list PhysicalDeviceInfoPy::getQueueFamiliesInfoPy()
+{
+	py::list out;
+	uint32_t n = getHowmanyQueueFamilies();
+	for(uint32_t i=0;i<n;i++)
+	{
+		out.append(queueFamiliesInfoPy[i]);
+	}
+	return out;
+}
+
+VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : VulkanBasePy::VulkanBase{nReqLayers,reqLayers}
+{
+	uint32_t n = getPhysicalDevicesCount();
+	physicalDevicesInfoPy = (PhysicalDeviceInfoPy*) malloc(n*sizeof(PhysicalDeviceInfoPy));
+	for(uint32_t i=0;i<n;i++)
+	{
+		physicalDevicesInfoPy[i].init(getPhysicalDevices()[i]);
+		physicalDevicesInfoPy[i].initPy();
+	}
+	isInitPy = true;
+}
+
+VulkanBasePy::~VulkanBasePy()
+{
+	if(isInitPy){free(physicalDevicesInfoPy);}
 }
 
 py::list VulkanBasePy::getRequiredLayersPy()
@@ -42,6 +86,17 @@ py::list VulkanBasePy::getRequiredExtensionsPy()
     return extensions;
 }
 
+py::list VulkanBasePy::getPhysicalDevicesInfoPy()
+{
+	py::list out;
+	uint32_t n = getPhysicalDevicesCount();
+	for(uint32_t i=0;i<n;i++)
+	{
+		out.append(physicalDevicesInfoPy[i]);
+	}
+	return out;
+}
+
 
 void init_vkTools(py::module &m)
 {
@@ -49,19 +104,19 @@ void init_vkTools(py::module &m)
 	py::class_<QueueFamilyInfoPy>(m,"QueueFamilyInfo")
 			.def(py::init())
 			.def("hasGraphicsSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("hasComputeSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("hasTransferSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("hasSparseBindingSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("hasVideoDecodeSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("hasVideoEncodeSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("hasOpticalFlowNVRSupport",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("isProtected",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("getIndex",&QueueFamilyInfoPy::hasGraphicsSupport)
-			.def("getQueueCount",&QueueFamilyInfoPy::hasGraphicsSupport);
+			.def("hasComputeSupport",&QueueFamilyInfoPy::hasComputeSupport)
+			.def("hasTransferSupport",&QueueFamilyInfoPy::hasTransferSupport)
+			.def("hasSparseBindingSupport",&QueueFamilyInfoPy::hasSparseBindingSupport)
+			.def("hasVideoDecodeSupport",&QueueFamilyInfoPy::hasVideoDecodeSupport)
+			.def("hasVideoEncodeSupport",&QueueFamilyInfoPy::hasVideoEncodeSupport)
+			.def("hasOpticalFlowNVRSupport",&QueueFamilyInfoPy::hasOpticalFlowNVRSupport)
+			.def("isProtected",&QueueFamilyInfoPy::isProtected)
+			.def("getQueueCount",&QueueFamilyInfoPy::getQueueCount);
 
 	// Physical Device Info
 	py::class_<PhysicalDeviceInfoPy>(m,"PhysicalDeviceInfo")
 			.def(py::init())
+			.def("getQueueFamiliesInfo",&PhysicalDeviceInfoPy::getQueueFamiliesInfoPy)
 			.def("getGraphicsFamilies",&PhysicalDeviceInfoPy::getGraphicsFamiliesPy)
 			.def("getComputeFamilies",&PhysicalDeviceInfoPy::getComputeFamiliesPy)
 			.def("getHowmanyExtensions",&PhysicalDeviceInfoPy::getHowmanyExtensions)
@@ -88,6 +143,7 @@ void init_vkTools(py::module &m)
 
         return std::make_unique<VulkanBasePy>(n,ptrs);}))
 			.def("getPhysicalDevicesCount",&VulkanBasePy::getPhysicalDevicesCount)
+			.def("getPhysicalDeviceInfo",&VulkanBasePy::getPhysicalDevicesInfoPy)
 			.def("getRequiredLayersCount",&VulkanBasePy::getRequiredLayersCount)
 			.def("getRequiredLayers",&VulkanBasePy::getRequiredLayersPy)
 			.def("getRequiredExtensionsCount",&VulkanBasePy::getRequiredExtensionsCount)

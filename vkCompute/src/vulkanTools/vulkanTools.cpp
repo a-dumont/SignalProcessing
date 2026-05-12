@@ -1,7 +1,5 @@
 #include "vulkanTools.h"
-#include <cstring>
-#include <glm/ext/vector_float2.hpp>
-#include <stdexcept>
+
 using namespace vkTools;
 
 ////////////////////////////////////////////////////////////////////////////////

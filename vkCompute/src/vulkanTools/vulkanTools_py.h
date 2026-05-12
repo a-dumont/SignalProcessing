@@ -30,20 +30,32 @@ class QueueFamilyInfoPy : public vkTools::QueueFamilyInfo
 class PhysicalDeviceInfoPy: public vkTools::PhysicalDeviceInfo
 {
 	public:
+	using vkTools::PhysicalDeviceInfo::PhysicalDeviceInfo;
+	~PhysicalDeviceInfoPy();
+	void initPy();
+	
 	uint32_a getGraphicsFamiliesPy();
 	uint32_a getComputeFamiliesPy();
+	
+	py::list getQueueFamiliesInfoPy();
 
 	private:
+	bool isInitPy = false;
+	QueueFamilyInfoPy* queueFamiliesInfoPy;
 };
 
 class VulkanBasePy: public vkTools::VulkanBase
 {
 	public:	
-	using vkTools::VulkanBase::VulkanBase;
+	VulkanBasePy(uint32_t nReqLayers, const char** reqLayers);
+	~VulkanBasePy();
 	py::list getRequiredLayersPy();
 	py::list getRequiredExtensionsPy();
+	py::list getPhysicalDevicesInfoPy();
 
 	private:
+	bool isInitPy = false;
+	PhysicalDeviceInfoPy* physicalDevicesInfoPy;
 };
 
 class LogicalDevicePy: public vkTools::LogicalDevice
