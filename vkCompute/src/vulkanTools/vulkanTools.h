@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 #include<vulkan/vk_enum_string_helper.h>
 
+#include <string>
 #include <ios>
 #include <stdexcept>
 #include <cstring>
@@ -12,8 +13,6 @@
 #include <cmath>
 #include <array>
 #include <iostream>
-
-//#include "../primitives/primitives.h"
 
 namespace vkTools
 {
@@ -114,7 +113,8 @@ class PhysicalDeviceInfo
 class VulkanBase
 {
 	public:
-		VulkanBase(VersionInfo appVersion, uint32_t nReqLayers, const char** reqLayers);
+		//VulkanBase(VersionInfo appVersion, uint32_t nReqLayers, const char** reqLayers);
+		VulkanBase(uint32_t nReqLayers, const char** reqLayers);
 		~VulkanBase();
 		VkPhysicalDevice* getPhysicalDevices();
 		PhysicalDeviceInfo* getPhysicalDevicesInfo();
@@ -141,6 +141,7 @@ class VulkanBase
 		void initLayers();
 		uint32_t requiredLayersCount, availableLayersCount;
 		const char** requiredLayers;
+		std::string* requiredLayersStr;
 		VkLayerProperties* availableLayers;
 
 		// Vulkan instance

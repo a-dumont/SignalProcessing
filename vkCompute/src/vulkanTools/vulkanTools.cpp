@@ -1,6 +1,6 @@
 #include "vulkanTools.h"
+#include <cstring>
 #include <glm/ext/vector_float2.hpp>
-#include <limits>
 #include <stdexcept>
 using namespace vkTools;
 
@@ -167,13 +167,60 @@ void PhysicalDeviceInfo::printDeviceInfo()
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//          __     __     _ _               ____                              //
+//          \ \   / /   _| | | ____ _ _ __ | __ )  __ _ ___  ___              //
+//           \ \ / / | | | | |/ / _` | '_ \|  _ \ / _` / __|/ _ \             //
+//            \ V /| |_| | |   < (_| | | | | |_) | (_| \__ \  __/             //
+//             \_/  \__,_|_|_|\_\__,_|_| |_|____/ \__,_|___/\___|             //
+////////////////////////////////////////////////////////////////////////////////
+
+VulkanBase::VulkanBase(uint32_t nReqLayers, const char** reqLayers)
+{
+	requiredLayersCount = nReqLayers;
+	requiredLayers = (const char**) malloc(requiredLayersCount*sizeof(const char*));	
+	requiredLayersStr = (std::string*) malloc(requiredLayersCount*sizeof(std::string));	
+	for(uint32_t i=0;i<requiredLayersCount;i++)
+	{
+		new (&requiredLayersStr[i]) std::string;
+		requiredLayersStr[i] = std::string(reqLayers[i]);
+		requiredLayers[i] = requiredLayersStr[i].c_str();
+	}
+
+	initLayers();
+
+	initExtensions();
+
+	initVulkanInstance();
+
+	initPhysicalDevices();
+
+}
+
+VulkanBase::~VulkanBase()
+{
+	free(requiredLayers);
+	free(requiredLayersStr);
+
+	free(availableExtensions);	
+	
+	free(availableLayers);	
+	
+	free(requiredDeviceExtensions);
+	
+	free(physicalDevices);	
+	free(physicalDevicesInfo);
+
+	vkDestroyInstance(appInstance, nullptr);
+}
+
 void VulkanBase::initPhysicalDevices()
 {
 	physicalDevicesCount = 0;
 	vkEnumeratePhysicalDevices(appInstance, &physicalDevicesCount, nullptr);
 
 	requiredDeviceExtensionsCount = 1;
-	requiredDeviceExtensions = (const char**) malloc(requiredExtensionsCount*sizeof(char*));
+	requiredDeviceExtensions=(const char**)malloc(requiredDeviceExtensionsCount*sizeof(const char*));
 	requiredDeviceExtensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 	
 	if (physicalDevicesCount == 0)
@@ -196,44 +243,6 @@ void VulkanBase::initPhysicalDevices()
 
 VkPhysicalDevice* VulkanBase::getPhysicalDevices(){return physicalDevices;}
 PhysicalDeviceInfo* VulkanBase::getPhysicalDevicesInfo(){return physicalDevicesInfo;}
-
-////////////////////////////////////////////////////////////////////////////////
-//          __     __     _ _               ____                              //
-//          \ \   / /   _| | | ____ _ _ __ | __ )  __ _ ___  ___              //
-//           \ \ / / | | | | |/ / _` | '_ \|  _ \ / _` / __|/ _ \             //
-//            \ V /| |_| | |   < (_| | | | | |_) | (_| \__ \  __/             //
-//             \_/  \__,_|_|_|\_\__,_|_| |_|____/ \__,_|___/\___|             //
-////////////////////////////////////////////////////////////////////////////////
-
-VulkanBase::VulkanBase(VersionInfo appVersion, uint32_t nReqLayers, const char** reqLayers)
-{
-	applicationVersion = appVersion;
-	requiredLayersCount = nReqLayers;
-	requiredLayers = reqLayers;	
-
-	initLayers();
-
-	initExtensions();
-
-	initVulkanInstance();
-
-	initPhysicalDevices();
-
-}
-
-VulkanBase::~VulkanBase()
-{
-	free(availableExtensions);	
-	
-	free(availableLayers);	
-	
-	free(requiredDeviceExtensions);
-	
-	free(physicalDevices);	
-	free(physicalDevicesInfo);
-
-	vkDestroyInstance(appInstance, nullptr);
-}
 
 void VulkanBase::printLayers()
 {
@@ -271,7 +280,7 @@ void VulkanBase::initLayers()
 	availableLayers = (VkLayerProperties*) malloc(availableLayersCount*sizeof(VkLayerProperties));
 	vkEnumerateInstanceLayerProperties(&availableLayersCount, availableLayers);
 	
-	//vulkanBase::printLayers();
+	//printLayers();
 
 	for(uint32_t i=0;i<requiredLayersCount;i++)
 	{
@@ -344,21 +353,21 @@ void VulkanBase::initVulkanInstance()
     appInfo.apiVersion = VK_API_VERSION_1_2;
 	
 	// Engine
-	VersionInfo engine = VersionInfo();
-	uint32_t variant = engine.variant;
-	uint32_t major = engine.major;
-	uint32_t minor = engine.minor;
-	uint32_t patch = engine.patch;
-    appInfo.pEngineName = engine.name;
-    appInfo.engineVersion=VK_MAKE_API_VERSION(variant,major,minor,patch);
+	//VersionInfo engine = VersionInfo();
+	//uint32_t variant = engine.variant;
+	//uint32_t major = engine.major;
+	//uint32_t minor = engine.minor;
+	//uint32_t patch = engine.patch;
+    //appInfo.pEngineName = engine.name;
+    //appInfo.engineVersion=VK_MAKE_API_VERSION(variant,major,minor,patch);
     
 	// Application
-	variant = applicationVersion.variant;
-	major = applicationVersion.major;
-	minor = applicationVersion.minor;
-	patch = applicationVersion.patch;
-	appInfo.pApplicationName = applicationVersion.name;
-    appInfo.applicationVersion = VK_MAKE_API_VERSION(variant, major, minor, patch);
+	//variant = applicationVersion.variant;
+	//major = applicationVersion.major;
+	//minor = applicationVersion.minor;
+	//patch = applicationVersion.patch;
+	//appInfo.pApplicationName = applicationVersion.name;
+    //appInfo.applicationVersion = VK_MAKE_API_VERSION(variant, major, minor, patch);
 		
 	VkInstanceCreateInfo instanceCreateInfo{};
 
@@ -386,8 +395,8 @@ void VulkanBase::initVulkanInstance()
 	{
 		std::cout<<"Application name: "<<applicationVersion.name
 				<<"\nVersion: "<<applicationVersion.version
-				<<"\nEngine name: "<<engine.name
-				<<"\nEngine version: "<<engine.version
+				//<<"\nEngine name: "<<engine.name
+				//<<"\nEngine version: "<<engine.version
 				<<"\n"<<std::endl;
 	}
 }
