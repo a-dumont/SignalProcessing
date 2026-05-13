@@ -40,7 +40,7 @@ py::list PhysicalDeviceInfoPy::getQueueFamiliesInfoPy()
 	uint32_t n = getHowmanyQueueFamilies();
 	for(uint32_t i=0;i<n;i++)
 	{
-		out.append(queueFamiliesInfoPy[i]);
+		out.append(&queueFamiliesInfoPy[i]);
 	}
 	return out;
 }
@@ -97,7 +97,7 @@ py::list VulkanBasePy::getPhysicalDevicesInfoPy()
 	uint32_t n = getPhysicalDevicesCount();
 	for(uint32_t i=0;i<n;i++)
 	{
-		out.append(physicalDevicesInfoPy[i]);
+		out.append(&physicalDevicesInfoPy[i]);
 	}
 	return out;
 }
