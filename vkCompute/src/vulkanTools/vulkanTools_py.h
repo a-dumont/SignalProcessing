@@ -48,6 +48,7 @@ class PhysicalDeviceInfoPy: public vkTools::PhysicalDeviceInfo
 class ComputePipelinePy: public vkTools::ComputePipeline
 {
 	public:
+	using vkTools::ComputePipeline::ComputePipeline;
 
 	private:
 };
@@ -56,9 +57,15 @@ class LogicalDevicePy: public vkTools::LogicalDevice
 {
 	public:
 	using vkTools::LogicalDevice::LogicalDevice;
+	~LogicalDevicePy();
 	std::string getPhysicalDeviceName();
+	void createComputePipeline(const char* shaderFile);
+	void destroyComputePipeline(uint32_t pipelineIndex);
 
 	private:
+	ComputePipelinePy* pipelines;
+	uint32_t howmanyPipelines=0;
+	bool pipelinesInit = false;
 };
 
 class VulkanBasePy: public vkTools::VulkanBase
@@ -81,4 +88,5 @@ class VulkanBasePy: public vkTools::VulkanBase
 	
 	LogicalDevicePy* logicalDevices;
 	uint32_t howmanyLogicalDevices = 0;
+	bool logicalDevicesInit = false;
 };

@@ -57,6 +57,44 @@ std::string LogicalDevicePy::getPhysicalDeviceName()
 	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
 }
 
+LogicalDevicePy::~LogicalDevicePy()
+{
+	for(uint32_t i=0;i<howmanyPipelines;i++){destroyComputePipeline(howmanyPipelines-i-1);}
+	if(pipelinesInit){free(pipelines);}
+}
+
+void LogicalDevicePy::createComputePipeline(const char* shaderFile)
+{
+	if(pipelinesInit == false)
+	{
+		pipelines = (ComputePipelinePy*) 
+				malloc((howmanyPipelines+1)*sizeof(ComputePipelinePy));
+		pipelinesInit = true;
+	}
+	else
+	{
+		pipelines = (ComputePipelinePy*) 
+				realloc((void*)pipelines,(howmanyPipelines+1)*sizeof(ComputePipelinePy));
+	}
+	pipelines[howmanyPipelines] = ComputePipelinePy(this,shaderFile);
+	howmanyPipelines += 1;
+}
+
+void LogicalDevicePy::destroyComputePipeline(uint32_t pipelineIndex)
+{
+	if(howmanyPipelines == 0){}
+	else
+	{
+		for(uint32_t i=pipelineIndex;i<howmanyPipelines-1;i++)
+		{
+			pipelines[i] = pipelines[i+1];
+		}
+		pipelines = (ComputePipelinePy*) 
+				realloc((void*) pipelines,(howmanyPipelines-1)*sizeof(ComputePipelinePy));
+		howmanyPipelines -= 1;
+	}
+}
+
 VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : VulkanBasePy::VulkanBase{nReqLayers,reqLayers}
 {
 	uint32_t n = getPhysicalDevicesCount();
@@ -72,9 +110,8 @@ VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : Vulkan
 VulkanBasePy::~VulkanBasePy()
 {
 	if(isInitPy){free(physicalDevicesInfoPy);}
-	//logicalDevices.clear();
 	for(uint32_t i=0;i<howmanyLogicalDevices;i++){destroyLogicalDevice(howmanyLogicalDevices-i-1);}
-	free(logicalDevices);
+	if(logicalDevicesInit){free(logicalDevices);}
 }
 
 py::list VulkanBasePy::getRequiredLayersPy()
@@ -122,13 +159,13 @@ py::list VulkanBasePy::getLogicalDevices()
 	return out;
 }
 
-
 void VulkanBasePy::createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags)
 {
-	if(howmanyLogicalDevices == 0)
+	if(logicalDevicesInit == false)
 	{
 		logicalDevices = (LogicalDevicePy*) 
 				malloc((howmanyLogicalDevices+1)*sizeof(LogicalDevicePy));
+		logicalDevicesInit = true;
 	}
 	else
 	{
