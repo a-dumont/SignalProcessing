@@ -128,7 +128,7 @@ void VulkanBasePy::createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags)
 	else
 	{
 		logicalDevices = (LogicalDevicePy*) 
-				realloc(logicalDevices,(howmanyLogicalDevices+1)*sizeof(LogicalDevicePy));
+				realloc((void*)logicalDevices,(howmanyLogicalDevices+1)*sizeof(LogicalDevicePy));
 	}
 	logicalDevices[howmanyLogicalDevices] = LogicalDevicePy(this,pDevIndex,usageFlags);
 	howmanyLogicalDevices += 1;
@@ -144,7 +144,7 @@ void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
 			logicalDevices[i] = logicalDevices[i+1];
 		}
 		logicalDevices = (LogicalDevicePy*) 
-				realloc(logicalDevices,(howmanyLogicalDevices-1)*sizeof(LogicalDevicePy));
+				realloc((void*) logicalDevices,(howmanyLogicalDevices-1)*sizeof(LogicalDevicePy));
 		howmanyLogicalDevices -= 1;
 	}
 }
