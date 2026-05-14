@@ -420,7 +420,8 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
 	physicalDeviceIndex = physDevIdx;
 	usageBits = usage;
 	physicalDevice = base->getPhysicalDevices()[physicalDeviceIndex];
-	physicalDeviceInfo = base->getPhysicalDevicesInfo()[physicalDeviceIndex];
+	//physicalDeviceInfo = base->getPhysicalDevicesInfo()[physicalDeviceIndex];
+	physicalDeviceInfo.init(physicalDevice);
 	physicalDeviceFeatures = physicalDeviceInfo.getFeatures();
 	physicalDeviceFeatures2 = physicalDeviceInfo.getFeatures2();
 

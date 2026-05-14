@@ -1,4 +1,6 @@
 #include "vulkanTools_py.h"
+#include "vulkanTools.h"
+#include <memory>
 
 void PhysicalDeviceInfoPy::initPy()
 {
@@ -65,6 +67,9 @@ VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : Vulkan
 VulkanBasePy::~VulkanBasePy()
 {
 	if(isInitPy){free(physicalDevicesInfoPy);}
+	//logicalDevices.clear();
+	for(uint32_t i=0;i<howmanyLogicalDevices;i++){destroyLogicalDevice(howmanyLogicalDevices-i-1);}
+	free(logicalDevices);
 }
 
 py::list VulkanBasePy::getRequiredLayersPy()
@@ -100,6 +105,48 @@ py::list VulkanBasePy::getPhysicalDevicesInfoPy()
 		out.append(&physicalDevicesInfoPy[i]);
 	}
 	return out;
+}
+
+py::list VulkanBasePy::getLogicalDevices()
+{
+	py::list out;
+	for(uint32_t i=0;i<howmanyLogicalDevices;i++)
+	{
+		out.append(&logicalDevices[i]);
+	}
+	return out;
+}
+
+
+void VulkanBasePy::createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags)
+{
+	if(howmanyLogicalDevices == 0)
+	{
+		logicalDevices = (LogicalDevicePy*) 
+				malloc((howmanyLogicalDevices+1)*sizeof(LogicalDevicePy));
+	}
+	else
+	{
+		logicalDevices = (LogicalDevicePy*) 
+				realloc(logicalDevices,(howmanyLogicalDevices+1)*sizeof(LogicalDevicePy));
+	}
+	logicalDevices[howmanyLogicalDevices] = LogicalDevicePy(this,pDevIndex,usageFlags);
+	howmanyLogicalDevices += 1;
+}
+
+void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
+{
+	if(howmanyLogicalDevices == 0){}
+	else
+	{
+		for(uint32_t i=devIndex;i<howmanyLogicalDevices-1;i++)
+		{
+			logicalDevices[i] = logicalDevices[i+1];
+		}
+		logicalDevices = (LogicalDevicePy*) 
+				realloc(logicalDevices,(howmanyLogicalDevices-1)*sizeof(LogicalDevicePy));
+		howmanyLogicalDevices -= 1;
+	}
 }
 
 
@@ -147,13 +194,21 @@ void init_vkTools(py::module &m)
             ptrs[i]=strings[i].c_str();
 		}
 
-        return std::make_unique<VulkanBasePy>(n,ptrs);}))
+        return std::make_unique<VulkanBasePy>(n,ptrs);}))	
+			.def("createLogicalDevice",&VulkanBasePy::createLogicalDevice)
+			.def("destroyLogicalDevices",&VulkanBasePy::destroyLogicalDevice)
+			.def("getLogicalDevices",&VulkanBasePy::getLogicalDevices)
 			.def("getPhysicalDevicesCount",&VulkanBasePy::getPhysicalDevicesCount)
 			.def("getPhysicalDeviceInfo",&VulkanBasePy::getPhysicalDevicesInfoPy)
 			.def("getRequiredLayersCount",&VulkanBasePy::getRequiredLayersCount)
 			.def("getRequiredLayers",&VulkanBasePy::getRequiredLayersPy)
 			.def("getRequiredExtensionsCount",&VulkanBasePy::getRequiredExtensionsCount)
 			.def("getRequiredExtensions",&VulkanBasePy::getRequiredExtensionsPy);
+
+	// Logical Device
+	py::class_<LogicalDevicePy>(m,"LogicalDevice")
+			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>());
+
 }
 
 PYBIND11_MODULE(libvktools, m)

@@ -45,30 +45,39 @@ class PhysicalDeviceInfoPy: public vkTools::PhysicalDeviceInfo
 	QueueFamilyInfoPy* queueFamiliesInfoPy;
 };
 
-class VulkanBasePy: public vkTools::VulkanBase
-{
-	public:	
-	VulkanBasePy(uint32_t nReqLayers, const char** reqLayers);
-	~VulkanBasePy();
-	py::list getRequiredLayersPy();
-	py::list getRequiredExtensionsPy();
-	py::list getPhysicalDevicesInfoPy();
-
-	private:
-	bool isInitPy = false;
-	PhysicalDeviceInfoPy* physicalDevicesInfoPy;
-};
-
-class LogicalDevicePy: public vkTools::LogicalDevice
-{
-	public:
-
-	private:
-};
-
 class ComputePipelinePy: public vkTools::ComputePipeline
 {
 	public:
 
 	private:
+};
+
+class LogicalDevicePy: public vkTools::LogicalDevice
+{
+	public:
+	using vkTools::LogicalDevice::LogicalDevice;
+
+	private:
+};
+
+class VulkanBasePy: public vkTools::VulkanBase
+{
+	public:	
+	VulkanBasePy(uint32_t nReqLayers, const char** reqLayers);
+	~VulkanBasePy();
+
+	void createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags);
+	void destroyLogicalDevice(uint32_t devIndex);
+
+	py::list getRequiredLayersPy();
+	py::list getRequiredExtensionsPy();
+	py::list getPhysicalDevicesInfoPy();
+	py::list getLogicalDevices();
+
+	private:
+	bool isInitPy = false;
+	PhysicalDeviceInfoPy* physicalDevicesInfoPy;
+	
+	LogicalDevicePy* logicalDevices;
+	uint32_t howmanyLogicalDevices = 0;
 };
