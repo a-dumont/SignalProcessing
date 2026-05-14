@@ -597,6 +597,7 @@ VkPhysicalDevice LogicalDevice::getPhysicalDevice(){return physicalDevice;}
 PhysicalDeviceInfo* LogicalDevice::getPhysicalDeviceInfo(){return &physicalDeviceInfo;}
 VkDevice LogicalDevice::getLogicalDevice(){return logicalDevice;}
 VkCommandPool LogicalDevice::getCommandPool(){return commandPool;}
+uint32_t LogicalDevice::getUsageFlags(){return usageBits;}
 
 ////////////////////////////////////////////////////////////////////////////////
 //  ____                            _       ____  _            _ _            //

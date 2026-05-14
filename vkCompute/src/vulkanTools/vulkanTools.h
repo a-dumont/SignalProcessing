@@ -171,7 +171,8 @@ class LogicalDevice
 		VkPhysicalDevice getPhysicalDevice();
 	   	PhysicalDeviceInfo* getPhysicalDeviceInfo();
 		VkDevice getLogicalDevice();
-		VkCommandPool getCommandPool();	
+		VkCommandPool getCommandPool();
+		uint32_t getUsageFlags();	
 
 	private:
 		VulkanBase* vkBase;

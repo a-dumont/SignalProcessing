@@ -56,6 +56,7 @@ class LogicalDevicePy: public vkTools::LogicalDevice
 {
 	public:
 	using vkTools::LogicalDevice::LogicalDevice;
+	std::string getPhysicalDeviceName();
 
 	private:
 };

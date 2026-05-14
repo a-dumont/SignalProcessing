@@ -52,6 +52,11 @@ std::string PhysicalDeviceInfoPy::getDeviceName()
 	return std::string(getProperties().deviceName);
 }
 
+std::string LogicalDevicePy::getPhysicalDeviceName()
+{
+	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
+}
+
 VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : VulkanBasePy::VulkanBase{nReqLayers,reqLayers}
 {
 	uint32_t n = getPhysicalDevicesCount();
@@ -207,7 +212,9 @@ void init_vkTools(py::module &m)
 
 	// Logical Device
 	py::class_<LogicalDevicePy>(m,"LogicalDevice")
-			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>());
+			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
+			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
+			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
 
 }
 
