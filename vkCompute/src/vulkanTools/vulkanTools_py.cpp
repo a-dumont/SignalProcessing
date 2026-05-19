@@ -191,7 +191,6 @@ void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
 	}
 }
 
-
 void init_vkTools(py::module &m)
 {
 	// Queue family
@@ -252,7 +251,6 @@ void init_vkTools(py::module &m)
 			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
-
 }
 
 PYBIND11_MODULE(libvktools, m)
