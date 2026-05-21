@@ -391,11 +391,13 @@ void VulkanBase::initVulkanInstance()
 	}
 	else
 	{
+		/*
 		std::cout<<"Application name: "<<applicationVersion.name
 				<<"\nVersion: "<<applicationVersion.version
 				//<<"\nEngine name: "<<engine.name
 				//<<"\nEngine version: "<<engine.version
 				<<"\n"<<std::endl;
+		*/
 	}
 }
 
@@ -516,8 +518,8 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
 	createInfo.pQueueCreateInfos = queueCreateInfos;
 	createInfo.queueCreateInfoCount = 1;
 	//createInfo.pEnabledFeatures = &physicalDeviceFeatures;
-	createInfo.enabledLayerCount = base->getRequiredLayersCount();
-    createInfo.ppEnabledLayerNames = base->getRequiredLayers();
+	//createInfo.enabledLayerCount = base->getRequiredLayersCount();
+    //createInfo.ppEnabledLayerNames = base->getRequiredLayers();
 	createInfo.pNext = &physicalDeviceFeatures2;
 
 	VkResult r;

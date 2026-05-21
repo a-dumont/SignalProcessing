@@ -22,10 +22,11 @@ add_subdirectory(Filters)
 
 if($ENV{ENABLE_VULKAN})
 		message(STATUS "Building the VULKAN modules")
-		add_subdirectory(FFT_VULKAN)
-		add_subdirectory(Correlations_VULKAN)
-		add_subdirectory(Math_VULKAN)
-		add_subdirectory(Histograms_VULKAN)
+		add_subdirectory(vkCompute)
+		#add_subdirectory(FFT_VULKAN)
+		#add_subdirectory(Correlations_VULKAN)
+		#add_subdirectory(Math_VULKAN)
+		#add_subdirectory(Histograms_VULKAN)
 endif($ENV{ENABLE_VULKAN})
 
 if($ENV{ENABLE_CUDA})
@@ -53,18 +54,21 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/Filters/obj/
 		FILES_MATCHING PATTERN "libfilters.*")
 
 if($ENV{ENABLE_VULKAN})
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_vulkan/obj/
-		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
-		FILES_MATCHING PATTERN "libfftcuda.*")
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_vulkan/obj/
-		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
-		FILES_MATCHING PATTERN "libcorrelationscuda.*")
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math_vulkan/obj/
-		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
-		FILES_MATCHING PATTERN "libmathcuda.*")
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_vulkan/obj/
-		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
-		FILES_MATCHING PATTERN "libhistogramscuda.*")
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkCompute/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/vkCompute
+		FILES_MATCHING PATTERN "libvktools.*")
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
+		#FILES_MATCHING PATTERN "libfftcuda.*")
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
+		#FILES_MATCHING PATTERN "libcorrelationscuda.*")
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
+		#FILES_MATCHING PATTERN "libmathcuda.*")
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
+		#FILES_MATCHING PATTERN "libhistogramscuda.*")
 endif($ENV{ENABLE_VULKAN})
 
 if($ENV{ENABLE_CUDA})
