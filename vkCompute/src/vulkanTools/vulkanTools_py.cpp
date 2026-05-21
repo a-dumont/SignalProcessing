@@ -1,6 +1,5 @@
 #include "vulkanTools_py.h"
 #include "vulkanTools.h"
-#include <memory>
 
 void PhysicalDeviceInfoPy::initPy()
 {
@@ -50,6 +49,131 @@ py::list PhysicalDeviceInfoPy::getQueueFamiliesInfoPy()
 std::string PhysicalDeviceInfoPy::getDeviceName()
 {
 	return std::string(getProperties().deviceName);
+}
+
+py::dict PhysicalDeviceInfoPy::getPhysicalDeviceLimits()
+{
+	py::dict dict;
+	VkPhysicalDeviceLimits limits = getProperties().limits;
+
+	dict["maxImageDimension1D"] = limits.maxImageDimension1D;
+	dict["maxImageDimension2D"] = limits.maxImageDimension2D;
+	dict["maxImageDimension3D"] = limits.maxImageDimension3D;
+	dict["maxImageDimensionCube"] = limits.maxImageDimensionCube;
+	dict["maxImageArrayLayers"] = limits.maxImageArrayLayers;
+	dict["maxTexelBufferElements"] = limits.maxTexelBufferElements;
+	dict["maxUniformBufferRange"] = limits.maxUniformBufferRange;
+	dict["maxStorageBufferRange"] = limits.maxStorageBufferRange;
+	dict["maxPushConstantsSize"] = limits.maxPushConstantsSize;
+	dict["maxMemoryAllocationCount"] = limits.maxMemoryAllocationCount;
+	dict["maxSamplerAllocationCount"] = limits.maxSamplerAllocationCount;
+	dict["bufferImageGranularity"] = (uint64_t) limits.bufferImageGranularity;
+	dict["sparseAddressSpaceSize"] = (uint64_t) limits.sparseAddressSpaceSize;
+	dict["maxBoundDescriptorSet"] = limits.maxBoundDescriptorSets;
+	dict["maxPerStageDescriptorSampler"] = limits.maxPerStageDescriptorSamplers;
+	dict["maxPerStageDescriptorUniformBuffers"] = limits.maxPerStageDescriptorUniformBuffers;
+	dict["maxPerStageDescriptorStorageBuffers"] = limits.maxPerStageDescriptorStorageBuffers;
+	dict["maxPerStageDescriptorSampledImages"] = limits.maxPerStageDescriptorSampledImages;
+	dict["maxPerStageDescriptorStorageImages"] = limits.maxPerStageDescriptorStorageImages;
+	dict["maxPerStageDescriptorInputAttachements"] = limits.maxPerStageDescriptorInputAttachments;
+	dict["maxPerStageResources"] = limits.maxPerStageResources;
+	dict["maxDescriptorSetSamplers"] = limits.maxDescriptorSetSamplers;
+	dict["maxDescriptorSetUniformBuffers"] = limits.maxDescriptorSetUniformBuffers;
+	dict["maxDescriptorSetUniformBuffersDynamic"] = limits.maxDescriptorSetUniformBuffersDynamic;
+	dict["maxDescriptorSetStorageBuffers"] = limits.maxDescriptorSetStorageBuffers;
+	dict["maxDescriptorSetStorageBuffersDynamic"] = limits.maxDescriptorSetStorageBuffersDynamic;
+	dict["maxDescriptorSetSampledImages"] = limits.maxDescriptorSetSampledImages;
+	dict["maxDescriptorSetStorageImages"] = limits.maxDescriptorSetStorageImages;
+	dict["maxDescriptorSetInputAttachements"] = limits.maxDescriptorSetInputAttachments;
+	dict["maxVertexInputAttributes"] = limits.maxVertexInputAttributes;
+	dict["maxVertexInputBindings"] = limits.maxVertexInputBindings;
+	dict["maxVertexInputAttributeOffset"] = limits.maxVertexInputAttributeOffset;
+	dict["maxVertexInputBindingStride"] = limits.maxVertexInputBindingStride;
+	dict["maxVertexOutputComponents"] = limits.maxVertexOutputComponents;
+	dict["maxTessellationGenerationLevel"] = limits.maxTessellationGenerationLevel;
+	dict["maxTessellationPatchSize"] = limits.maxTessellationPatchSize;
+	dict["maxTessellationControlPerVertexInputComponents"] = 
+			limits.maxTessellationControlPerVertexInputComponents;
+	dict["maxTessellationControlPerVertexOutputComponents"] = 
+			limits.maxTessellationControlPerVertexOutputComponents;
+	dict["maxTessellationControlPerPatchOutputComponents"] = 
+			limits.maxTessellationControlPerPatchOutputComponents;
+	dict["maxTessellationControlTotalOutputComponents"] = 
+			limits.maxTessellationControlTotalOutputComponents;
+	dict["maxTessellationEvaluationInputComponents"] = 
+			limits.maxTessellationEvaluationInputComponents;
+	dict["maxTessellationEvaluationOutputComponents"] = 
+			limits.maxTessellationEvaluationOutputComponents;
+	dict["maxGeometryShaderInvocations"] = limits.maxGeometryShaderInvocations;
+	dict["maxGeometryInputComponents"] = limits.maxGeometryInputComponents;
+	dict["maxGeometryOutputComponents"] = limits.maxGeometryOutputComponents;
+	dict["maxGeometryOutputVertices"] = limits.maxGeometryOutputVertices;
+	dict["maxGeometryTotalOutputComponents"] = limits.maxGeometryTotalOutputComponents;
+	dict["maxFragmentInputComponents"] = limits.maxFragmentInputComponents;
+	dict["maxFragmentOutputAttachements"] = limits.maxFragmentOutputAttachments;
+	dict["maxFragmentDualSrcAttachements"] = limits.maxFragmentDualSrcAttachments;
+	dict["maxFragmentCombinedOutputRessources"] = limits.maxFragmentCombinedOutputResources;
+	dict["maxComputeSharedMemorySize"] = limits.maxComputeSharedMemorySize;
+	dict["maxComputeWorkGroupCount"] = 
+			uint32_a({3},{sizeof(uint32_t)},limits.maxComputeWorkGroupCount);
+	dict["maxComputeWorkGroupInvocations"] = limits.maxComputeWorkGroupInvocations;
+	dict["maxComputeWorkGroupSize"] =
+			uint32_a({3},{sizeof(uint32_t)},limits.maxComputeWorkGroupSize);
+	dict["subPixelPrecisionBits"] = limits.subPixelPrecisionBits;
+	dict["subTexelPrecisionBits"] = limits.subTexelPrecisionBits;
+	dict["mipmapPrecisionBits"] = limits.mipmapPrecisionBits;
+	dict["maxDrawIndexedIndexValue"] = limits.maxDrawIndexedIndexValue;
+	dict["maxDrawIndirectCount"] = limits.maxDrawIndirectCount;
+	dict["maxSamplerLodBias"] = limits.maxSamplerLodBias;
+	dict["maxSamplerAnisotropy"] = limits.maxSamplerAnisotropy;
+	dict["maxViewports"] = limits.maxViewports;
+	dict["maxViewportDimensions"] = uint32_a({2},{sizeof(uint32_t)},limits.maxViewportDimensions);
+	dict["viewportBoundsRange"] = float32_a({2},{sizeof(float)},limits.viewportBoundsRange);
+	dict["viewportSubpixelBits"] = limits.viewportSubPixelBits;
+	dict["minMemoryMapAlignment"] = limits.minMemoryMapAlignment;
+	dict["minTexelBufferOffsetAlignment"] = (uint64_t) limits.minTexelBufferOffsetAlignment;
+	dict["minUniformBufferOffsetAlignment"] = (uint64_t) limits.minUniformBufferOffsetAlignment;
+	dict["minStorageBufferOffsetAlignment"] = (uint64_t) limits.minStorageBufferOffsetAlignment;
+	dict["minTexelOffset"] = limits.minTexelOffset;
+	dict["maxTexelOffset"] = limits.maxTexelOffset;
+	dict["minTexelGatherOffset"] = limits.minTexelGatherOffset;
+	dict["maxTexelGatherOffset"] = limits.maxTexelGatherOffset;
+	dict["minInterpolationOffset"] = limits.minInterpolationOffset;
+	dict["maxInterpolationOffset"] = limits.maxInterpolationOffset;
+	dict["subPixelInterpolationOffsetBits"] = limits.subPixelInterpolationOffsetBits;
+	dict["maxFramebufferWidth"] = limits.maxFramebufferWidth;
+	dict["maxFramebufferHeight"] = limits.maxFramebufferHeight;
+	dict["maxFramebufferLayers"] = limits.maxFramebufferLayers;
+	dict["framebufferColorSampleCounts"] = (uint32_t) limits.framebufferColorSampleCounts;
+	dict["framebufferDepthSampleCounts"] = (uint32_t) limits.framebufferDepthSampleCounts;
+	dict["framebufferStencilSampleCounts"] = (uint32_t) limits.framebufferStencilSampleCounts;
+	dict["framebufferNoAttachmentsSampleCounts"] = 
+			(uint32_t) limits.framebufferNoAttachmentsSampleCounts;
+	dict["maxColorAttachments"] = limits.maxColorAttachments;
+	dict["sampledImageColorSampleCounts"] = (uint32_t) limits.sampledImageColorSampleCounts;
+	dict["sampledImageIntegerSampleCounts"] = (uint32_t) limits.sampledImageIntegerSampleCounts;
+	dict["sampledImageDepthSampleCounts"] = (uint32_t) limits.sampledImageDepthSampleCounts;
+	dict["sampledImageStencilSampleCounts"] = (uint32_t) limits.sampledImageStencilSampleCounts;
+	dict["storageImageSampleCounts"] = (uint32_t) limits.storageImageSampleCounts;
+	dict["maxSampleMaskWords"] = limits.maxSampleMaskWords;
+	dict["timestampComputeAndGraphics"] = (bool) limits.timestampComputeAndGraphics;
+	dict["timestampPeriod"] = limits.timestampPeriod;
+	dict["maxClipDistances"] = limits.maxClipDistances;
+	dict["maxCullDistances"] = limits.maxCullDistances;
+	dict["maxCombinedClipAndCullDistances"] = limits.maxCombinedClipAndCullDistances;
+	dict["discreteQueuePriorities"] = limits.discreteQueuePriorities;
+	dict["pointSizeRange"] = float32_a({2},{sizeof(float)},limits.pointSizeRange);
+	dict["lineWidthRange"] = float32_a({2},{sizeof(float)},limits.lineWidthRange);
+	dict["pointSizeGranularity"] = limits.pointSizeGranularity;
+	dict["lineWidthGranularity"] = limits.lineWidthGranularity;
+	dict["strictLines"] = (bool) limits.strictLines;
+	dict["standardSampleLocations"] = (bool) limits.standardSampleLocations;
+	dict["optimalBufferCopyOffsetAlignment"] = (uint64_t) limits.optimalBufferCopyOffsetAlignment;
+	dict["optimalBufferCopyRowPitchAlignment"] = 
+			(uint64_t) limits.optimalBufferCopyRowPitchAlignment;
+	dict["nonCoherentAtomSize"] = (uint64_t) limits.nonCoherentAtomSize;
+
+	return dict;
 }
 
 std::string LogicalDevicePy::getPhysicalDeviceName()
@@ -218,6 +342,7 @@ void init_vkTools(py::module &m)
 			.def("getHowmanyComputeFamilies",&PhysicalDeviceInfoPy::getHowmanyComputeFamilies)
 			.def("hasSwapChainSupport",&PhysicalDeviceInfoPy::hasSwapChainSupport)
 			.def("getDeviceName",&PhysicalDeviceInfoPy::getDeviceName)
+			.def("getPhysicalDeviceLimits",&PhysicalDeviceInfoPy::getPhysicalDeviceLimits)
 			.def("printDeviceInfo",&PhysicalDeviceInfoPy::printDeviceInfo);
 
 	// Vulkan base
