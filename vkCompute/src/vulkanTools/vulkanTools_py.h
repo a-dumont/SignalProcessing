@@ -39,6 +39,7 @@ class PhysicalDeviceInfoPy: public vkTools::PhysicalDeviceInfo
 	
 	py::list getQueueFamiliesInfoPy();
 	std::string getDeviceName();
+	py::dict getPhysicalDeviceProperties();
 	py::dict getPhysicalDeviceLimits();
 
 	private:

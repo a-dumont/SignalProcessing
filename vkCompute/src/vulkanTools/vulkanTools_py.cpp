@@ -176,6 +176,27 @@ py::dict PhysicalDeviceInfoPy::getPhysicalDeviceLimits()
 	return dict;
 }
 
+py::dict PhysicalDeviceInfoPy::getPhysicalDeviceProperties()
+{
+	py::dict dict;
+	VkPhysicalDeviceProperties prop = getProperties();
+
+	dict["apiVersion"] = py::dict(
+					py::arg("Variant") = VK_API_VERSION_VARIANT(prop.apiVersion),
+					py::arg("Major") = VK_API_VERSION_MAJOR(prop.apiVersion),
+					py::arg("Minor") = VK_API_VERSION_MINOR(prop.apiVersion),
+					py::arg("Patch") = VK_API_VERSION_PATCH(prop.apiVersion));
+	dict["driverVersion"] = prop.driverVersion;
+	dict["vendorId"] = prop.vendorID;
+	dict["deviceId"] = prop.deviceID;
+	dict["deviceType"] = string_VkPhysicalDeviceType(prop.deviceType);
+	dict["deviceName"] = std::string(prop.deviceName);
+	dict["pipelineCacheUUID"] = uint8_a({VK_UUID_SIZE},{sizeof(uint8_t)},prop.pipelineCacheUUID);
+	dict["limits"] = getPhysicalDeviceLimits();
+
+	return dict;
+}
+
 std::string LogicalDevicePy::getPhysicalDeviceName()
 {
 	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
@@ -343,6 +364,7 @@ void init_vkTools(py::module &m)
 			.def("hasSwapChainSupport",&PhysicalDeviceInfoPy::hasSwapChainSupport)
 			.def("getDeviceName",&PhysicalDeviceInfoPy::getDeviceName)
 			.def("getPhysicalDeviceLimits",&PhysicalDeviceInfoPy::getPhysicalDeviceLimits)
+			.def("getPhysicalDeviceProperties",&PhysicalDeviceInfoPy::getPhysicalDeviceProperties)
 			.def("printDeviceInfo",&PhysicalDeviceInfoPy::printDeviceInfo);
 
 	// Vulkan base
