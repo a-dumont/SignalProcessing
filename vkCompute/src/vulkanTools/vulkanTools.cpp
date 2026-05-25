@@ -557,8 +557,6 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
 	{
 		throw std::runtime_error("failed to create command pool!");
 	}
-
-
 }
 
 LogicalDevice::~LogicalDevice()

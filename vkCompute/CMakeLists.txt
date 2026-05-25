@@ -23,9 +23,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 
 # Sources
 file(GLOB SRC_FILES_vulkanTools "src/vulkanTools/*.cpp")
+file(GLOB SRC_FILES_vulkanComputer "src/vkComputer/*.cpp")
 
 # Target library
-add_library(vktools ${SRC_FILES_vulkanTools})
+add_library(vktools ${SRC_FILES_vulkanTools} ${SRC_FILES_vulkanComputer})
 
 target_link_libraries(vktools -lfftw3_omp -lfftw3 -lfftw3f -lfftw3f_omp -lm)
 target_link_libraries(vktools -fopenmp -fopenmp-simd)

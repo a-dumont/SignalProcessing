@@ -39,6 +39,7 @@ Computer::~Computer()
 	destroySyncObjects();
 	if(descriptorSetLayoutInit == true)
 	{
+		std::cout<<"Destructor called"<<std::endl;
 		vkDestroyDescriptorPool(logicalDevice->getLogicalDevice(), inOutDescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(),descriptorSetLayout, nullptr);
 		descriptorSetLayoutInit = false;
@@ -325,7 +326,7 @@ void Computer::createDescriptorSetLayout(uint32_t N)
 	
 	for(uint32_t i=0;i<N;i++)
 	{
-    	bindings[i].binding = 0;
+    	bindings[i].binding = i;
     	bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     	bindings[i].descriptorCount = 1;
 		bindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;

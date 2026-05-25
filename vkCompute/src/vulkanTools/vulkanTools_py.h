@@ -60,6 +60,8 @@ class LogicalDevicePy: public vkTools::LogicalDevice
 	public:
 	using vkTools::LogicalDevice::LogicalDevice;
 	~LogicalDevicePy();
+	LogicalDevicePy& operator=(LogicalDevicePy&& existingInstance) noexcept;
+
 	std::string getPhysicalDeviceName();
 	void createComputePipeline(const char* shaderFile);
 	void destroyComputePipeline(uint32_t pipelineIndex);

@@ -17,10 +17,11 @@ try:
             break
     if len(_vulkanBackend.getLogicalDevices())==0:
         _vulkanBackend.createLogicalDevice(0,2|4)
-    for i in range(2,11):
+    for i in range(6,8):
         _vulkanBackend.createComputer(1<<i,0)
 
     del libvktools
+    del physicalDevices
     del i
 except AssertionError:
     print("No Vulkan device found.")
@@ -31,4 +32,3 @@ except ModuleNotFoundError:
 
 del s
 del os
-del physicalDevices

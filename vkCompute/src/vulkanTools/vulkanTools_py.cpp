@@ -1,5 +1,7 @@
 #include "vulkanTools_py.h"
 #include "vulkanTools.h"
+#include <cstring>
+#include <memory>
 #include <stdexcept>
 
 void PhysicalDeviceInfoPy::initPy()
@@ -209,6 +211,25 @@ LogicalDevicePy::~LogicalDevicePy()
 	if(pipelinesInit){free(pipelines);}
 }
 
+LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) noexcept
+{
+	if(this != &existingInstance)
+	{
+		// py members
+		std::swap(pipelines,existingInstance.pipelines);
+		std::swap(howmanyPipelines,existingInstance.howmanyPipelines);
+		std::swap(pipelinesInit,existingInstance.pipelinesInit);
+
+		// base members
+		std::swap(
+			static_cast<vkTools::LogicalDevice&>(*this),
+            static_cast<vkTools::LogicalDevice&>(existingInstance)
+        );
+	}
+	return *this;
+}
+
+
 void LogicalDevicePy::createComputePipeline(const char* shaderFile)
 {
 	if(pipelinesInit == false)
@@ -222,7 +243,7 @@ void LogicalDevicePy::createComputePipeline(const char* shaderFile)
 		pipelines = (ComputePipelinePy*) 
 				realloc((void*)pipelines,(howmanyPipelines+1)*sizeof(ComputePipelinePy));
 	}
-	pipelines[howmanyPipelines] = ComputePipelinePy(this,shaderFile);
+	new (&pipelines[howmanyPipelines]) ComputePipelinePy(this,shaderFile);
 	howmanyPipelines += 1;
 }
 
@@ -231,6 +252,7 @@ void LogicalDevicePy::destroyComputePipeline(uint32_t pipelineIndex)
 	if(howmanyPipelines == 0){}
 	else
 	{
+		pipelines[pipelineIndex].~ComputePipelinePy();
 		for(uint32_t i=pipelineIndex;i<howmanyPipelines-1;i++)
 		{
 			pipelines[i] = pipelines[i+1];
@@ -256,10 +278,12 @@ VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : Vulkan
 VulkanBasePy::~VulkanBasePy()
 {
 	if(isInitPy){free(physicalDevicesInfoPy);}
-	for(uint32_t i=0;i<howmanyLogicalDevices;i++){destroyLogicalDevice(howmanyLogicalDevices-i-1);}
-	if(logicalDevicesInit){free(logicalDevices);}
-	for(uint32_t i=0;i<howmanyComputers;i++){destroyComputer(howmanyComputers-i-1);}
+	
+	while(howmanyComputers>0){destroyComputer(howmanyComputers-1);}
 	if(computersInit){free(computers);}
+	
+	while(howmanyLogicalDevices>0){destroyLogicalDevice(howmanyLogicalDevices-1);}
+	if(logicalDevicesInit){free(logicalDevices);}
 }
 
 py::list VulkanBasePy::getRequiredLayersPy()
@@ -320,7 +344,7 @@ void VulkanBasePy::createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags)
 		logicalDevices = (LogicalDevicePy*) 
 				realloc((void*)logicalDevices,(howmanyLogicalDevices+1)*sizeof(LogicalDevicePy));
 	}
-	logicalDevices[howmanyLogicalDevices] = LogicalDevicePy(this,pDevIndex,usageFlags);
+	new (&logicalDevices[howmanyLogicalDevices]) LogicalDevicePy(this,pDevIndex, usageFlags);
 	howmanyLogicalDevices += 1;
 }
 
@@ -329,9 +353,10 @@ void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
 	if(howmanyLogicalDevices == 0){}
 	else
 	{
+		logicalDevices[devIndex].~LogicalDevicePy();
 		for(uint32_t i=devIndex;i<howmanyLogicalDevices-1;i++)
 		{
-			logicalDevices[i] = logicalDevices[i+1];
+			logicalDevices[i] = std::move(logicalDevices[i+1]);
 		}
 		logicalDevices = (LogicalDevicePy*) 
 				realloc((void*) logicalDevices,(howmanyLogicalDevices-1)*sizeof(LogicalDevicePy));
@@ -353,7 +378,8 @@ void VulkanBasePy::createComputer(uint32_t size, uint32_t logicalDevIdx)
 		computers = (vkComputer::Computer*) 
 				realloc((void*)computers,(howmanyComputers+1)*sizeof(vkComputer::Computer));
 	}
-	computers[howmanyComputers] = vkComputer::Computer(this,&logicalDevices[logicalDevIdx],size);
+	new (&computers[howmanyComputers]) 
+			vkComputer::Computer(this,&logicalDevices[logicalDevIdx],size);
 	howmanyComputers += 1;
 }
 
@@ -362,6 +388,7 @@ void VulkanBasePy::destroyComputer(uint32_t index)
 	if(howmanyComputers == 0){}
 	else
 	{
+		computers[index].~Computer();
 		for(uint32_t i=index;i<howmanyComputers-1;i++)
 		{
 			computers[i] = computers[i+1];
@@ -404,7 +431,7 @@ void init_vkTools(py::module &m)
 			.def("printDeviceInfo",&PhysicalDeviceInfoPy::printDeviceInfo);
 
 	// Vulkan base
-	py::class_<VulkanBasePy>(m,"VulkanBase")
+	py::class_<VulkanBasePy,std::unique_ptr<VulkanBasePy>>(m,"VulkanBase")
 		.def(py::init([](py::list str_list) {
         // Convert Python list -> vector of strings -> const char**
 		//std::string* strings = (std::string*) malloc(n*sizeof(std::string));
@@ -421,9 +448,10 @@ void init_vkTools(py::module &m)
         return std::make_unique<VulkanBasePy>(n,ptrs);}))	
 			.def("createLogicalDevice",&VulkanBasePy::createLogicalDevice)
 			.def("destroyLogicalDevices",&VulkanBasePy::destroyLogicalDevice)
-			.def("createComputer",&VulkanBasePy::createLogicalDevice)
-			.def("destroyComputer",&VulkanBasePy::destroyLogicalDevice)
-			.def("getLogicalDevices",&VulkanBasePy::getLogicalDevices)
+			.def("createComputer",&VulkanBasePy::createComputer)
+			.def("destroyComputer",&VulkanBasePy::destroyComputer)
+			.def("getLogicalDevices",&VulkanBasePy::getLogicalDevices,
+							py::return_value_policy::reference)
 			.def("getPhysicalDevicesCount",&VulkanBasePy::getPhysicalDevicesCount)
 			.def("getPhysicalDeviceInfo",&VulkanBasePy::getPhysicalDevicesInfoPy)
 			.def("getRequiredLayersCount",&VulkanBasePy::getRequiredLayersCount)
