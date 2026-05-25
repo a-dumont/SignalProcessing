@@ -355,12 +355,12 @@ void VulkanBasePy::createComputer(uint32_t size, uint32_t logicalDevIdx)
 	howmanyComputers += 1;
 }
 
-void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
+void VulkanBasePy::destroyComputers(uint32_t index)
 {
 	if(howmanyComputers == 0){}
 	else
 	{
-		for(uint32_t i=devIndex;i<howmanyComputers-1;i++)
+		for(uint32_t i=index;i<howmanyComputers-1;i++)
 		{
 			computers[i] = computers[i+1];
 		}
