@@ -200,6 +200,19 @@ py::dict PhysicalDeviceInfoPy::getPhysicalDeviceProperties()
 	return dict;
 }
 
+ComputePipelinePy& ComputePipelinePy::operator=(ComputePipelinePy&& existingInstance) noexcept
+{
+	if(this != &existingInstance)
+	{
+		// base members
+		std::swap(
+			static_cast<vkTools::ComputePipeline&>(*this),
+            static_cast<vkTools::ComputePipeline&>(existingInstance)
+        );
+	}
+	return *this;
+}
+
 std::string LogicalDevicePy::getPhysicalDeviceName()
 {
 	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
@@ -229,7 +242,6 @@ LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) 
 	return *this;
 }
 
-
 void LogicalDevicePy::createComputePipeline(const char* shaderFile)
 {
 	if(pipelinesInit == false)
@@ -255,7 +267,7 @@ void LogicalDevicePy::destroyComputePipeline(uint32_t pipelineIndex)
 		pipelines[pipelineIndex].~ComputePipelinePy();
 		for(uint32_t i=pipelineIndex;i<howmanyPipelines-1;i++)
 		{
-			pipelines[i] = pipelines[i+1];
+			pipelines[i] = std::move(pipelines[i+1]);
 		}
 		pipelines = (ComputePipelinePy*) 
 				realloc((void*) pipelines,(howmanyPipelines-1)*sizeof(ComputePipelinePy));
@@ -464,6 +476,7 @@ void init_vkTools(py::module &m)
 			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
 			.def("createComputePipeline",&LogicalDevicePy::createComputePipeline)
+			.def("deleteComputePipeline",&LogicalDevicePy::destroyComputePipeline)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
 }
 
