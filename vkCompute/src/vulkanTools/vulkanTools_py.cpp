@@ -476,7 +476,7 @@ void init_vkTools(py::module &m)
 			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
 			.def("createComputePipeline",&LogicalDevicePy::createComputePipeline)
-			.def("deleteComputePipeline",&LogicalDevicePy::destroyComputePipeline)
+			.def("destroyComputePipeline",&LogicalDevicePy::destroyComputePipeline)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
 }
 
