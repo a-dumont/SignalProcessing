@@ -80,7 +80,7 @@ class VulkanBasePy: public vkTools::VulkanBase
 	void destroyLogicalDevice(uint32_t devIndex);
 
 	void createComputer(uint32_t invocationSize, uint32_t logicalDevIdx);
-	void destroyComputers(uint32_t devIndex);
+	void destroyComputer(uint32_t devIndex);
 
 	py::list getRequiredLayersPy();
 	py::list getRequiredExtensionsPy();

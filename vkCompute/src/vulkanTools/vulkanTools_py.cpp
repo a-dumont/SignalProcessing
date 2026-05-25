@@ -258,6 +258,8 @@ VulkanBasePy::~VulkanBasePy()
 	if(isInitPy){free(physicalDevicesInfoPy);}
 	for(uint32_t i=0;i<howmanyLogicalDevices;i++){destroyLogicalDevice(howmanyLogicalDevices-i-1);}
 	if(logicalDevicesInit){free(logicalDevices);}
+	for(uint32_t i=0;i<howmanyComputers;i++){destroyComputer(howmanyComputers-i-1);}
+	if(computersInit){free(computers);}
 }
 
 py::list VulkanBasePy::getRequiredLayersPy()
@@ -355,7 +357,7 @@ void VulkanBasePy::createComputer(uint32_t size, uint32_t logicalDevIdx)
 	howmanyComputers += 1;
 }
 
-void VulkanBasePy::destroyComputers(uint32_t index)
+void VulkanBasePy::destroyComputer(uint32_t index)
 {
 	if(howmanyComputers == 0){}
 	else
@@ -419,6 +421,8 @@ void init_vkTools(py::module &m)
         return std::make_unique<VulkanBasePy>(n,ptrs);}))	
 			.def("createLogicalDevice",&VulkanBasePy::createLogicalDevice)
 			.def("destroyLogicalDevices",&VulkanBasePy::destroyLogicalDevice)
+			.def("createComputer",&VulkanBasePy::createLogicalDevice)
+			.def("destroyComputer",&VulkanBasePy::destroyLogicalDevice)
 			.def("getLogicalDevices",&VulkanBasePy::getLogicalDevices)
 			.def("getPhysicalDevicesCount",&VulkanBasePy::getPhysicalDevicesCount)
 			.def("getPhysicalDeviceInfo",&VulkanBasePy::getPhysicalDevicesInfoPy)

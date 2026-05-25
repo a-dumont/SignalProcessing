@@ -17,6 +17,8 @@ try:
             break
     if len(_vulkanBackend.getLogicalDevices())==0:
         _vulkanBackend.createLogicalDevice(0,2|4)
+    for i in range(2,11):
+        _vulkanBackend.createComputer(1<<i,0)
 
     del libvktools
     del i
