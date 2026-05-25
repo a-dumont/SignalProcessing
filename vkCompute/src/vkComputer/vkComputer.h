@@ -2,27 +2,38 @@
 
 #include "../vulkanTools/vulkanTools.h"
 
+namespace vkComputer
+{
 class Computer
 {
 	public:
-		Computer(vkTools::ComputePipeline* pipelineIn, uint32_t invocationSizeIn);
+		//Computer(vkTools::ComputePipeline* pipelineIn, uint32_t invocationSizeIn);
+		Computer(vkTools::VulkanBase* vkbaseIn, 
+						vkTools::LogicalDevice* logicalDeviceIn,
+						uint32_t invocationSizeIn);
 		~Computer();
-		//void compute(uint32_t dispatchNumber);
+		void recordCommandBuffer(vkTools::ComputePipeline* pipeline, 
+						VkCommandBuffer buffer, uint32_t dataLength);
+		
 		void compute();
 		void createDescriptorSetLayout(uint32_t N);
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, 
 						VkMemoryPropertyFlags properties,VkBuffer& buffer, 
 						VkDeviceMemory& bufferMemory);
+		
 		void fillBaseWriteDescriptorSet(uint32_t n, VkWriteDescriptorSet* writeDescriptorSet);
-		void copyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size, uint32_t dstOffset, uint32_t srcOffset, VkQueue queue);
-		void recordCommandBuffer(VkCommandBuffer buffer, uint32_t dispatchNumber);
+		void copyBuffer(VkBuffer src, 
+						VkBuffer dst, 
+						VkDeviceSize size, 
+						uint32_t dstOffset, 
+						uint32_t srcOffset, VkQueue queue);
+		
 		VkCommandBuffer getCommandBuffer();
 
 	private:
 		// Vulkan backend
 		vkTools::VulkanBase* vkBase;
 		vkTools::LogicalDevice* logicalDevice;
-		vkTools::ComputePipeline* pipeline;
 
 		// Workgroup limits
 		uint32_t workGroupMaxCount[3];
@@ -63,3 +74,4 @@ class Computer
 
 		void createInOutBuffers();
 };
+}

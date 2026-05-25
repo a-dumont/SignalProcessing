@@ -1,5 +1,6 @@
 #include "vulkanTools_py.h"
 #include "vulkanTools.h"
+#include <stdexcept>
 
 void PhysicalDeviceInfoPy::initPy()
 {
@@ -336,6 +337,39 @@ void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
 	}
 }
 
+void VulkanBasePy::createComputer(uint32_t size, uint32_t logicalDevIdx)
+{
+	if(howmanyLogicalDevices==0){throw std::runtime_error("Must have logical devices");}
+	if(computersInit == false)
+	{
+		computers = (vkComputer::Computer*) 
+				malloc((howmanyComputers+1)*sizeof(vkComputer::Computer));
+		computersInit = true;
+	}
+	else
+	{
+		computers = (vkComputer::Computer*) 
+				realloc((void*)computers,(howmanyComputers+1)*sizeof(vkComputer::Computer));
+	}
+	computers[howmanyComputers] = vkComputer::Computer(this,&logicalDevices[logicalDevIdx],size);
+	howmanyComputers += 1;
+}
+
+void VulkanBasePy::destroyLogicalDevice(uint32_t devIndex)
+{
+	if(howmanyComputers == 0){}
+	else
+	{
+		for(uint32_t i=devIndex;i<howmanyComputers-1;i++)
+		{
+			computers[i] = computers[i+1];
+		}
+		computers = (vkComputer::Computer*) 
+				realloc((void*) computers,(howmanyComputers-1)*sizeof(vkComputer::Computer));
+		howmanyComputers -= 1;
+	}
+}
+
 void init_vkTools(py::module &m)
 {
 	// Queue family
@@ -397,6 +431,7 @@ void init_vkTools(py::module &m)
 	py::class_<LogicalDevicePy>(m,"LogicalDevice")
 			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
+			.def("createComputePipeline",&LogicalDevicePy::createComputePipeline)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
 }
 

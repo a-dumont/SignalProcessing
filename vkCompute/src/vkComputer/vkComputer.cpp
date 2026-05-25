@@ -1,13 +1,19 @@
 #include "vkComputer.h"
 #include <stdexcept>
 
-Computer::Computer(vkTools::ComputePipeline* pipelineIn, uint32_t invocationSizeIn)
+using namespace vkComputer;
+
+Computer::Computer(
+				vkTools::VulkanBase* vkBaseIn, 
+				vkTools::LogicalDevice* logicalDeviceIn, 
+				uint32_t invocationSizeIn)
 {
-	pipeline = pipelineIn;
-	logicalDevice = pipeline->getLogicalDevice();
-	vkBase = logicalDevice->getVulkanBase();
+	// Set devices	
+	vkBase = vkBaseIn;
+	logicalDevice = logicalDeviceIn;
 	VkPhysicalDeviceLimits limits = logicalDevice->getPhysicalDeviceInfo()->getProperties().limits;
 
+	// Set limits
 	workGroupMaxCount[0] = limits.maxComputeWorkGroupCount[0];
 	workGroupMaxCount[1] = limits.maxComputeWorkGroupCount[1];
 	workGroupMaxCount[2] = limits.maxComputeWorkGroupCount[2];
@@ -20,8 +26,10 @@ Computer::Computer(vkTools::ComputePipeline* pipelineIn, uint32_t invocationSize
 	invocationSize = invocationSizeIn;
 
 	if(invocationSize > maxInvocationSize)
-	{throw std::runtime_error("Invocation size too large!");}
+	{throw std::runtime_error("Invocation size too large!");}	
 
+	// Create commande buffer and sync objects
+	createDescriptorSetLayout(3);
 	createCommandBuffer();
 	createSyncObjects();
 }
@@ -29,8 +37,28 @@ Computer::Computer(vkTools::ComputePipeline* pipelineIn, uint32_t invocationSize
 Computer::~Computer()
 {
 	destroySyncObjects();
-	vkDestroyDescriptorPool(logicalDevice->getLogicalDevice(), inOutDescriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(), descriptorSetLayout, nullptr);
+	if(descriptorSetLayoutInit == true)
+	{
+		vkDestroyDescriptorPool(logicalDevice->getLogicalDevice(), inOutDescriptorPool, nullptr);
+		vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(),descriptorSetLayout, nullptr);
+		descriptorSetLayoutInit = false;
+	}
+}
+
+void Computer::createCommandBuffer()
+{
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = logicalDevice->getCommandPool();
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = 1;
+
+	VkResult r;
+	r = vkAllocateCommandBuffers(logicalDevice->getLogicalDevice(), &allocInfo, &commandBuffer);
+	if (r != VK_SUCCESS)
+	{
+		throw std::runtime_error("failed to allocate command buffers!");
+	}
 }
 
 void Computer::createSyncObjects()
@@ -62,7 +90,9 @@ void Computer::destroySyncObjects()
 //           |____/|_|  \__,_| \_/\_/   |_|  |_|  \__,_|_| |_| |_|\___|         //
 //////////////////////////////////////////////////////////////////////////////////
 
-void Computer::recordCommandBuffer(VkCommandBuffer buffer, uint32_t dataLength)
+//void Computer::recordCommandBuffer(VkCommandBuffer buffer, uint32_t dataLength)
+void Computer::recordCommandBuffer(vkTools::ComputePipeline* pipeline, 
+				VkCommandBuffer buffer, uint32_t dataLength)
 {
 	
 	VkCommandBufferBeginInfo beginInfo{};
@@ -100,14 +130,10 @@ void Computer::recordCommandBuffer(VkCommandBuffer buffer, uint32_t dataLength)
 
 VkCommandBuffer Computer::getCommandBuffer(){return commandBuffer;}
 
-//void Computer::compute(uint32_t dataLength)
 void Computer::compute()
 {
 	vkWaitForFences(logicalDevice->getLogicalDevice(), 1, &computeFence, VK_TRUE, UINT64_MAX);
 	vkResetFences(logicalDevice->getLogicalDevice(), 1, &computeFence);
-
-	//vkResetCommandBuffer(commandBuffer, 0);
-	//recordCommandBuffer(commandBuffer, dataLength);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -239,24 +265,6 @@ void Computer::copyBuffer
 					logicalDevice->getCommandPool(), 1, &commandBuffer);
 }
 
-void Computer::createCommandBuffer()
-{
-	//commandBuffers = (VkCommandBuffer*) malloc(MAX_FRAMES_IN_FLIGHT*sizeof(VkCommandBuffer));
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = logicalDevice->getCommandPool();
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = 1;
-
-	VkResult r;
-	r = vkAllocateCommandBuffers(logicalDevice->getLogicalDevice(), &allocInfo, &commandBuffer);
-	if (r != VK_SUCCESS)
-	{
-		throw std::runtime_error("failed to allocate command buffers!");
-	}
-}
-
-
 VkCommandBuffer Computer::beginCommand()
 {
 	VkCommandBufferAllocateInfo allocInfo{};
@@ -311,31 +319,18 @@ void Computer::fillBaseWriteDescriptorSet(uint32_t n, VkWriteDescriptorSet* writ
 }
 
 void Computer::createDescriptorSetLayout(uint32_t N)
-{
-	
+{	
 	VkDescriptorSetLayoutBinding* bindings;
 	bindings = (VkDescriptorSetLayoutBinding*) malloc(N*sizeof(VkDescriptorSetLayoutBinding));
 	
-	// Input 1
-    bindings[0].binding = 0;
-    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    bindings[0].descriptorCount = 1;
-	bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-	bindings[0].pImmutableSamplers = nullptr;
-
-	// Input 2
-    bindings[1].binding = 1;
-    bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    bindings[1].descriptorCount = 1;
-	bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-	bindings[1].pImmutableSamplers = nullptr;
-	
-	// Output
-    bindings[2].binding = 2;
-    bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    bindings[2].descriptorCount = 1;
-	bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-	bindings[2].pImmutableSamplers = nullptr;
+	for(uint32_t i=0;i<N;i++)
+	{
+    	bindings[i].binding = 0;
+    	bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    	bindings[i].descriptorCount = 1;
+		bindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+		bindings[i].pImmutableSamplers = nullptr;
+	}	
 
 	if(descriptorSetLayoutInit == true)
 	{
@@ -376,9 +371,10 @@ void Computer::createDescriptorSetLayout(uint32_t N)
 		throw std::runtime_error("failed to create descriptor pool!");
 	}
 	free(bindings);
-	pipeline->setLayoutDescriptors(1,&descriptorSetLayout);
-	pipeline->setPushConstants(VK_SHADER_STAGE_COMPUTE_BIT,sizeof(uint32_t),0);
-	pipeline->recreatePipeline();
+	
+	//pipeline->setLayoutDescriptors(1,&descriptorSetLayout);
+	//pipeline->setPushConstants(VK_SHADER_STAGE_COMPUTE_BIT,sizeof(uint32_t),0);
+	//pipeline->recreatePipeline();
 
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

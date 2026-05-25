@@ -1,5 +1,5 @@
 #pragma once
-#include "vulkanTools.h"
+#include "../vkComputer/vkComputer.h"
 #include <pybind11/pybind11.h>
 #include<pybind11/numpy.h>
 
@@ -79,6 +79,9 @@ class VulkanBasePy: public vkTools::VulkanBase
 	void createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags);
 	void destroyLogicalDevice(uint32_t devIndex);
 
+	void createComputer(uint32_t invocationSize, uint32_t logicalDevIdx);
+	void destroyComputers(uint32_t devIndex);
+
 	py::list getRequiredLayersPy();
 	py::list getRequiredExtensionsPy();
 	py::list getPhysicalDevicesInfoPy();
@@ -88,7 +91,11 @@ class VulkanBasePy: public vkTools::VulkanBase
 	bool isInitPy = false;
 	PhysicalDeviceInfoPy* physicalDevicesInfoPy;
 	
-	LogicalDevicePy* logicalDevices;
+	LogicalDevicePy* logicalDevices;	
 	uint32_t howmanyLogicalDevices = 0;
 	bool logicalDevicesInit = false;
+
+	vkComputer::Computer* computers;
+	uint32_t howmanyComputers = 0;
+	bool computersInit = false;
 };
