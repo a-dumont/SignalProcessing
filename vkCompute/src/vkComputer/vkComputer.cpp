@@ -39,7 +39,6 @@ Computer::~Computer()
 	destroySyncObjects();
 	if(descriptorSetLayoutInit == true)
 	{
-		std::cout<<"Destructor called"<<std::endl;
 		vkDestroyDescriptorPool(logicalDevice->getLogicalDevice(), inOutDescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(),descriptorSetLayout, nullptr);
 		descriptorSetLayoutInit = false;
