@@ -218,21 +218,10 @@ std::string LogicalDevicePy::getPhysicalDeviceName()
 	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
 }
 
-LogicalDevicePy::~LogicalDevicePy()
-{
-	for(uint32_t i=0;i<howmanyPipelines;i++){destroyComputePipeline(howmanyPipelines-i-1);}
-	if(pipelinesInit){free(pipelines);}
-}
-
 LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) noexcept
 {
 	if(this != &existingInstance)
 	{
-		// py members
-		std::swap(pipelines,existingInstance.pipelines);
-		std::swap(howmanyPipelines,existingInstance.howmanyPipelines);
-		std::swap(pipelinesInit,existingInstance.pipelinesInit);
-
 		// base members
 		std::swap(
 			static_cast<vkTools::LogicalDevice&>(*this),
@@ -242,37 +231,9 @@ LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) 
 	return *this;
 }
 
-void LogicalDevicePy::createComputePipeline(const char* shaderFile)
+std::unique_ptr<ComputePipelinePy> LogicalDevicePy::createComputePipeline(const char* shaderFile)
 {
-	if(pipelinesInit == false)
-	{
-		pipelines = (ComputePipelinePy*) 
-				malloc((howmanyPipelines+1)*sizeof(ComputePipelinePy));
-		pipelinesInit = true;
-	}
-	else
-	{
-		pipelines = (ComputePipelinePy*) 
-				realloc((void*)pipelines,(howmanyPipelines+1)*sizeof(ComputePipelinePy));
-	}
-	new (&pipelines[howmanyPipelines]) ComputePipelinePy(this,shaderFile);
-	howmanyPipelines += 1;
-}
-
-void LogicalDevicePy::destroyComputePipeline(uint32_t pipelineIndex)
-{
-	if(howmanyPipelines == 0){}
-	else
-	{
-		pipelines[pipelineIndex].~ComputePipelinePy();
-		for(uint32_t i=pipelineIndex;i<howmanyPipelines-1;i++)
-		{
-			pipelines[i] = std::move(pipelines[i+1]);
-		}
-		pipelines = (ComputePipelinePy*) 
-				realloc((void*) pipelines,(howmanyPipelines-1)*sizeof(ComputePipelinePy));
-		howmanyPipelines -= 1;
-	}
+	return std::make_unique<ComputePipelinePy>(this,shaderFile);
 }
 
 VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : VulkanBasePy::VulkanBase{nReqLayers,reqLayers}
@@ -471,12 +432,14 @@ void init_vkTools(py::module &m)
 			.def("getRequiredExtensionsCount",&VulkanBasePy::getRequiredExtensionsCount)
 			.def("getRequiredExtensions",&VulkanBasePy::getRequiredExtensionsPy);
 
+	// Compute pipeline
+	py::class_<ComputePipelinePy>(m,"ComputePipeline");
+
 	// Logical Device
 	py::class_<LogicalDevicePy>(m,"LogicalDevice")
 			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
 			.def("createComputePipeline",&LogicalDevicePy::createComputePipeline)
-			.def("destroyComputePipeline",&LogicalDevicePy::destroyComputePipeline)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
 }
 

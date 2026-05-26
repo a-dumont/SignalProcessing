@@ -1,5 +1,6 @@
 #pragma once
 #include "../vkComputer/vkComputer.h"
+#include <memory>
 #include <pybind11/pybind11.h>
 #include<pybind11/numpy.h>
 
@@ -60,17 +61,12 @@ class LogicalDevicePy: public vkTools::LogicalDevice
 {
 	public:
 	using vkTools::LogicalDevice::LogicalDevice;
-	~LogicalDevicePy();
 	LogicalDevicePy& operator=(LogicalDevicePy&& existingInstance) noexcept;
 
 	std::string getPhysicalDeviceName();
-	void createComputePipeline(const char* shaderFile);
-	void destroyComputePipeline(uint32_t pipelineIndex);
+	std::unique_ptr<ComputePipelinePy> createComputePipeline(const char* shaderFile);
 
 	private:
-	ComputePipelinePy* pipelines;
-	uint32_t howmanyPipelines=0;
-	bool pipelinesInit = false;
 };
 
 class VulkanBasePy: public vkTools::VulkanBase
