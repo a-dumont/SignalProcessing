@@ -17,6 +17,8 @@ class Computer
 		
 		void compute();
 		void createDescriptorSetLayout(uint32_t N);
+		VkDescriptorSetLayout* getDescriptorSetLayout();
+
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, 
 						VkMemoryPropertyFlags properties,VkBuffer& buffer, 
 						VkDeviceMemory& bufferMemory);
@@ -29,6 +31,7 @@ class Computer
 						uint32_t srcOffset, VkQueue queue);
 		
 		VkCommandBuffer getCommandBuffer();
+		uint32_t getInvocationSize();
 
 	private:
 		// Vulkan backend

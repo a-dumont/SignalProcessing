@@ -85,6 +85,7 @@ class VulkanBasePy: public vkTools::VulkanBase
 	py::list getRequiredExtensionsPy();
 	py::list getPhysicalDevicesInfoPy();
 	py::list getLogicalDevices();
+	py::list getComputers();
 
 	private:
 	bool isInitPy = false;

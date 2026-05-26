@@ -389,3 +389,4 @@ void Computer::createDescriptorSetLayout(uint32_t N)
 	}
 }
 
+VkDescriptorSetLayout* Computer::getDescriptorSetLayout(){return &descriptorSetLayout;}

@@ -25,7 +25,7 @@ if($ENV{ENABLE_VULKAN})
 		add_subdirectory(vkCompute)
 		#add_subdirectory(FFT_VULKAN)
 		#add_subdirectory(Correlations_VULKAN)
-		#add_subdirectory(Math_VULKAN)
+		add_subdirectory(vkMath)
 		#add_subdirectory(Histograms_VULKAN)
 endif($ENV{ENABLE_VULKAN})
 
@@ -63,9 +63,9 @@ if($ENV{ENABLE_VULKAN})
 		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_vulkan/obj/
 		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
 		#FILES_MATCHING PATTERN "libcorrelationscuda.*")
-		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math_vulkan/obj/
-		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
-		#FILES_MATCHING PATTERN "libmathcuda.*")
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkMath/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
+		FILES_MATCHING PATTERN "libvkmath.*")
 		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_vulkan/obj/
 		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
 		#FILES_MATCHING PATTERN "libhistogramscuda.*")

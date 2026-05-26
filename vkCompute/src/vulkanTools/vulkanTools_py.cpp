@@ -304,6 +304,16 @@ py::list VulkanBasePy::getLogicalDevices()
 	return out;
 }
 
+py::list VulkanBasePy::getComputers()
+{
+	py::list out;
+	for(uint32_t i=0;i<howmanyComputers;i++)
+	{
+		out.append(&computers[i]);
+	}
+	return out;
+}
+
 void VulkanBasePy::createLogicalDevice(uint32_t pDevIndex, uint32_t usageFlags)
 {
 	if(logicalDevicesInit == false)
@@ -425,6 +435,7 @@ void init_vkTools(py::module &m)
 			.def("destroyComputer",&VulkanBasePy::destroyComputer)
 			.def("getLogicalDevices",&VulkanBasePy::getLogicalDevices,
 							py::return_value_policy::reference)
+			.def("getComputers",&VulkanBasePy::getComputers,py::return_value_policy::reference)
 			.def("getPhysicalDevicesCount",&VulkanBasePy::getPhysicalDevicesCount)
 			.def("getPhysicalDeviceInfo",&VulkanBasePy::getPhysicalDevicesInfoPy)
 			.def("getRequiredLayersCount",&VulkanBasePy::getRequiredLayersCount)
@@ -441,6 +452,9 @@ void init_vkTools(py::module &m)
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
 			.def("createComputePipeline",&LogicalDevicePy::createComputePipeline)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
+
+	// Computer
+	py::class_<vkComputer::Computer>(m,"vulkanComputer");
 }
 
 PYBIND11_MODULE(libvktools, m)
