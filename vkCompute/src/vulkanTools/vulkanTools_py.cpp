@@ -231,7 +231,7 @@ LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) 
 	return *this;
 }
 
-std::unique_ptr<ComputePipelinePy> LogicalDevicePy::createComputePipeline(const char* shaderFile)
+std::unique_ptr<ComputePipelinePy> LogicalDevicePy::createComputePipeline(std::string shaderFile)
 {
 	return std::make_unique<ComputePipelinePy>(this,shaderFile);
 }
@@ -444,7 +444,8 @@ void init_vkTools(py::module &m)
 			.def("getRequiredExtensions",&VulkanBasePy::getRequiredExtensionsPy);
 
 	// Compute pipeline
-	py::class_<ComputePipelinePy>(m,"ComputePipeline");
+	py::class_<ComputePipelinePy>(m,"ComputePipeline")
+			.def("recreatePipeline",&ComputePipelinePy::recreatePipeline);
 
 	// Logical Device
 	py::class_<LogicalDevicePy>(m,"LogicalDevice")

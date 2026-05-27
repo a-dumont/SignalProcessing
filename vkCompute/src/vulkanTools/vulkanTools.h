@@ -204,7 +204,7 @@ class LogicalDevice
 class ComputePipeline
 {
 	public:
-		ComputePipeline(LogicalDevice* device, const char* sFile);
+		ComputePipeline(LogicalDevice* device, std::string sFile);
 		~ComputePipeline();
 		void createPipeline();
 		void recreatePipeline();
@@ -219,7 +219,7 @@ class ComputePipeline
 	private:
 		LogicalDevice* logicalDevice;
 		VulkanBase* vkBase;
-		const char* shaderFile;
+		std::string shaderFile;
 		void cleanup();
 
 		bool isCreated = false;

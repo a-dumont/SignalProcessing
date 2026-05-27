@@ -3,7 +3,7 @@
 void init_module(py::module &m)
 {
 	// sum
-	m.def("vkAdd", &vkAdd<uint32_t>, "computer"_a, "pipeline"_a, "in1"_a.noconvert(), "in2"_a.noconvert());	
+	m.def("vkAddBuilder", &vkAddBuilder<uint32_t>, "computer"_a, "pipeline"_a);	
 }
 
 PYBIND11_MODULE(libvkmath, m)

@@ -608,10 +608,11 @@ uint32_t LogicalDevice::getUsageFlags(){return usageBits;}
 //                     |_|                         |_|                        //
 ////////////////////////////////////////////////////////////////////////////////
 
-ComputePipeline::ComputePipeline(LogicalDevice* device, const char* sFile)
+ComputePipeline::ComputePipeline(LogicalDevice* device, std::string sFile)
 {
 	logicalDevice = device;
 	vkBase = logicalDevice->getVulkanBase();
+
 	shaderFile = sFile;
 
 	// Layout
@@ -647,7 +648,7 @@ void ComputePipeline::recreatePipeline()
 
 void ComputePipeline::createPipeline()
 {
-	std::tuple<char*, uint32_t> shaderBuffer = readShaderFile(shaderFile);
+	std::tuple<char*, uint32_t> shaderBuffer = readShaderFile(shaderFile.c_str());
 	VkShaderModule shaderModule = createShader(shaderBuffer);
 
 	VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
@@ -681,19 +682,20 @@ void ComputePipeline::createPipeline()
 }
 
 std::tuple<char*,uint32_t> ComputePipeline::readShaderFile(const char* fileName)
-{	
+{
     std::ifstream file(fileName, std::ios::ate | std::ios::binary);
 	size_t bufferSize = (size_t) file.tellg();
 	char* buffer = (char*) malloc(bufferSize*sizeof(char));
 	file.seekg(0);
 	file.read(buffer, bufferSize);
 	file.close();
+	std::cout<<buffer<<std::endl;
 	return std::make_tuple(buffer,bufferSize);
 }
 
 VkShaderModule ComputePipeline::createShader(std::tuple<char*,uint32_t> bufferInfo)
 {
-	char* buffer = std::get<0>(bufferInfo); 
+	char* buffer = std::get<0>(bufferInfo);
 	uint32_t bufferSize = std::get<1>(bufferInfo); 
 	VkShaderModuleCreateInfo sCreateInfo{};
 	sCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

@@ -64,7 +64,7 @@ class LogicalDevicePy: public vkTools::LogicalDevice
 	LogicalDevicePy& operator=(LogicalDevicePy&& existingInstance) noexcept;
 
 	std::string getPhysicalDeviceName();
-	std::unique_ptr<ComputePipelinePy> createComputePipeline(const char* shaderFile);
+	std::unique_ptr<ComputePipelinePy> createComputePipeline(std::string shaderFile);
 
 	private:
 };

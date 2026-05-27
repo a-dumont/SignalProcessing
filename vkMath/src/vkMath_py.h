@@ -19,6 +19,9 @@ typedef py::array_t<std::string,py::array::c_style> str_a;
 
 // vkAdd
 template<typename Datatype>
+py::cpp_function vkAddBuilder(vkComputer::Computer* computer, ComputePipelinePy* pipeline);
+
+template<typename Datatype>
 py::array_t<Datatype,py::array::c_style> vkAdd(vkComputer::Computer* computer, 
 				ComputePipelinePy* pipeline,
 				py::array_t<Datatype,py::array::c_style> in1, 

@@ -1,6 +1,14 @@
 #include "vkMath_py.h"
 
 template<typename Datatype>
+py::cpp_function vkAddBuilder(vkComputer::Computer* computer, ComputePipelinePy* pipeline)
+{
+	return [=](py::array_t<Datatype,py::array::c_style> in1, 
+					py::array_t<Datatype,py::array::c_style> in2)
+	{return vkAdd<Datatype>(computer,pipeline,in1,in2);};
+}
+
+template<typename Datatype>
 py::array_t<Datatype,py::array::c_style> 
 vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline, 
 		py::array_t<Datatype,py::array::c_style> in1, 
