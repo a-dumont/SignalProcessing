@@ -42,19 +42,21 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 
 	// Memory allocation
 	uint32_t dataSize = buf1.size;
-	uint32_t chunkSize = 1<<23; // Optimal on my machine I guess
+	uint32_t chunkSize = 1<<24; // Optimal on my machine I guess
 	uint32_t chunks = dataSize/chunkSize;
 	uint32_t remainingSize = dataSize-(chunks*chunkSize);
 	if(chunks==0){chunkSize = dataSize; chunks = 1; remainingSize = 0;}
 
-	Datatype* out = (Datatype*) malloc(dataSize*sizeof(Datatype));
-	
+	//Datatype* out = (Datatype*) malloc(dataSize*sizeof(Datatype));
+	py::array_t<Datatype,py::array::c_style> result(buf1.shape);
+	Datatype* out = (Datatype*) result.request().ptr;
+
 	VkBuffer gpuBuffer;
 	VkDeviceMemory gpuMemory;
 	Datatype* cpuMemory;
 
 	// Create gpuBuffer using gpuMemory
-	computer->createBuffer(3*sizeof(Datatype)*chunkSize,
+	computer->createBuffer(2*sizeof(Datatype)*chunkSize,
 					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |  
 					VK_BUFFER_USAGE_TRANSFER_SRC_BIT |	
 					VK_BUFFER_USAGE_TRANSFER_DST_BIT,	
@@ -64,12 +66,12 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 					gpuBuffer, gpuMemory);
 	
 	// CPU-GPU memory mapping
-	vkMapMemory(logicalDev, gpuMemory, 0, 3*sizeof(Datatype)*chunkSize, 0, (void**)&cpuMemory);
+	vkMapMemory(logicalDev, gpuMemory, 0, 2*sizeof(Datatype)*chunkSize, 0, (void**)&cpuMemory);
 
 	// Define buffer usage
-	VkDescriptorBufferInfo bufferInfoInput[3]; // Single buffer split into In1, In2, Out
-	VkWriteDescriptorSet descriptorWrite[3]; 
-	computer->fillBaseWriteDescriptorSet(3,descriptorWrite);
+	VkDescriptorBufferInfo bufferInfoInput[2]; // Single buffer split into In1, In2, Out
+	VkWriteDescriptorSet descriptorWrite[2]; 
+	computer->fillBaseWriteDescriptorSet(2,descriptorWrite);
 
 	bufferInfoInput[0].buffer = gpuBuffer;
 	bufferInfoInput[0].offset = 0;
@@ -81,13 +83,15 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 	bufferInfoInput[1].range = sizeof(Datatype)*chunkSize;
 	descriptorWrite[1].pBufferInfo = &bufferInfoInput[1];
 
+	/*
 	bufferInfoInput[2].buffer = gpuBuffer;
 	bufferInfoInput[2].offset = 2*sizeof(Datatype)*chunkSize;
 	bufferInfoInput[2].range = sizeof(Datatype)*chunkSize;
 	descriptorWrite[2].pBufferInfo = &bufferInfoInput[2];
+	*/
 
 	// Inform the gpu of the buffers
-	vkUpdateDescriptorSets(logicalDev, 3, descriptorWrite, 0, nullptr);
+	vkUpdateDescriptorSets(logicalDev, 2, descriptorWrite, 0, nullptr);
 
 	// Record command buffer	
 	computer->recordCommandBuffer(pipeline,computer->getCommandBuffer(),chunkSize);
@@ -102,16 +106,17 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 		// Compute chunk i-1 transfered previously
 		computer->compute();
 		
-		// Copy next chunk
-		std::memcpy(cpuMemory,ptr1+i*chunkSize,chunkSize*sizeof(Datatype));	
-		std::memcpy(cpuMemory+chunkSize,ptr2+i*chunkSize,chunkSize*sizeof(Datatype));	
-
 		// Copy buffer to working memory
-		std::memcpy(out+(i-1)*chunkSize,cpuMemory+2*chunkSize,chunkSize*sizeof(Datatype));
-
+		//std::memcpy(out+(i-1)*chunkSize,cpuMemory+2*chunkSize,chunkSize*sizeof(Datatype));
+		std::memcpy(out+(i-1)*chunkSize,cpuMemory,chunkSize*sizeof(Datatype));
+		
+		// Copy next chunk
+		std::memcpy(cpuMemory+chunkSize,ptr2+i*chunkSize,chunkSize*sizeof(Datatype));	
+		std::memcpy(cpuMemory,ptr1+i*chunkSize,chunkSize*sizeof(Datatype));	
 	}
 	computer->compute();
-	std::memcpy(out+(chunks-1)*chunkSize,cpuMemory+2*chunkSize,chunkSize*sizeof(Datatype));
+	//std::memcpy(out+(chunks-1)*chunkSize,cpuMemory+2*chunkSize,chunkSize*sizeof(Datatype));
+	std::memcpy(out+(chunks-1)*chunkSize,cpuMemory,chunkSize*sizeof(Datatype));
 
 	// Remaining data after chunks
 	if(remainingSize != 0)
@@ -120,12 +125,14 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 		std::memcpy(cpuMemory,ptr1+chunks*chunkSize,remainingSize*sizeof(Datatype));	
 		std::memcpy(cpuMemory+chunkSize,ptr2+chunks*chunkSize,remainingSize*sizeof(Datatype));
 		computer->compute();
-		std::memcpy(out+chunks*chunkSize,cpuMemory+2*chunkSize,remainingSize*sizeof(Datatype));
+		//std::memcpy(out+chunks*chunkSize,cpuMemory+2*chunkSize,remainingSize*sizeof(Datatype));
+		std::memcpy(out+chunks*chunkSize,cpuMemory,remainingSize*sizeof(Datatype));
 	}
 
 	// Cleanup
 	vkDestroyBuffer(logicalDev, gpuBuffer, nullptr);
 	vkFreeMemory(logicalDev, gpuMemory, nullptr);
 
-	return py::array_t<Datatype,py::array::c_style>(buf1.shape,buf1.strides,out); 
+	//return py::array_t<Datatype,py::array::c_style>(buf1.shape,buf1.strides,out); 
+	return result; 
 }

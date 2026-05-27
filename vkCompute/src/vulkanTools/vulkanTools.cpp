@@ -689,7 +689,6 @@ std::tuple<char*,uint32_t> ComputePipeline::readShaderFile(const char* fileName)
 	file.seekg(0);
 	file.read(buffer, bufferSize);
 	file.close();
-	std::cout<<buffer<<std::endl;
 	return std::make_tuple(buffer,bufferSize);
 }
 
