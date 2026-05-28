@@ -43,6 +43,10 @@ Computer::~Computer()
 		vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(),descriptorSetLayout, nullptr);
 		descriptorSetLayoutInit = false;
 	}
+	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), 
+					logicalDevice->getCommandPool(), 1, &commandBuffer);
+	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), 
+					logicalDevice->getCommandPool(), 1, &memcpyCmdBuffer);
 }
 
 void Computer::createCommandBuffer()
@@ -57,8 +61,15 @@ void Computer::createCommandBuffer()
 	r = vkAllocateCommandBuffers(logicalDevice->getLogicalDevice(), &allocInfo, &commandBuffer);
 	if (r != VK_SUCCESS)
 	{
-		throw std::runtime_error("failed to allocate command buffers!");
+		throw std::runtime_error("failed to allocate command buffer!");
 	}
+
+	r = vkAllocateCommandBuffers(logicalDevice->getLogicalDevice(), &allocInfo, &memcpyCmdBuffer);
+	if (r != VK_SUCCESS)
+	{
+		throw std::runtime_error("failed to allocate memcpyCmdBuffer!");
+	}
+
 }
 
 void Computer::createSyncObjects()
@@ -163,6 +174,79 @@ void Computer::compute()
 //            | |_) | |_| |  _|  _|  __/ |      | | (_) | (_) | \__ \           //
 //            |____/ \__,_|_| |_|  \___|_|      |_|\___/ \___/|_|___/           //
 //////////////////////////////////////////////////////////////////////////////////
+void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset, 
+				uint64_t srcOffset, vkMemcpyFlags flag)
+{
+	VkDevice logicalDev = logicalDevice->getLogicalDevice();
+	VkQueue queue = logicalDevice->getTransferQueue();
+	VkBuffer gpuStaging;
+	VkDeviceMemory gpuMemory;
+	void* cpuStaging;
+	
+	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+	VkBufferCopy copyRegion{};
+	copyRegion.size = size;
+	
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+			
+	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+			
+	// Allocate staging buffer
+	createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,	
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
+					VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, gpuStaging, gpuMemory);
+
+	switch(flag)
+	{
+		case HostToDevice:
+			
+			// Map memory and transfer from src to staging
+			vkMapMemory(logicalDev, gpuMemory, 0, size, 0, &cpuStaging);
+			//memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset), size);
+			memcpy(cpuStaging, src, size);
+			vkUnmapMemory(logicalDev, gpuMemory);
+			
+			// Record command buffer 
+			copyRegion.dstOffset = dstOffset;
+			vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
+			vkCmdCopyBuffer(memcpyCmdBuffer, gpuStaging, (VkBuffer) dst, 1, &copyRegion);
+			vkEndCommandBuffer(memcpyCmdBuffer);
+
+			// Submit to queue 
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+			vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+			vkQueueWaitIdle(queue);
+			//vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+			break;
+	
+		case DeviceToHost:
+			
+			// Record command buffer 
+			copyRegion.srcOffset = srcOffset;
+			vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
+			vkCmdCopyBuffer(memcpyCmdBuffer, (VkBuffer) src, gpuStaging, 1, &copyRegion);
+			vkEndCommandBuffer(memcpyCmdBuffer);
+
+			// Submit to queue 
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+			vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+			vkQueueWaitIdle(queue);
+			//vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+			
+			// Map memory and transfer from src to staging
+			vkMapMemory(logicalDev, gpuMemory, 0, size, 0, &cpuStaging);
+			memcpy((void*) ((uint8_t*) dst+dstOffset), cpuStaging, size);
+			vkUnmapMemory(logicalDev, gpuMemory);		
+			break;
+	};
+
+	// Cleanup
+	vkDestroyBuffer(logicalDev, gpuStaging, nullptr);
+	vkFreeMemory(logicalDev, gpuMemory, nullptr);	
+}
+
 
 void Computer::createBuffer
 (VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, 
@@ -255,46 +339,8 @@ void Computer::copyBuffer
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 	
-	//vkQueueSubmit(logicalDevice->getTransferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-	//vkQueueWaitIdle(logicalDevice->getTransferQueue());
-	
 	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(queue);
-
-	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), 
-					logicalDevice->getCommandPool(), 1, &commandBuffer);
-}
-
-VkCommandBuffer Computer::beginCommand()
-{
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = logicalDevice->getCommandPool();
-	allocInfo.commandBufferCount = 1;
-
-	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(logicalDevice->getLogicalDevice(), &allocInfo, &commandBuffer);
-
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-	vkBeginCommandBuffer(commandBuffer, &beginInfo);
-	return commandBuffer;
-}
-
-void Computer::endCommand(VkCommandBuffer commandBuffer)
-{
-	vkEndCommandBuffer(commandBuffer);
-
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
-
-	vkQueueSubmit(logicalDevice->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(logicalDevice->getGraphicsQueue());
 
 	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), 
 					logicalDevice->getCommandPool(), 1, &commandBuffer);

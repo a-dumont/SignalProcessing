@@ -4,6 +4,12 @@
 
 namespace vkComputer
 {
+enum vkMemcpyFlags
+{
+	HostToDevice = 0,
+	DeviceToHost = 1,
+};
+
 class Computer
 {
 	public:
@@ -19,6 +25,8 @@ class Computer
 		void createDescriptorSetLayout(uint32_t N);
 		VkDescriptorSetLayout* getDescriptorSetLayout();
 
+		void vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset, uint64_t srcOffset,
+						vkMemcpyFlags flag);
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, 
 						VkMemoryPropertyFlags properties,VkBuffer& buffer, 
 						VkDeviceMemory& bufferMemory);
@@ -45,7 +53,7 @@ class Computer
 		uint32_t invocationSize;
 
 		// Sync objects
-		VkCommandBuffer commandBuffer;
+		VkCommandBuffer commandBuffer, memcpyCmdBuffer;
 		VkFence computeFence;
 		void createSyncObjects();
 		void destroySyncObjects();
@@ -53,8 +61,6 @@ class Computer
 		// Buffer tools
 		void createCommandBuffer();
 		//void recordCommandBuffer(VkCommandBuffer buffer, uint32_t dispatchNumber);
-		VkCommandBuffer beginCommand();
-		void endCommand(VkCommandBuffer commandBuffer);
 
 		// Bool
 		bool descriptorSetLayoutInit = false;
