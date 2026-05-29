@@ -61,12 +61,21 @@ class LogicalDevicePy: public vkTools::LogicalDevice
 {
 	public:
 	using vkTools::LogicalDevice::LogicalDevice;
+	~LogicalDevicePy();
 	LogicalDevicePy& operator=(LogicalDevicePy&& existingInstance) noexcept;
 
 	std::string getPhysicalDeviceName();
-	std::unique_ptr<ComputePipelinePy> createComputePipeline(std::string shaderFile);
+
+	//std::unique_ptr<ComputePipelinePy> createComputePipeline(std::string shaderFile);
+	void createComputePipeline(std::string shaderFile);
+	void destroyComputePipeline(std::string shaderFile);
+	py::dict getComputePipelines();
 
 	private:
+	std::map<std::string,uint32_t> pipelinesMap{};
+	ComputePipelinePy* pipelines;
+	uint32_t howmanyPipelines = 0;
+	bool pipelinesInit = false;
 };
 
 class VulkanBasePy: public vkTools::VulkanBase

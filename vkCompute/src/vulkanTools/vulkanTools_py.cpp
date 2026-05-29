@@ -213,9 +213,11 @@ ComputePipelinePy& ComputePipelinePy::operator=(ComputePipelinePy&& existingInst
 	return *this;
 }
 
-std::string LogicalDevicePy::getPhysicalDeviceName()
+LogicalDevicePy::~LogicalDevicePy()
 {
-	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
+	while(howmanyPipelines>0){destroyComputePipeline(pipelinesMap.end()->first);}
+	if(pipelinesInit){free(pipelines);}
+   	pipelinesMap.clear();	
 }
 
 LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) noexcept
@@ -231,10 +233,69 @@ LogicalDevicePy& LogicalDevicePy::operator=(LogicalDevicePy&& existingInstance) 
 	return *this;
 }
 
+/*
 std::unique_ptr<ComputePipelinePy> LogicalDevicePy::createComputePipeline(std::string shaderFile)
 {
 	return std::make_unique<ComputePipelinePy>(this,shaderFile);
 }
+*/
+
+void LogicalDevicePy::createComputePipeline(std::string shaderFile)
+{
+	
+	if(pipelinesInit == false)
+	{
+		pipelines = (ComputePipelinePy*) 
+				malloc((howmanyPipelines+1)*sizeof(ComputePipelinePy));
+		pipelinesInit = true;
+	}
+	else
+	{
+		pipelines = (ComputePipelinePy*) 
+				realloc((void*)pipelines,(howmanyPipelines+1)*sizeof(ComputePipelinePy));
+	}
+	new (&pipelines[howmanyPipelines]) ComputePipelinePy(this,shaderFile);
+	pipelinesMap[shaderFile] = howmanyPipelines;
+	howmanyPipelines += 1;
+}
+
+void LogicalDevicePy::destroyComputePipeline(std::string shaderFile)
+{
+	if(howmanyPipelines == 0){}
+	else
+	{
+		uint32_t devIndex = pipelinesMap[shaderFile];
+		pipelines[devIndex].~ComputePipelinePy();
+		for(uint32_t i=devIndex;i<howmanyPipelines-1;i++)
+		{
+			pipelines[i] = std::move(pipelines[i+1]);
+			pipelinesMap[shaderFile] = i;
+		}
+		pipelines = (ComputePipelinePy*) 
+				realloc((void*) pipelines,(howmanyPipelines-1)*sizeof(ComputePipelinePy));
+		howmanyPipelines -= 1;
+		pipelinesMap.erase(shaderFile);
+	}
+}
+
+py::dict LogicalDevicePy::getComputePipelines()
+{
+	py::dict out;
+	/*
+	std::map<std::string,uint32_t>::iterator it;
+	for(it=pipelinesMap.begin();it!=pipelinesMap.end();++it)
+	{
+		out[py::cast(it->first)] = &      pipelines[it->second];
+	}
+	*/
+	return out;
+}
+
+std::string LogicalDevicePy::getPhysicalDeviceName()
+{
+	return std::string(getPhysicalDeviceInfo()->getProperties().deviceName);
+}
+
 
 VulkanBasePy::VulkanBasePy(uint32_t nReqLayers, const char** reqLayers) : VulkanBasePy::VulkanBase{nReqLayers,reqLayers}
 {
@@ -452,6 +513,8 @@ void init_vkTools(py::module &m)
 			.def(py::init<VulkanBasePy*,uint32_t,uint32_t>())
 			.def("getPhysicalDeviceName",&LogicalDevicePy::getPhysicalDeviceName)
 			.def("createComputePipeline",&LogicalDevicePy::createComputePipeline)
+			.def("destroyComputePipeline",&LogicalDevicePy::destroyComputePipeline)
+			.def("getComputePipelines",&LogicalDevicePy::getComputePipelines)
 			.def("getUsageFlags",&LogicalDevicePy::getUsageFlags);
 
 	// Computer

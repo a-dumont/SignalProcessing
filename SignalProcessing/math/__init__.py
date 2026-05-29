@@ -23,8 +23,8 @@ try:
     from ..vkCompute import _vulkanBackend
     logicalDev = _vulkanBackend.getLogicalDevices()[0]
     import SignalProcessing.math.libvkmath as _libvkmath
-    _pipelines = [logicalDev.createComputePipeline("/home/alex/Codes/SignalProcessing/vkMath/bin/Shaders/1d_uint_vAdd_%i.spv"%(1<<i)) for i in range(2,11)]
-    vkAdd = lambda x,y: _libvkmath.vkAdd(_vulkanBackend.getComputers()[-1],_pipelines[-1],x,y)
+    #_pipelines = [logicalDev.createComputePipeline("/home/alex/Codes/SignalProcessing/vkMath/bin/Shaders/1d_uint_vAdd_%i.spv"%(1<<i)) for i in range(2,11)]
+    #vkAdd = lambda x,y: _libvkmath.vkAdd(_vulkanBackend.getComputers()[-1],_pipelines[-1],x,y)
     #functions = inspect.getmembers(libvkmath,inspect.isbuiltin)
     #for i in range(len(functions)):
         #setattr(self,functions[i],)
