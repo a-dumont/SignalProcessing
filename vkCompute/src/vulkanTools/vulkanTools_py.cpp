@@ -265,7 +265,7 @@ void LogicalDevicePy::destroyComputePipeline(std::string shaderFile)
 	else
 	{
 		uint32_t devIndex = pipelinesMap[shaderFile];
-		pipelines[devIndex].~ComputePipelinePy();
+		//pipelines[devIndex].~ComputePipelinePy();
 		for(uint32_t i=devIndex;i<howmanyPipelines-1;i++)
 		{
 			pipelines[i] = std::move(pipelines[i+1]);
