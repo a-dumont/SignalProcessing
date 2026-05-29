@@ -57,15 +57,24 @@ if($ENV{ENABLE_VULKAN})
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkCompute/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/vkCompute
 		FILES_MATCHING PATTERN "libvktools.*")
+
+
 		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_vulkan/obj/
 		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
 		#FILES_MATCHING PATTERN "libfftcuda.*")
 		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_vulkan/obj/
 		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
 		#FILES_MATCHING PATTERN "libcorrelationscuda.*")
+
+
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkMath/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
 		FILES_MATCHING PATTERN "libvkmath.*")
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkMath/bin/Shaders/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math/shaders
+		FILES_MATCHING PATTERN "*.spv")
+
+
 		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_vulkan/obj/
 		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
 		#FILES_MATCHING PATTERN "libhistogramscuda.*")
