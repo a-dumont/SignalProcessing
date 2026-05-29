@@ -47,3 +47,43 @@ endif(CYGWIN)
 
 separate_arguments(PY_INCL)
 include_directories(${PY_INCL})
+
+# Shaders
+find_program(GLSLC glslc)
+if(NOT GLSLC)
+		message(FATAL_ERROR "glslc not found")
+endif()
+
+function(compileShader TARGET SHADER)
+  get_filename_component(SHADER_NAME ${SHADER} NAME)
+  set(SPV_OUTPUT "${PROJECT_SOURCE_DIR}/bin/Shaders/${SHADER_NAME}.spv")
+
+  add_custom_command(
+    OUTPUT  ${SPV_OUTPUT}
+    COMMAND ${GLSLC} ${SHADER} -o ${SPV_OUTPUT}
+    DEPENDS ${SHADER}
+    COMMENT "Compiling shader ${SHADER_NAME}"
+    VERBATIM
+  )
+
+  target_sources(${TARGET} PRIVATE ${SPV_OUTPUT})
+endfunction()
+
+file(GLOB SHADERS "shaders/*.comp")
+
+set(SPV_FILES "")
+foreach(SHADER ${SHADERS})
+ 	get_filename_component(NAME ${SHADER} NAME_WE)
+	list(APPEND SPV_FILES "${PROJECT_SOURCE_DIR}/bin/Shaders/${NAME}.spv")
+	add_custom_command(
+	OUTPUT  "${PROJECT_SOURCE_DIR}/bin/Shaders/${NAME}.spv"
+    COMMAND ${GLSLC} "${SHADER}" -o "${PROJECT_SOURCE_DIR}/bin/Shaders/${NAME}.spv"
+	#DEPENDS "${PROJECT_SOURCE_DIR}/bin/Shaders/${NAME}.spv"
+    VERBATIM
+  )
+endforeach()
+
+add_custom_target(vkmath_shaders ALL DEPENDS ${SPV_FILES})
+add_dependencies(vkmath vkmath_shaders)
+
+
