@@ -215,7 +215,7 @@ ComputePipelinePy& ComputePipelinePy::operator=(ComputePipelinePy&& existingInst
 
 LogicalDevicePy::~LogicalDevicePy()
 {
-	while(howmanyPipelines>0){destroyComputePipeline(pipelinesMap.end()->first);}
+	while(howmanyPipelines>0){destroyComputePipeline(pipelinesMap.rbegin()->first);}
 	if(pipelinesInit){free(pipelines);}
    	pipelinesMap.clear();	
 }
@@ -281,13 +281,13 @@ void LogicalDevicePy::destroyComputePipeline(std::string shaderFile)
 py::dict LogicalDevicePy::getComputePipelines()
 {
 	py::dict out;
-	/*
+
 	std::map<std::string,uint32_t>::iterator it;
 	for(it=pipelinesMap.begin();it!=pipelinesMap.end();++it)
 	{
 		out[py::cast(it->first)] = &      pipelines[it->second];
 	}
-	*/
+
 	return out;
 }
 
