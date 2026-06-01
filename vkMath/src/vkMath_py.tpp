@@ -42,7 +42,7 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 
 	// Memory allocation
 	uint32_t dataSize = buf1.size;
-	uint32_t chunkSize = 1<<24; // Optimal on my machine I guess
+	uint32_t chunkSize = (1<<27)/sizeof(Datatype);
 	uint32_t chunks = dataSize/chunkSize;
 	uint32_t remainingSize = dataSize-(chunks*chunkSize);
 	if(chunks==0){chunkSize = dataSize; chunks = 1; remainingSize = 0;}

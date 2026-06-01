@@ -143,7 +143,7 @@ VkCommandBuffer Computer::getCommandBuffer(){return commandBuffer;}
 
 void Computer::compute()
 {
-	vkWaitForFences(logicalDevice->getLogicalDevice(), 1, &computeFence, VK_TRUE, UINT64_MAX);
+	//vkWaitForFences(logicalDevice->getLogicalDevice(), 1, &computeFence, VK_TRUE, UINT64_MAX);
 	vkResetFences(logicalDevice->getLogicalDevice(), 1, &computeFence);
 
 	VkSubmitInfo submitInfo{};
