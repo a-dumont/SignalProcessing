@@ -66,13 +66,13 @@ class Computer
 		bool descriptorSetLayoutInit = false;
 
 		// Buffers
-		uint32_t dataLength = 256;
-		
-		VkBuffer inputBuffers;
-		VkBuffer outputBuffer;
-		
-		VkDeviceMemory inputMemory;
-		VkDeviceMemory outputMemory;
+		uint32_t chunkSize = 1<<26;
+		uint32_t stagingSize = 1<<28;
+		VkBuffer gpuStaging;
+		VkDeviceMemory gpuMemory;
+		void* cpuStaging;
+		void createStagingBuffer();
+		void destroyStagingBuffer();
 
 		void* pInputMemory;
 		void* pOutputMemory;
@@ -80,7 +80,5 @@ class Computer
 		VkDescriptorSetLayout descriptorSetLayout;
 		VkDescriptorSet descriptorSet;
 		VkDescriptorPool inOutDescriptorPool;
-
-		void createInOutBuffers();
 };
 }

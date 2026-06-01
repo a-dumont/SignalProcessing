@@ -32,6 +32,7 @@ Computer::Computer(
 	createDescriptorSetLayout(3);
 	createCommandBuffer();
 	createSyncObjects();
+	createStagingBuffer();
 }
 
 Computer::~Computer()
@@ -47,6 +48,22 @@ Computer::~Computer()
 					logicalDevice->getCommandPool(), 1, &commandBuffer);
 	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), 
 					logicalDevice->getCommandPool(), 1, &memcpyCmdBuffer);
+}
+
+void Computer::createStagingBuffer()
+{
+	// Allocate staging buffer
+	createBuffer(stagingSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
+					VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, gpuStaging, gpuMemory);
+	vkMapMemory(logicalDevice->getLogicalDevice(), gpuMemory, 0, stagingSize, 0, &cpuStaging);
+}
+
+void Computer::destroyStagingBuffer()
+{
+	vkUnmapMemory(logicalDevice->getLogicalDevice(), gpuMemory);
+	vkDestroyBuffer(logicalDevice->getLogicalDevice(),gpuStaging, nullptr);
+	vkFreeMemory(logicalDevice->getLogicalDevice(), gpuMemory, nullptr);	
 }
 
 void Computer::createCommandBuffer()
@@ -108,7 +125,7 @@ void Computer::recordCommandBuffer(vkTools::ComputePipeline* pipeline,
 	
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = 0; // Optional
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT; // Optional
 	beginInfo.pInheritanceInfo = nullptr; // Optional
 
 	uint32_t workGroupCount = (dataLength/invocationSize)+1;
@@ -177,74 +194,108 @@ void Computer::compute()
 void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset, 
 				uint64_t srcOffset, vkMemcpyFlags flag)
 {
-	VkDevice logicalDev = logicalDevice->getLogicalDevice();
+	if(size == 0){return;}
 	VkQueue queue = logicalDevice->getTransferQueue();
-	VkBuffer gpuStaging;
-	VkDeviceMemory gpuMemory;
-	void* cpuStaging;
 	
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 	VkBufferCopy copyRegion{};
-	copyRegion.size = size;
+	//copyRegion.size = size;
 	
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 			
 	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-			
-	// Allocate staging buffer
-	createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,	
-					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
-					VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, gpuStaging, gpuMemory);
+
+	uint32_t chunks = size/chunkSize;
+	uint32_t remaining = size-(chunks*chunkSize);
 
 	switch(flag)
 	{
 		case HostToDevice:
+			for(uint32_t i=0;i<chunks;i++)
+			{	
+				// Map memory and transfer from src to staging
+				//memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset), size);
+				memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset+i*chunkSize), chunkSize);
 			
-			// Map memory and transfer from src to staging
-			vkMapMemory(logicalDev, gpuMemory, 0, size, 0, &cpuStaging);
-			//memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset), size);
-			memcpy(cpuStaging, src, size);
-			vkUnmapMemory(logicalDev, gpuMemory);
-			
-			// Record command buffer 
-			copyRegion.dstOffset = dstOffset;
-			vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
-			vkCmdCopyBuffer(memcpyCmdBuffer, gpuStaging, (VkBuffer) dst, 1, &copyRegion);
-			vkEndCommandBuffer(memcpyCmdBuffer);
+				// Record command buffer 
+				copyRegion.srcOffset = 0;
+				copyRegion.dstOffset = dstOffset+i*chunkSize;
+				copyRegion.size = chunkSize;
+				vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
+				vkCmdCopyBuffer(memcpyCmdBuffer, gpuStaging, (VkBuffer) dst, 1, &copyRegion);
+				vkEndCommandBuffer(memcpyCmdBuffer);
 
-			// Submit to queue 
-			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &memcpyCmdBuffer;
-			vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-			vkQueueWaitIdle(queue);
-			//vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+				// Submit to queue 
+				submitInfo.commandBufferCount = 1;
+				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+				vkQueueWaitIdle(queue);
+			}
+			if(remaining != 0)
+			{
+				// Map memory and transfer from src to staging
+				//memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset), size);
+				memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset+chunks*chunkSize), remaining);
+			
+				// Record command buffer 
+				copyRegion.srcOffset = 0;
+				copyRegion.dstOffset = dstOffset+chunks*chunkSize;
+				copyRegion.size = remaining;
+				vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
+				vkCmdCopyBuffer(memcpyCmdBuffer, gpuStaging, (VkBuffer) dst, 1, &copyRegion);
+				vkEndCommandBuffer(memcpyCmdBuffer);
+
+				// Submit to queue 
+				submitInfo.commandBufferCount = 1;
+				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+				vkQueueWaitIdle(queue);	
+			}
 			break;
 	
-		case DeviceToHost:
-			
-			// Record command buffer 
-			copyRegion.srcOffset = srcOffset;
-			vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
-			vkCmdCopyBuffer(memcpyCmdBuffer, (VkBuffer) src, gpuStaging, 1, &copyRegion);
-			vkEndCommandBuffer(memcpyCmdBuffer);
+		case DeviceToHost:	
+			for(uint32_t i=0;i<chunks;i++)
+			{	
+				// Record command buffer 
+				copyRegion.srcOffset = srcOffset+i*chunkSize;
+				copyRegion.dstOffset = 0;
+				copyRegion.size = chunkSize;
+				vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
+				vkCmdCopyBuffer(memcpyCmdBuffer, (VkBuffer) src, gpuStaging, 1, &copyRegion);
+				vkEndCommandBuffer(memcpyCmdBuffer);
 
-			// Submit to queue 
-			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &memcpyCmdBuffer;
-			vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-			vkQueueWaitIdle(queue);
-			//vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+				// Submit to queue 
+				submitInfo.commandBufferCount = 1;
+				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+				vkQueueWaitIdle(queue);
 			
-			// Map memory and transfer from src to staging
-			vkMapMemory(logicalDev, gpuMemory, 0, size, 0, &cpuStaging);
-			memcpy((void*) ((uint8_t*) dst+dstOffset), cpuStaging, size);
-			vkUnmapMemory(logicalDev, gpuMemory);		
+				// Map memory and transfer from src to staging
+				//memcpy((void*) ((uint8_t*) dst+dstOffset), cpuStaging, size);
+				memcpy((void*) ((uint8_t*) dst+dstOffset+i*chunkSize), cpuStaging, chunkSize);
+			}
+			if(remaining != 0)
+			{
+				// Record command buffer 
+				copyRegion.srcOffset = srcOffset+chunks*chunkSize;
+				copyRegion.dstOffset = 0;
+				copyRegion.size = remaining;
+				vkBeginCommandBuffer(memcpyCmdBuffer, &beginInfo);
+				vkCmdCopyBuffer(memcpyCmdBuffer, (VkBuffer) src, gpuStaging, 1, &copyRegion);
+				vkEndCommandBuffer(memcpyCmdBuffer);
+
+				// Submit to queue 
+				submitInfo.commandBufferCount = 1;
+				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+				vkQueueWaitIdle(queue);
+			
+				// Map memory and transfer from src to staging
+				//memcpy((void*) ((uint8_t*) dst+dstOffset), cpuStaging, size);
+				memcpy((void*) ((uint8_t*) dst+dstOffset+chunks*chunkSize), cpuStaging, remaining);
+			}
 			break;
 	};
-
-	// Cleanup
-	vkDestroyBuffer(logicalDev, gpuStaging, nullptr);
-	vkFreeMemory(logicalDev, gpuMemory, nullptr);	
 }
 
 
