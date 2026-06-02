@@ -1,4 +1,5 @@
 #include "vulkanTools.h"
+#include <cstring>
 
 using namespace vkTools;
 
@@ -437,6 +438,7 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
 	bool queueUsable;
 	VkBool32 presentSupport;
 	presentSupport = 0;
+	queueCount = 0;
 	for(uint32_t i=0;i<howmanyQueueFamilies;i++)
 	{
 		queueUsable = true;
@@ -444,22 +446,26 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
 		if(usageBits & 1)
 		{
 			queueUsable &= queueFamiliesInfo[i].hasGraphicsSupport();
+			queueCount += 1;
 		}
 		// Transfer Bit
 		if(usageBits & 2)
 		{
 			queueUsable &= queueFamiliesInfo[i].hasTransferSupport();
+			queueCount += 1;
 		}
 		// Compute Bit
 		if(usageBits & 4)
 		{
 			queueUsable &= queueFamiliesInfo[i].hasComputeSupport();
+			queueCount += 1;
 		}
 		// Present Bit
 		if(usageBits & 8)
 		{
 			//vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
 			queueUsable &= presentSupport;
+			queueCount += 1;
 		}
 		if(queueUsable)
 		{
@@ -469,57 +475,32 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
 	}
 	if(!queueUsable)
 	{
+		queueCount = 0;
 		throw std::runtime_error("No usable queue family!");
 	}
 
-	queueCount = 0;
-	if(usageBits & 1)
-	{
-		graphicsCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		graphicsCreateInfo.queueCount = 1;
-		graphicsCreateInfo.pQueuePriorities = &queuePriority;
-		queueCreateInfos[queueCount] = graphicsCreateInfo;
-		queueCount += 1;
-	}
-	// Transfer Bit
-	if(usageBits & 2)
-	{
-		transferCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		transferCreateInfo.queueCount = 1;
-		transferCreateInfo.pQueuePriorities = &queuePriority;
-		queueCreateInfos[queueCount] = transferCreateInfo;
-		queueCount += 1;
-	}
-	// Compute Bit
-	if(usageBits & 4)
-	{
-		computeCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		computeCreateInfo.queueCount = 1;
-		computeCreateInfo.pQueuePriorities = &queuePriority;
-		queueCreateInfos[queueCount] = computeCreateInfo;
-		queueCount += 1;
-	}
+	uint32_t maxQueues = queueFamiliesInfo[queueFamilyIndex].getQueueCount();
+	queueCount = std::min(queueCount,maxQueues);
+
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queueCreateInfo.queueCount = queueCount;
+	queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+	float* queuePriorities = (float*) malloc(queueCount*sizeof(float));
+	for(uint32_t i=0;i<queueCount;i++){queuePriorities[i]=queuePriority;}
+	queueCreateInfo.pQueuePriorities = queuePriorities;
+
 	// Present Bit
 	if(usageBits & 8)
 	{
-		presentCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		presentCreateInfo.queueCount = 1;
-		presentCreateInfo.pQueuePriorities = &queuePriority;
-		queueCreateInfos[queueCount] = presentCreateInfo;
 		createInfo.enabledExtensionCount = nExtensions;
 		requiredExtensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 		createInfo.ppEnabledExtensionNames = requiredExtensions;
-		queueCount += 1;
 	}
 	
-	queueCreateInfos[0].queueFamilyIndex = queueFamilyIndex;
 
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	createInfo.pQueueCreateInfos = queueCreateInfos;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
 	createInfo.queueCreateInfoCount = 1;
-	//createInfo.pEnabledFeatures = &physicalDeviceFeatures;
-	//createInfo.enabledLayerCount = base->getRequiredLayersCount();
-    //createInfo.ppEnabledLayerNames = base->getRequiredLayers();
 	createInfo.pNext = &physicalDeviceFeatures2;
 
 	VkResult r;
@@ -527,26 +508,34 @@ LogicalDevice::LogicalDevice(VulkanBase* base, uint32_t physDevIdx, uint32_t usa
  	if(r != VK_SUCCESS)
 	{
 		throw std::runtime_error("failed to create logical device!");
+		free(queuePriorities);
 	}
+	free(queuePriorities);
+
+	uint32_t currentQueue = 0;
 	logicalDeviceInit = true;
 	if(usageBits & 1)
 	{
-		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, 0, &graphicsQueue);
+		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, currentQueue, &graphicsQueue);
+		currentQueue = std::min(currentQueue+1,queueCount-1);
 	}
 	// Transfer Bit
 	if(usageBits & 2)
 	{
-		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, 0, &transferQueue);
+		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, currentQueue, &transferQueue);
+		currentQueue = std::min(currentQueue+1,queueCount-1);
 	}
 	// Compute Bit
 	if(usageBits & 4)
 	{
-		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, 0, &computeQueue);
+		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, currentQueue, &computeQueue);
+		currentQueue = std::min(currentQueue+1,queueCount-1);
 	}
 	// Present Bit
 	if(usageBits & 8)
 	{
-		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, 0, &presentQueue);
+		vkGetDeviceQueue(logicalDevice, queueFamilyIndex, currentQueue, &presentQueue);
+		currentQueue = std::min(currentQueue+1,queueCount-1);
 	}
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -728,6 +717,7 @@ void ComputePipeline::setLayoutDescriptors(uint32_t n, VkDescriptorSetLayout* de
 VkPipeline ComputePipeline::getPipeline(){return pipeline;}
 VkPipelineLayout ComputePipeline::getLayout(){return layout;}
 LogicalDevice* ComputePipeline::getLogicalDevice(){return logicalDevice;}
+std::string ComputePipeline::getShaderFile(){return shaderFile;}
 
 
 

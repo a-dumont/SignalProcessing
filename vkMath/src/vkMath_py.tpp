@@ -43,8 +43,8 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 	// Memory allocation
 	vkComputer::vkMemcpyFlags HostToDevice = vkComputer::HostToDevice;
 	vkComputer::vkMemcpyFlags DeviceToHost = vkComputer::DeviceToHost;
-	uint32_t dataSize = buf1.size;
-	uint32_t chunkSize = (1<<26)/sizeof(Datatype);
+	uint32_t dataSize = buf1.size*sizeof(Datatype);
+	uint32_t chunkSize = (1<<28);
 	uint32_t chunks = dataSize/chunkSize;
 	uint32_t remainingSize = dataSize-(chunks*chunkSize);
 	if(chunks==0){chunkSize = dataSize; chunks = 1; remainingSize = 0;}
@@ -54,10 +54,10 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 
 	VkBuffer gpuBuffer;
 	VkDeviceMemory gpuMemory;
-	Datatype* cpuMemory;
+	//Datatype* cpuMemory;
 
 	// Create gpuBuffer using gpuMemory
-	computer->createBuffer(2*sizeof(Datatype)*chunkSize,
+	computer->createBuffer(2*chunkSize,
 					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |  
 					VK_BUFFER_USAGE_TRANSFER_SRC_BIT |	
 					VK_BUFFER_USAGE_TRANSFER_DST_BIT,	
@@ -77,26 +77,28 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 
 	bufferInfoInput[0].buffer = gpuBuffer;
 	bufferInfoInput[0].offset = 0;
-	bufferInfoInput[0].range = sizeof(Datatype)*chunkSize;
+	bufferInfoInput[0].range = chunkSize;
 	descriptorWrite[0].pBufferInfo = &bufferInfoInput[0];
 	
 	bufferInfoInput[1].buffer = gpuBuffer;
-	bufferInfoInput[1].offset = sizeof(Datatype)*chunkSize;
-	bufferInfoInput[1].range = sizeof(Datatype)*chunkSize;
+	bufferInfoInput[1].offset = chunkSize;
+	bufferInfoInput[1].range = chunkSize;
 	descriptorWrite[1].pBufferInfo = &bufferInfoInput[1];
 
 	// Inform the gpu of the buffers
 	vkUpdateDescriptorSets(logicalDev, 2, descriptorWrite, 0, nullptr);
 
 	// Record command buffer	
-	computer->recordCommandBuffer(pipeline,computer->getCommandBuffer(),chunkSize);
+	computer->recordCommandBuffer(pipeline,computer->getCommandBuffer(),
+					chunkSize/sizeof(Datatype));
+	
 
 	// First chunk memory transfer from cpu to gpu using mapped memory
 	//std::memcpy(cpuMemory,ptr1,chunkSize*sizeof(Datatype));	
 	//std::memcpy(cpuMemory+chunkSize,ptr2,chunkSize*sizeof(Datatype));
 	
-	computer->vkMemcpy(gpuBuffer,ptr1,1<<26,0,0,HostToDevice);
-	computer->vkMemcpy(gpuBuffer,ptr2,1<<26,0,1<<26,HostToDevice);
+	computer->vkMemcpy(gpuBuffer,ptr1,chunkSize,0,0,HostToDevice);
+	computer->vkMemcpy(gpuBuffer,ptr2,chunkSize,chunkSize,0,HostToDevice);
 
 	// Process all chunks
 	for(uint32_t i=1;i<chunks;i++)
@@ -106,31 +108,33 @@ vkAdd(vkComputer::Computer* computer, ComputePipelinePy* pipeline,
 		
 		// Copy buffer to working memory
 		//std::memcpy(out+(i-1)*chunkSize,cpuMemory,chunkSize*sizeof(Datatype));
-		computer->vkMemcpy(out,gpuBuffer,1<<26,0,(i-1)*(1<<26),DeviceToHost);
+		computer->vkMemcpy(out,gpuBuffer,chunkSize,(i-1)*chunkSize,0,DeviceToHost);
 		
 		// Copy next chunk
 		//std::memcpy(cpuMemory+chunkSize,ptr2+i*chunkSize,chunkSize*sizeof(Datatype));	
 		//std::memcpy(cpuMemory,ptr1+i*chunkSize,chunkSize*sizeof(Datatype));	
 	
-		computer->vkMemcpy(gpuBuffer,ptr1,1<<26,i*(1<<26),0,HostToDevice);
-		computer->vkMemcpy(gpuBuffer,ptr2,1<<26,i*(1<<26),1<<26,HostToDevice);
+		computer->vkMemcpy(gpuBuffer,ptr1,chunkSize,0,i*chunkSize,HostToDevice);
+		computer->vkMemcpy(gpuBuffer,ptr2,chunkSize,chunkSize,i*chunkSize,HostToDevice);
 
 	}
 	computer->compute();
 	//std::memcpy(out+(chunks-1)*chunkSize,cpuMemory,chunkSize*sizeof(Datatype));
-	computer->vkMemcpy(out,gpuBuffer,1<<26,0,chunks*(1<<26),DeviceToHost);
+	computer->vkMemcpy(out,gpuBuffer,chunkSize,(chunks-1)*chunkSize,0,DeviceToHost);
 
 	// Remaining data after chunks
-	/*
 	if(remainingSize != 0)
 	{
-		computer->recordCommandBuffer(pipeline,computer->getCommandBuffer(),remainingSize);
-		std::memcpy(cpuMemory,ptr1+chunks*chunkSize,remainingSize*sizeof(Datatype));	
-		std::memcpy(cpuMemory+chunkSize,ptr2+chunks*chunkSize,remainingSize*sizeof(Datatype));
+		computer->recordCommandBuffer(pipeline,computer->getCommandBuffer(),
+						remainingSize/sizeof(Datatype));
+		computer->vkMemcpy(gpuBuffer,ptr1,remainingSize,0,chunks*chunkSize,HostToDevice);
+		computer->vkMemcpy(gpuBuffer,ptr2,remainingSize,chunkSize,chunks*chunkSize,HostToDevice);
+		//std::memcpy(cpuMemory,ptr1+chunks*chunkSize,remainingSize*sizeof(Datatype));	
+		//std::memcpy(cpuMemory+chunkSize,ptr2+chunks*chunkSize,remainingSize*sizeof(Datatype));
 		computer->compute();
-		std::memcpy(out+chunks*chunkSize,cpuMemory,remainingSize*sizeof(Datatype));
+		computer->vkMemcpy(out,gpuBuffer,chunkSize,chunks*chunkSize,0,DeviceToHost);
+		//std::memcpy(out+chunks*chunkSize,cpuMemory,remainingSize*sizeof(Datatype));
 	}
-	*/
 
 	// Cleanup
 	//vkUnmapMemory(logicalDev,gpuMemory);

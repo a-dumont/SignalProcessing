@@ -213,9 +213,14 @@ ComputePipelinePy& ComputePipelinePy::operator=(ComputePipelinePy&& existingInst
 	return *this;
 }
 
+ComputePipelinePy::~ComputePipelinePy(){}
+
 LogicalDevicePy::~LogicalDevicePy()
 {
-	while(howmanyPipelines>0){destroyComputePipeline(pipelinesMap.rbegin()->first);}
+	while(howmanyPipelines>0)
+	{
+			destroyComputePipeline(pipelines[howmanyPipelines-1].getShaderFile());
+	}
 	if(pipelinesInit){free(pipelines);}
    	pipelinesMap.clear();	
 }
@@ -261,15 +266,17 @@ void LogicalDevicePy::createComputePipeline(std::string shaderFile)
 
 void LogicalDevicePy::destroyComputePipeline(std::string shaderFile)
 {
+	std::map<std::string,uint32_t>::iterator iter;
+	std::string shader;
 	if(howmanyPipelines == 0){}
 	else
 	{
 		uint32_t devIndex = pipelinesMap[shaderFile];
-		//pipelines[devIndex].~ComputePipelinePy();
+		pipelines[devIndex].~ComputePipelinePy();
 		for(uint32_t i=devIndex;i<howmanyPipelines-1;i++)
 		{
 			pipelines[i] = std::move(pipelines[i+1]);
-			pipelinesMap[shaderFile] = i;
+			pipelinesMap[pipelines[i].getShaderFile()] = i;
 		}
 		pipelines = (ComputePipelinePy*) 
 				realloc((void*) pipelines,(howmanyPipelines-1)*sizeof(ComputePipelinePy));
@@ -285,7 +292,7 @@ py::dict LogicalDevicePy::getComputePipelines()
 	std::map<std::string,uint32_t>::iterator it;
 	for(it=pipelinesMap.begin();it!=pipelinesMap.end();++it)
 	{
-		out[py::cast(it->first)] = &      pipelines[it->second];
+		out[py::cast(it->first)] = &pipelines[it->second];
 	}
 
 	return out;

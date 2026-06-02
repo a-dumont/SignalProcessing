@@ -53,6 +53,7 @@ class ComputePipelinePy: public vkTools::ComputePipeline
 	public:
 	using vkTools::ComputePipeline::ComputePipeline;
 	ComputePipelinePy& operator=(ComputePipelinePy&& existingInstance) noexcept;
+	~ComputePipelinePy();
 
 	private:
 };

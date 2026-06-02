@@ -190,11 +190,7 @@ class LogicalDevice
 		const char* requiredExtensions[1];
 
 		VkDeviceCreateInfo createInfo{};
-		VkDeviceQueueCreateInfo queueCreateInfos[4];
-		VkDeviceQueueCreateInfo graphicsCreateInfo{};
-		VkDeviceQueueCreateInfo transferCreateInfo{};
-		VkDeviceQueueCreateInfo computeCreateInfo{};
-		VkDeviceQueueCreateInfo presentCreateInfo{};
+		VkDeviceQueueCreateInfo queueCreateInfo{};
 		VkCommandPoolCreateInfo poolInfo{};
 
 		VkDevice logicalDevice;
@@ -216,6 +212,7 @@ class ComputePipeline
 		void setLayoutDescriptors(uint32_t n, VkDescriptorSetLayout* descriptors);
 		VkPipelineLayout getLayout();
 		LogicalDevice* getLogicalDevice();
+		std::string getShaderFile();
 
 	private:
 		LogicalDevice* logicalDevice;

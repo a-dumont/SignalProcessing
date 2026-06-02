@@ -37,6 +37,7 @@ Computer::Computer(
 
 Computer::~Computer()
 {
+	destroyStagingBuffer();
 	destroySyncObjects();
 	if(descriptorSetLayoutInit == true)
 	{
@@ -102,11 +103,18 @@ void Computer::createSyncObjects()
 	{
 		throw std::runtime_error("failed to create fence!");
 	}
+	r = vkCreateFence(logicalDevice->getLogicalDevice(), 
+					&fenceInfo, nullptr, &transferFence);
+	if(r != VK_SUCCESS)
+	{
+		throw std::runtime_error("failed to create fence!");
+	}
 }
 
 void Computer::destroySyncObjects()
 {
     vkDestroyFence(logicalDevice->getLogicalDevice(), computeFence, nullptr);
+    vkDestroyFence(logicalDevice->getLogicalDevice(), transferFence, nullptr);
 }
 
 
@@ -196,6 +204,7 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 {
 	if(size == 0){return;}
 	VkQueue queue = logicalDevice->getTransferQueue();
+	VkDevice logicalDev = logicalDevice->getLogicalDevice();
 	
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 	VkBufferCopy copyRegion{};
@@ -207,14 +216,13 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 
 	uint32_t chunks = size/chunkSize;
 	uint32_t remaining = size-(chunks*chunkSize);
-
+	
 	switch(flag)
 	{
 		case HostToDevice:
 			for(uint32_t i=0;i<chunks;i++)
 			{	
 				// Map memory and transfer from src to staging
-				//memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset), size);
 				memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset+i*chunkSize), chunkSize);
 			
 				// Record command buffer 
@@ -228,13 +236,13 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 				// Submit to queue 
 				submitInfo.commandBufferCount = 1;
 				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
-				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-				vkQueueWaitIdle(queue);
+				vkResetFences(logicalDev, 1, &transferFence);
+				vkQueueSubmit(queue, 1, &submitInfo, transferFence);
+				vkWaitForFences(logicalDev,1,&transferFence,VK_TRUE,UINT64_MAX);
 			}
 			if(remaining != 0)
 			{
 				// Map memory and transfer from src to staging
-				//memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset), size);
 				memcpy(cpuStaging, (void*) ((uint8_t*) src+srcOffset+chunks*chunkSize), remaining);
 			
 				// Record command buffer 
@@ -248,8 +256,9 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 				// Submit to queue 
 				submitInfo.commandBufferCount = 1;
 				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
-				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-				vkQueueWaitIdle(queue);	
+				vkResetFences(logicalDev, 1, &transferFence);
+				vkQueueSubmit(queue, 1, &submitInfo, transferFence);
+				vkWaitForFences(logicalDev,1,&transferFence,VK_TRUE,UINT64_MAX);
 			}
 			break;
 	
@@ -267,11 +276,11 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 				// Submit to queue 
 				submitInfo.commandBufferCount = 1;
 				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
-				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-				vkQueueWaitIdle(queue);
+				vkResetFences(logicalDev, 1, &transferFence);
+				vkQueueSubmit(queue, 1, &submitInfo, transferFence);
+				vkWaitForFences(logicalDev,1,&transferFence,VK_TRUE,UINT64_MAX);
 			
 				// Map memory and transfer from src to staging
-				//memcpy((void*) ((uint8_t*) dst+dstOffset), cpuStaging, size);
 				memcpy((void*) ((uint8_t*) dst+dstOffset+i*chunkSize), cpuStaging, chunkSize);
 			}
 			if(remaining != 0)
@@ -287,11 +296,11 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 				// Submit to queue 
 				submitInfo.commandBufferCount = 1;
 				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
-				vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-				vkQueueWaitIdle(queue);
+				vkResetFences(logicalDev, 1, &transferFence);
+				vkQueueSubmit(queue, 1, &submitInfo, transferFence);
+				vkWaitForFences(logicalDev,1,&transferFence,VK_TRUE,UINT64_MAX);
 			
 				// Map memory and transfer from src to staging
-				//memcpy((void*) ((uint8_t*) dst+dstOffset), cpuStaging, size);
 				memcpy((void*) ((uint8_t*) dst+dstOffset+chunks*chunkSize), cpuStaging, remaining);
 			}
 			break;

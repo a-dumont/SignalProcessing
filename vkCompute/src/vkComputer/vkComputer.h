@@ -54,7 +54,7 @@ class Computer
 
 		// Sync objects
 		VkCommandBuffer commandBuffer, memcpyCmdBuffer;
-		VkFence computeFence;
+		VkFence computeFence, transferFence;
 		void createSyncObjects();
 		void destroySyncObjects();
 
@@ -67,7 +67,7 @@ class Computer
 
 		// Buffers
 		uint32_t chunkSize = 1<<26;
-		uint32_t stagingSize = 1<<28;
+		uint32_t stagingSize = 1<<26;
 		VkBuffer gpuStaging;
 		VkDeviceMemory gpuMemory;
 		void* cpuStaging;
