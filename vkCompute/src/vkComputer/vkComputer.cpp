@@ -109,12 +109,30 @@ void Computer::createSyncObjects()
 	{
 		throw std::runtime_error("failed to create fence!");
 	}
+
+	// Semaphores
+
+
+    semaphoreTypeInfo.sType         = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+    semaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+    semaphoreTypeInfo.initialValue  = 0;
+
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreCreateInfo.pNext = &semaphoreTypeInfo;
+    
+	vkCreateSemaphore(logicalDevice->getLogicalDevice(), &semaphoreCreateInfo, 
+					nullptr, &computeSemaphore);
+    vkCreateSemaphore(logicalDevice->getLogicalDevice(), &semaphoreCreateInfo, 
+					nullptr, &transferSemaphore);
 }
 
 void Computer::destroySyncObjects()
 {
     vkDestroyFence(logicalDevice->getLogicalDevice(), computeFence, nullptr);
     vkDestroyFence(logicalDevice->getLogicalDevice(), transferFence, nullptr);
+
+	vkDestroySemaphore(logicalDevice->getLogicalDevice(), computeSemaphore, nullptr);
+	vkDestroySemaphore(logicalDevice->getLogicalDevice(), transferSemaphore, nullptr);
 }
 
 
@@ -216,6 +234,36 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 
 	uint32_t chunks = size/chunkSize;
 	uint32_t remaining = size-(chunks*chunkSize);
+
+	uint64_t semaphoreValue =  0;
+	vkGetSemaphoreCounterValue(logicalDev, transferSemaphore, &semaphoreValue);
+	uint64_t waitValue =  semaphoreValue+1;
+	
+	VkTimelineSemaphoreSubmitInfo tssi{};
+    tssi.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
+
+
+    // Wire up wait
+    tssi.waitSemaphoreValueCount   = (waitValue > 0) ? 1 : 0;
+    tssi.pWaitSemaphoreValues      = (waitValue > 0) ? &waitValue   : nullptr;
+
+    // Wire up signal
+    tssi.signalSemaphoreValueCount = 1;
+    tssi.pSignalSemaphoreValues    = (signalValue > 0) ? &signalValue : nullptr;
+
+    VkSubmitInfo si{};
+    si.sType  = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.pNext  = &tssi;
+
+    si.waitSemaphoreCount   = (waitValue   > 0) ? 1 : 0;
+    si.pWaitSemaphores      = (waitValue   > 0) ? &sem : nullptr;
+    si.pWaitDstStageMask    = (waitValue   > 0) ? &waitStage : nullptr;
+
+    si.signalSemaphoreCount = (signalValue > 0) ? 1 : 0;
+    si.pSignalSemaphores    = (signalValue > 0) ? &sem : nullptr;
+
+    si.commandBufferCount   = 1;
+    si.pCommandBuffers      = &cmd;
 	
 	switch(flag)
 	{
@@ -236,6 +284,9 @@ void Computer::vkMemcpy(void* dst, void* src, uint64_t size, uint64_t dstOffset,
 				// Submit to queue 
 				submitInfo.commandBufferCount = 1;
 				submitInfo.pCommandBuffers = &memcpyCmdBuffer;
+				submitInfo.signalSemaphoreCount = 1;
+        		submitInfo.pSignalSemaphores = &transferSemaphore;
+
 				vkResetFences(logicalDev, 1, &transferFence);
 				vkQueueSubmit(queue, 1, &submitInfo, transferFence);
 				vkWaitForFences(logicalDev,1,&transferFence,VK_TRUE,UINT64_MAX);

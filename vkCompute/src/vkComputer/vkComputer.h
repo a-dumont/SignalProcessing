@@ -55,6 +55,12 @@ class Computer
 		// Sync objects
 		VkCommandBuffer commandBuffer, memcpyCmdBuffer;
 		VkFence computeFence, transferFence;
+
+		VkSemaphoreTypeCreateInfo semaphoreTypeInfo{};
+		VkSemaphoreCreateInfo semaphoreCreateInfo{};
+		VkSemaphore computeSemaphore, transferSemaphore;
+
+
 		void createSyncObjects();
 		void destroySyncObjects();
 
