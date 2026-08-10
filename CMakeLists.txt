@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(SignalProcessing VERSION 4.0.0 DESCRIPTION "C++ and vulkan routines wrapped with pybind11")
+project(SignalProcessing VERSION 5.0.0 DESCRIPTION "C++ and vulkan routines wrapped with pybind11")
 
 # Cygwin stuff
 if(CYGWIN)

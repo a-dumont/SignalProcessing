@@ -16,3 +16,5 @@ include SignalProcessing/math/libmathcuda.so
 include SignalProcessing/math/libmathcuda.pyd
 include SignalProcessing/histograms/libhistogramscuda.so
 include SignalProcessing/histograms/libhistogramscuda.pyd
+include SignalProcessing/math/libvkmath.so
+include SignalProcessing/math/libvkmath.pyd

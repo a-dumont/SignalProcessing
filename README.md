@@ -15,6 +15,7 @@ C++ methods wrapped with pybind11 for signal processing and whatever else I migh
 - MinGW (To compile on or for Windows)
 - Visual Studio code 2017 (For CUDA on Windows)
 - CUDA Toolkit (Optional)
+- VULKAN Toolkit (Optional)
 
 ## Build from source on linux
 Go to your build directory (Ex: Downloads) and git clone the repository:
@@ -27,6 +28,7 @@ foo@bar:~$ ENABLE_CUDA=1 cmake .. && cmake --build . && cmake --install .
 foo@bar:~$ cd .. && python setup.py install
 ```
 To compile without CUDA simply remove the the ENABLE_CUDA environment variable.
+To compile with VULKAN simply swap the the ENABLE_CUDA environment variable for ENABLE_VULKAN.
 
 ## Build from source on Windows
 To compile using MinGW on cygwin:
