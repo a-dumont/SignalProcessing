@@ -139,20 +139,6 @@ void nth_order_gradient(int n, DataType* x,
 }
 
 template<class DataType>
-void rolling_average(int n, DataType* in, DataType* out, int size)
-{	
-	DataType norm = (DataType) 1.0/size;
-	for(int i=0;i<(n-size+1);i++)
-	{	
-		for(int j=0;j<size;j++)
-		{
-				out[i] += in[i+j];
-		}
-		out[i] *= norm;
-	}
-}
-
-template<class DataType>
 void continuous_max(long long int* out, DataType* in, int n)
 {
 	out[0] = 0;

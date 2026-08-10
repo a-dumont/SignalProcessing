@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(SignalProcessing VERSION 4.0.0 DESCRIPTION "C++ and CUDA routines wrapped with pybind11")
+project(SignalProcessing VERSION 4.0.0 DESCRIPTION "C++ and vulkan routines wrapped with pybind11")
 
 # Cygwin stuff
 if(CYGWIN)
@@ -19,6 +19,15 @@ add_subdirectory(Correlations)
 add_subdirectory(Histograms)
 add_subdirectory(Math)
 add_subdirectory(Filters)
+
+if($ENV{ENABLE_VULKAN})
+		message(STATUS "Building the VULKAN modules")
+		add_subdirectory(vkCompute)
+		#add_subdirectory(FFT_VULKAN)
+		#add_subdirectory(Correlations_VULKAN)
+		add_subdirectory(vkMath)
+		#add_subdirectory(Histograms_VULKAN)
+endif($ENV{ENABLE_VULKAN})
 
 if($ENV{ENABLE_CUDA})
 		message(STATUS "Building the CUDA modules")
@@ -43,6 +52,33 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/Math/obj/
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/Filters/obj/
 		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/filters
 		FILES_MATCHING PATTERN "libfilters.*")
+
+if($ENV{ENABLE_VULKAN})
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkCompute/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/vkCompute
+		FILES_MATCHING PATTERN "libvktools.*")
+
+
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/fft
+		#FILES_MATCHING PATTERN "libfftcuda.*")
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Correlations_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/correlations
+		#FILES_MATCHING PATTERN "libcorrelationscuda.*")
+
+
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkMath/obj/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math
+		FILES_MATCHING PATTERN "libvkmath.*")
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/vkMath/bin/Shaders/
+		DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/math/shaders
+		FILES_MATCHING PATTERN "*.spv")
+
+
+		#install(DIRECTORY ${PROJECT_SOURCE_DIR}/Histograms_vulkan/obj/
+		#DESTINATION ${PROJECT_SOURCE_DIR}/SignalProcessing/histograms
+		#FILES_MATCHING PATTERN "libhistogramscuda.*")
+endif($ENV{ENABLE_VULKAN})
 
 if($ENV{ENABLE_CUDA})
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/FFT_CUDA/obj/

@@ -16,10 +16,6 @@ void init_module(py::module &m)
 	m.def("gradient", &gradient2_py<float,double>, "x"_a, "dt"_a.noconvert());
 	m.def("gradient", &gradient2_py<float,long long int>, "x"_a, "dt"_a.noconvert());
 
-	//Rolling average
-	m.def("rolling_average",&rolling_average_py<double>, "in"_a,"size"_a);
-	m.def("rolling_average",&rolling_average_py<float>, "in"_a,"size"_a);
-
 	//Finite difference for any reasonable symmetrical stencil
 	m.def("finite_difference_coefficients",&finite_difference_coefficients_py<double>,"M"_a,"N"_a);
 	m.def("finite_difference_coefficients",&finite_difference_coefficients_py<float>,"M"_a,"N"_a);

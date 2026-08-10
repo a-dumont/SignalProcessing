@@ -6,3 +6,8 @@ import SignalProcessing.correlations as correlations
 import SignalProcessing.math as math
 import SignalProcessing.histograms as histograms
 import SignalProcessing.filters as filters
+
+try:
+    import SignalProcessing.vkCompute as vkCompute
+except:
+    pass

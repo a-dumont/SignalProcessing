@@ -20,9 +20,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/obj)
 
 # Compiler options
 if(CYGWIN)
-    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd -DMS_WIN64 -D_hypot=hypot)
+    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd -DMS_WIN64 -D_hypot=hypot -std=c++14)
 else()
-    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd)
+    add_compile_options(-Wall -O3 -march=native -MMD -MP -fopenmp -fopenmp-simd -std=c++14)
 endif()
 
 # Sources
@@ -38,6 +38,7 @@ if(CYGWIN)
 	set(Python_EXECUTABLE "/c/anaconda3/python")
 	target_link_libraries(filters -L/c/anaconda3/ -lpython310)
     target_link_libraries(filters -DMS_WIN64 -D_hypot=hypot)
+    target_link_libraries(filters -lfftw3_omp -lfftw3 -lfftw3f -lfftw3f_omp -lm)
     target_link_libraries(filters -fopenmp -fopenmp-simd)
 else()
     target_link_libraries(filters -lfftw3_omp -lfftw3 -lfftw3f -lfftw3f_omp -lm)
