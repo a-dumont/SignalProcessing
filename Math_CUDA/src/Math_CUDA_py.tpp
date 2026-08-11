@@ -334,6 +334,8 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 	);
 }
 
+/*
+
 template<class DataType>
 py::array_t<DataType,py::array::c_style> 
 matrix_sum_py(
@@ -717,3 +719,5 @@ py::array_t<std::complex<DataType>,py::array::c_style> py_in2)
 		free_when_done	
 	);
 }
+
+*/
