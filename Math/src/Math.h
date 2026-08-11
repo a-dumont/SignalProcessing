@@ -30,49 +30,49 @@ void nth_order_gradient(int n, DataType* x,
 				DataType2 dt, DataType* out, uint64_t M, uint64_t N, DataType* coeff);
 
 template<class DataType>
-void continuous_max(long long int* out, DataType* in, int n);
+void continuous_max(uint64_t n, DataType* in, uint64_t* out);
 
 template<class DataType>
-void continuous_min(long long int* out, DataType* in, int n);
+void continuous_min(uint64_t n, DataType* in, uint64_t* out);
 
 template<class DataType>
-DataType sum_pairwise(DataType* in, long int n);
+DataType sum_pairwise(uint64_t n, DataType* in);
 
 template<class DataType>
-DataType variance_pairwise(DataType* in, long int n);
+DataType variance_pairwise(uint64_t n, DataType* in);
 
 template<class DataType>
-DataType skewness_pairwise(DataType* in, long int n);
+DataType skewness_pairwise(uint64_t n, DataType* in);
 
 template<class DataType, class DataType2>
-void product(DataType* in1, DataType* in2, DataType2* out, int n);
+void product(uint64_t n, DataType* in1, DataType* in2, DataType2* out);
 
 template<class DataType, class DataType2>
-void sum(DataType* in1, DataType* in2, DataType2* out, int n);
+void sum(uint64_t n, DataType* in1, DataType* in2, DataType2* out);
 
 template<class DataType, class DataType2>
-void difference(DataType* in1, DataType* in2, DataType2* out, int n);
+void difference(uint64_t n, DataType* in1, DataType* in2, DataType2* out);
 
 template<class DataType, class DataType2>
-void division(DataType* in1, DataType* in2, DataType2* out, int n);
+void division(uint64_t n, DataType* in1, DataType* in2, DataType2* out);
 
 template<class DataType>
-DataType max(DataType* in, int n);
+DataType max(uint64_t n, DataType* in);
 
 template<class DataType>
-DataType min(DataType* in, int n);
+DataType min(uint64_t n, DataType* in);
 
 template<class DataTypeIn, class DataTypeOut>
-void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out);
+void block_max(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out);
 
 template<class DataTypeIn, class DataTypeOut>
-void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out);
+void block_min(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out);
 
 template<class DataTypeIn, class DataTypeOut>
-void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out);
+void block_min_max(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out);
 
 template<class DataTypeIn, class DataTypeOut>
-void block_variance(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out);
+void block_variance(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out);
 
 
 

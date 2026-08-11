@@ -139,60 +139,32 @@ void nth_order_gradient(uint64_t n, DataType* x,
 }
 
 template<class DataType>
-void continuous_max(long long int* out, DataType* in, int n)
+void continuous_max(uint64_t n, DataType* in, uint64_t* out)
 {
 	out[0] = 0;
-	for(long long int i=1;i<n;i++)
-	{
-		if(in[i] > in[out[i-1]])
-		{
-			out[i] = i;
-		}
-		else 
-		{
-			out[i] = out[i-1];	
-		}
-	}
+	for(uint64_t i=1;i<n;i++){if(in[i] > in[out[i-1]]){out[i] = i;}else{out[i] = out[i-1];}}
 }
 
 template<class DataType>
-void continuous_min(long long int* out, DataType* in, int n)
+void continuous_min(uint64_t n, DataType* in, uint64_t* out)
 {
 	out[0] = 0;
-	for(long long int i=1;i<n;i++)
-	{
-		if(in[i] < in[out[i-1]])
-		{
-			out[i] = i;
-		}
-		else 
-		{
-			out[i] = out[i-1];	
-		}
-	}
+	for(uint64_t i=1;i<n;i++){if(in[i]<in[out[i-1]]){out[i] = i;}else{out[i] = out[i-1];}}
 }
 
 template<class DataType>
-DataType sum_pairwise(DataType* in, long int n)
+DataType sum_pairwise(uint64_t n, DataType* in)
 {
 	if (n<=128)
 	{
-		if(n<8)
-		{
-			DataType res = 0;
-			for(int i=0;i<n;i++)
-			{
-				res += in[i];
-			}
-			return res;
-		}
+		if(n<8){DataType res = 0;for(uint64_t i=0;i<n;i++){res += in[i];}return res;}
 		else 
 		{
-			long int N = n-n%8;
+			uint64_t N = n-n%8;
 			DataType remainder = 0;
 			DataType out =  0;
 			DataType res[8] = {};
-			for(long int i=0;i<N;i+=8)
+			for(uint64_t i=0;i<N;i+=8)
 			{
 				res[0] += in[i];
 				res[1] += in[i+1];
@@ -209,15 +181,15 @@ DataType sum_pairwise(DataType* in, long int n)
 	}
 	else
 	{
-		long int N = n-n%128;
-		long int m = N/128;
+		uint64_t N = n-n%128;
+		uint64_t m = N/128;
 		DataType remainder = 0;
 		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
 		#pragma omp parallel for
-		for(long int j=0;j<m;j++)
+		for(uint64_t j=0;j<m;j++)
 		{
 			DataType res[8] = {};
-			for(long int i=0;i<128;i+=8)
+			for(uint64_t i=0;i<128;i+=8)
 			{
 				res[0] += in[128*j+i];
 				res[1] += in[128*j+i+1];
@@ -230,34 +202,31 @@ DataType sum_pairwise(DataType* in, long int n)
 			}
 			out[j] = std::accumulate(res,res+8,remainder);
 		}
-		DataType res = sum_pairwise<DataType>(out,m)+std::accumulate(in+N,in+n,remainder);
+		DataType res = sum_pairwise<DataType>(m,out)+std::accumulate(in+N,in+n,remainder);
 		free(out);
 		return res;
 	}
 }
 
 template<class DataType>
-DataType variance_pairwise(DataType* in, long int n)
+DataType variance_pairwise(uint64_t n, DataType* in)
 {
-	DataType _mean = sum_pairwise(in,n)/n;
+	DataType _mean = sum_pairwise(n,in)/n;
 	if (n<=128)
 	{
 		if(n<8)
 		{
 			DataType var = 0.0;
-			for(int i=0;i<n;i++)
-			{
-				var += (in[i])*(in[i]);
-			}
+			for(uint64_t i=0;i<n;i++){var += (in[i])*(in[i]);}
 			return var/n-_mean*_mean;
 		}
 		else 
 		{
-			long int N = n-n%8;
+			uint64_t N = n-n%8;
 			DataType remainder = 0.0;
 			DataType out =  0.0;
 			DataType res[8] = {};
-			for(long int i=0;i<N;i+=8)
+			for(uint64_t i=0;i<N;i+=8)
 			{
 				res[0] += (in[i])*(in[i]);
 				res[1] += (in[i+1])*(in[i+1]);
@@ -269,7 +238,7 @@ DataType variance_pairwise(DataType* in, long int n)
 				res[7] += (in[i+7])*(in[i+7]);
 			}
 			out = std::accumulate(res,res+8,remainder);
-			for(int i=N;i<n;i++)
+			for(uint64_t i=N;i<n;i++)
 			{
 				remainder += (in[i])*(in[i]);
 			}
@@ -278,15 +247,15 @@ DataType variance_pairwise(DataType* in, long int n)
 	}
 	else
 	{
-		long int N = n-n%128;
-		long int m = N/128;
+		uint64_t N = n-n%128;
+		uint64_t m = N/128;
 		DataType remainder = 0.0;
 		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
 		#pragma omp parallel for
-		for(long int j=0;j<m;j++)
+		for(uint64_t j=0;j<m;j++)
 		{
 			DataType res[8] = {};
-			for(long int i=0;i<128;i+=8)
+			for(uint64_t i=0;i<128;i+=8)
 			{
 				res[0] += (in[128*j+i])*(in[128*j+i]);
 				res[1] += (in[128*j+i+1])*(in[128*j+i+1]);
@@ -299,26 +268,26 @@ DataType variance_pairwise(DataType* in, long int n)
 			}
 			out[j] = std::accumulate(res,res+8,remainder);
 		}
-		for(int i=N;i<n;i++)
+		for(uint64_t i=N;i<n;i++)
 		{
 			remainder += (in[i])*(in[i]);
 		}
-		DataType res = sum_pairwise<DataType>(out,m)+remainder;
+		DataType res = sum_pairwise<DataType>(m,out)+remainder;
 		free(out);
 		return res/n-_mean*_mean;
 	}
 }
 
 template<class DataType>
-DataType skewness_pairwise(DataType* in, long int n)
+DataType skewness_pairwise(uint64_t n, DataType* in)
 {
-	DataType _mean = sum_pairwise(in,n)/n;
+	DataType _mean = sum_pairwise(n,in)/n;
 	if (n<=128)
 	{
 		if(n<8)
 		{
 			DataType skew = 0.0;
-			for(int i=0;i<n;i++)
+			for(uint64_t i=0;i<n;i++)
 			{
 				skew += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
 			}
@@ -326,11 +295,11 @@ DataType skewness_pairwise(DataType* in, long int n)
 		}
 		else 
 		{
-			long int N = n-n%8;
+			uint64_t N = n-n%8;
 			DataType remainder = 0.0;
 			DataType out =  0.0;
 			DataType res[8] = {};
-			for(long int i=0;i<N;i+=8)
+			for(uint64_t i=0;i<N;i+=8)
 			{
 				res[0] += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
 				res[1] += (in[i+1]-_mean)*(in[i+1]-_mean)*(in[i+1]-_mean);
@@ -342,7 +311,7 @@ DataType skewness_pairwise(DataType* in, long int n)
 				res[7] += (in[i+7]-_mean)*(in[i+7]-_mean)*(in[i+7]-_mean);
 			}
 			out = std::accumulate(res,res+8,remainder);
-			for(int i=N;i<n;i++)
+			for(uint64_t i=N;i<n;i++)
 			{
 				remainder += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
 			}
@@ -351,15 +320,15 @@ DataType skewness_pairwise(DataType* in, long int n)
 	}
 	else
 	{
-		long int N = n-n%128;
-		long int m = N/128;
+		uint64_t N = n-n%128;
+		uint64_t m = N/128;
 		DataType remainder = 0.0;
 		DataType* out = (DataType*) malloc(sizeof(DataType)*m);
 		#pragma omp parallel for
-		for(long int j=0;j<m;j++)
+		for(uint64_t j=0;j<m;j++)
 		{
 			DataType res[8] = {};
-			for(long int i=0;i<128;i+=8)
+			for(uint64_t i=0;i<128;i+=8)
 			{
 				res[0] += (in[128*j+i]-_mean)*(in[128*j+i]-_mean)*(in[128*j+i]-_mean);
 				res[1] += (in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean)*(in[128*j+i+1]-_mean);
@@ -372,84 +341,68 @@ DataType skewness_pairwise(DataType* in, long int n)
 			}
 			out[j] = std::accumulate(res,res+8,remainder);
 		}
-		for(int i=N;i<n;i++)
+		for(uint64_t i=N;i<n;i++)
 		{
 			remainder += (in[i]-_mean)*(in[i]-_mean)*(in[i]-_mean);
 		}
-		DataType res = sum_pairwise<DataType>(out,m)+remainder;
+		DataType res = sum_pairwise<DataType>(m,out)+remainder;
 		free(out);
 		return res/n;
 	}
 }
 
 template<class DataType, class DataType2>
-void product(DataType* in1, DataType* in2, DataType2* out, int n)
+void product(uint64_t n, DataType* in1, DataType* in2, DataType2* out)
 {
 	#pragma omp parallel for
-	for(int i=0;i<n;i++)
-	{
-		out[i] = in1[i]*in2[i];
-	}
+	for(uint64_t i=0;i<n;i++){out[i] = in1[i]*in2[i];}
 }
 
 template<class DataType, class DataType2>
-void sum(DataType* in1, DataType* in2, DataType2* out, int n)
+void sum(uint64_t n, DataType* in1, DataType* in2, DataType2* out)
 {
 	#pragma omp parallel for
-	for(int i=0;i<n;i++)
-	{
-		out[i] = in1[i]+in2[i];
-	}
+	for(uint64_t i=0;i<n;i++){out[i] = in1[i]+in2[i];}
 }
 
 template<class DataType, class DataType2>
-void difference(DataType* in1, DataType* in2, DataType2* out, int n)
+void difference(uint64_t n, DataType* in1, DataType* in2, DataType2* out)
 {
 	#pragma omp parallel for
-	for(int i=0;i<n;i++)
-	{
-		out[i] = in1[i]-in2[i];
-	}
+	for(uint64_t i=0;i<n;i++){out[i] = in1[i]-in2[i];}
 }
 
 template<class DataType, class DataType2>
-void division(DataType* in1, DataType* in2, DataType2* out, int n)
+void division(uint64_t n, DataType* in1, DataType* in2, DataType2* out)
 {
 	#pragma omp parallel for
-	for(int i=0;i<n;i++)
-	{
-		out[i] = in1[i]/in2[i];
-	}
+	for(uint64_t i=0;i<n;i++){out[i] = in1[i]/in2[i];}
 }
 
 template<class DataType>
-DataType max(DataType* in, int n)
+DataType max(uint64_t n, DataType* in)
 {
 	DataType _max = in[0];
 	#pragma omp parallel for default(shared) reduction(max:_max)
-	for(int i=1;i<n;i++)
-	{
-		_max = _max > in[i] ? _max : in[i];
-	}
+	for(uint64_t i=1;i<n;i++){_max = _max > in[i] ? _max : in[i];}
+	
 	return _max;
 }
 
 template<class DataType>
-DataType min(DataType* in, int n)
+DataType min(uint64_t n, DataType* in)
 {
 	DataType _min = in[0];
 	#pragma omp parallel for default(shared) reduction(min:_min)
-	for(int i=1;i<n;i++)
-	{
-		_min = _min < in[i] ? _min : in[i];
-	}
+	for(uint64_t i=1;i<n;i++){_min = _min < in[i] ? _min : in[i];}
+	
 	return _min;
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
+void block_max(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
-	int N_t;
+	uint64_t N_t;
 	
 	#ifdef _WIN32_WINNT
     	uint64_t nbgroups = GetActiveProcessorGroupCount();
@@ -458,14 +411,14 @@ void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
         N_t = omp_get_max_threads();
 	#endif
 	
-	int64_t N_chunks = N/N_t;
-	int64_t n = N_chunks/block_size;
+	uint64_t N_chunks = N/N_t;
+	uint64_t n = N_chunks/block_size;
 	
 	#pragma omp parallel for num_threads(N_t)
-	for(int i = 0; i < N_t; i++)
+	for(uint64_t i = 0; i < N_t; i++)
 	{
 		manage_thread_affinity();
-		for(int j = 0; j < n; j++)
+		for(uint64_t j = 0; j < n; j++)
 		{
 			out[i*n+j] = (DataTypeOut) *std::max_element(in+i*n+j*block_size,in+i*n+(j+1)*block_size);
 		}
@@ -473,9 +426,9 @@ void block_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
+void block_min(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
-	int N_t;
+	uint64_t N_t;
 	
 	#ifdef _WIN32_WINNT
     	uint64_t nbgroups = GetActiveProcessorGroupCount();
@@ -484,14 +437,14 @@ void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
         N_t = omp_get_max_threads();
 	#endif
 	
-	int64_t N_chunks = N/N_t;
-	int64_t n = N_chunks/block_size;
+	uint64_t N_chunks = N/N_t;
+	uint64_t n = N_chunks/block_size;
 	
 	#pragma omp parallel for num_threads(N_t)
-	for(int i = 0; i < N_t; i++)
+	for(uint64_t i = 0; i < N_t; i++)
 	{
 		manage_thread_affinity();
-		for(int j = 0; j < n; j++)
+		for(uint64_t j = 0; j < n; j++)
 		{
 			out[i*n+j] = (DataTypeOut) *std::min_element(in+i*n+j*block_size,in+i*n+(j+1)*block_size);
 		}
@@ -499,12 +452,12 @@ void block_min(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
+void block_min_max(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
-	int64_t n = N/block_size;
+	uint64_t n = N/block_size;
 		
 	#pragma omp parallel for
-	for(int i = 0; i < n; i++)
+	for(uint64_t i = 0; i < n; i++)
 	{
 		out[i] = (DataTypeOut) *std::min_element(in+i*block_size,in+(i+1)*block_size);
 		out[i+N] = (DataTypeOut) *std::max_element(in+i*block_size,in+(i+1)*block_size);
@@ -512,9 +465,9 @@ void block_min_max(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* o
 }
 
 template<class DataTypeIn, class DataTypeOut>
-void block_variance(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* out)
+void block_variance(uint64_t N, uint64_t block_size, DataTypeIn* in, DataTypeOut* out)
 {
-	int N_t;
+	uint64_t N_t;
 	
 	#ifdef _WIN32_WINNT
     	uint64_t nbgroups = GetActiveProcessorGroupCount();
@@ -523,14 +476,14 @@ void block_variance(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* 
         N_t = omp_get_max_threads();
 	#endif
 	
-	int64_t N_chunks = N/N_t;
-	int64_t n = N_chunks/block_size;
+	uint64_t N_chunks = N/N_t;
+	uint64_t n = N_chunks/block_size;
 	
 	#pragma omp parallel for num_threads(N_t)
-	for(int i = 0; i < N_t; i++)
+	for(uint64_t i = 0; i < N_t; i++)
 	{
 		manage_thread_affinity();
-		for(int j = 0; j < n; j++)
+		for(uint64_t j = 0; j < n; j++)
 		{
 			out[i*n+j] = (DataTypeOut) variance_pairwise(in+i*n+j*block_size,block_size);
 		}
@@ -540,16 +493,16 @@ void block_variance(int64_t N, int64_t block_size, DataTypeIn* in, DataTypeOut* 
 class DigitizerBlockMax
 {
 	protected:
-		int64_t N, max_size, min_size, n_max, n_min, resolution;
-		int64_t hist_size = 0;
+		uint64_t N, max_size, min_size, n_max, n_min, resolution;
+		uint64_t hist_size = 0;
 		uint64_t* buffer;
 		uint64_t* buffer2;
 		uint64_t* max_hists;
-		int64_t count = 0;
+		uint64_t count = 0;
 	
 	public:
-		DigitizerBlockMax(int64_t N_in, int64_t min_size_in, 
-						int64_t max_size_in, int64_t resolution_in)
+		DigitizerBlockMax(uint64_t N_in, uint64_t min_size_in, 
+						uint64_t max_size_in, uint64_t resolution_in)
 		{
 			if (max_size_in%2 != 0 )
 			{
@@ -565,7 +518,7 @@ class DigitizerBlockMax
 			min_size = min_size_in;
 			n_max = N_in/min_size_in;
 			n_min = N_in/max_size_in;
-			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
+			hist_size = (uint64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
 			buffer = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
 			buffer2 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
 			max_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
@@ -584,7 +537,7 @@ class DigitizerBlockMax
 		{
 			block_max<DataType,uint64_t>(N,min_size,in,buffer);
 			//#pragma omp parallel for reduction(+:max_hists[:1<<resolution])
-			for(int64_t i=0;i<n_max;i++)
+			for(uint64_t i=0;i<n_max;i++)
 			{
 				max_hists[buffer[i]] += 1;
 			}
@@ -592,14 +545,14 @@ class DigitizerBlockMax
 			count += 1;
 		}
 		
-		void recursion(int64_t N_in, int64_t block_size, uint64_t* out, 
+		void recursion(uint64_t N_in, uint64_t block_size, uint64_t* out, 
 						uint64_t* buf_in, uint64_t* buf_out)
 		{
 			if(block_size < max_size)
 			{
 				block_max(N_in,2,buf_in,buf_out);
 				//#pragma omp parallel for reduction(+:out[:1<<resolution])
-				for(int64_t i=0;i<(N_in/2);i++)
+				for(uint64_t i=0;i<(N_in/2);i++)
 				{
 					out[buf_out[i]] += 1;
 				}
@@ -609,7 +562,7 @@ class DigitizerBlockMax
 			{
 				//out[std::max(buf_in[0],buf_in[1])] += 1;
 				block_max(N_in,2,buf_in,buf_out);
-				for(int64_t i=0;i<(N_in/2);i++)
+				for(uint64_t i=0;i<(N_in/2);i++)
 				{
 					out[buf_out[i]] += 1;
 				}
@@ -617,11 +570,11 @@ class DigitizerBlockMax
 		}
 		
 		uint64_t* get_max_hists(){return max_hists;}
-		int64_t get_resolution(){return resolution;}
-		int64_t get_N(){return N;}
-		int64_t get_min_size(){return min_size;}
-		int64_t get_max_size(){return max_size;}
-		int64_t get_count(){return count;}
+		uint64_t get_resolution(){return resolution;}
+		uint64_t get_N(){return N;}
+		uint64_t get_min_size(){return min_size;}
+		uint64_t get_max_size(){return max_size;}
+		uint64_t get_count(){return count;}
 		void clear()
 		{
 			std::memset(max_hists,0,sizeof(uint64_t)*hist_size);
@@ -634,16 +587,16 @@ class DigitizerBlockMax
 class DigitizerBlockMin
 {
 	protected:
-		int64_t N, max_size, min_size, n_max, n_min, resolution;
-		int64_t hist_size = 0;
+		uint64_t N, max_size, min_size, n_max, n_min, resolution;
+		uint64_t hist_size = 0;
 		uint64_t* buffer;
 		uint64_t* buffer2;
 		uint64_t* min_hists;
-		int64_t count = 0;
+		uint64_t count = 0;
 	
 	public:
-		DigitizerBlockMin(int64_t N_in, int64_t min_size_in, 
-						int64_t max_size_in, int64_t resolution_in)
+		DigitizerBlockMin(uint64_t N_in, uint64_t min_size_in, 
+						uint64_t max_size_in, uint64_t resolution_in)
 		{
 			if (max_size_in%2 != 0 )
 			{
@@ -659,7 +612,7 @@ class DigitizerBlockMin
 			min_size = min_size_in;
 			n_max = N_in/min_size_in;
 			n_min = N_in/max_size_in;
-			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
+			hist_size = (uint64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
 			buffer = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
 			buffer2 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
 			min_hists = (uint64_t*) malloc(sizeof(uint64_t)*hist_size);
@@ -678,7 +631,7 @@ class DigitizerBlockMin
 		{
 			block_min<DataType,uint64_t>(N,min_size,in,buffer);
 			//#pragma omp parallel for reduction(+:max_hists[:1<<resolution])
-			for(int64_t i=0;i<n_max;i++)
+			for(uint64_t i=0;i<n_max;i++)
 			{
 				min_hists[buffer[i]] += 1;
 			}
@@ -686,14 +639,14 @@ class DigitizerBlockMin
 			count += 1;
 		}
 		
-		void recursion(int64_t N_in, int64_t block_size, uint64_t* out, 
+		void recursion(uint64_t N_in, uint64_t block_size, uint64_t* out, 
 						uint64_t* buf_in, uint64_t* buf_out)
 		{
 			if(block_size < max_size)
 			{
 				block_min(N_in,2,buf_in,buf_out);
 				//#pragma omp parallel for reduction(+:out[:1<<resolution])
-				for(int64_t i=0;i<(N_in/2);i++)
+				for(uint64_t i=0;i<(N_in/2);i++)
 				{
 					out[buf_out[i]] += 1;
 				}
@@ -703,7 +656,7 @@ class DigitizerBlockMin
 			{
 				//out[std::min(buf_in[0],buf_in[1])] += 1;
 				block_min(N_in,2,buf_in,buf_out);
-				for(int64_t i=0;i<(N_in/2);i++)
+				for(uint64_t i=0;i<(N_in/2);i++)
 				{
 					out[buf_out[i]] += 1;
 				}
@@ -711,11 +664,11 @@ class DigitizerBlockMin
 		}
 		
 		uint64_t* get_min_hists(){return min_hists;}
-		int64_t get_resolution(){return resolution;}
-		int64_t get_N(){return N;}
-		int64_t get_min_size(){return min_size;}
-		int64_t get_max_size(){return max_size;}
-		int64_t get_count(){return count;}
+		uint64_t get_resolution(){return resolution;}
+		uint64_t get_N(){return N;}
+		uint64_t get_min_size(){return min_size;}
+		uint64_t get_max_size(){return max_size;}
+		uint64_t get_count(){return count;}
 		void clear()
 		{
 			std::memset(min_hists,0,sizeof(uint64_t)*hist_size);
@@ -728,19 +681,19 @@ class DigitizerBlockMin
 class DigitizerBlockMinMax
 {
 	protected:
-		int64_t N, max_size, min_size, n_max, n_min, resolution;
-		int64_t hist_size = 0;
+		uint64_t N, max_size, min_size, n_max, n_min, resolution;
+		uint64_t hist_size = 0;
 		uint64_t* buffer;
 		uint64_t* buffer2;
 		uint64_t* buffer3;
 		uint64_t* buffer4;
 		uint64_t* min_hists;
 		uint64_t* max_hists;
-		int64_t count = 0;
+		uint64_t count = 0;
 	
 	public:
-		DigitizerBlockMinMax(int64_t N_in, int64_t min_size_in, 
-						int64_t max_size_in, int64_t resolution_in)
+		DigitizerBlockMinMax(uint64_t N_in, uint64_t min_size_in, 
+						uint64_t max_size_in, uint64_t resolution_in)
 		{
 			if (max_size_in%2 != 0 )
 			{
@@ -756,7 +709,7 @@ class DigitizerBlockMinMax
 			min_size = min_size_in;
 			n_max = N_in/min_size_in;
 			n_min = N_in/max_size_in;
-			hist_size = (int64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
+			hist_size = (uint64_t) (log2(n_max/n_min)+1)*(1<<resolution_in);
 			buffer = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
 			buffer2 = (uint64_t*) malloc(sizeof(uint64_t)*n_max/2);
 			buffer3 = (uint64_t*) malloc(sizeof(uint64_t)*n_max);
@@ -783,7 +736,7 @@ class DigitizerBlockMinMax
 			block_min<DataType,uint64_t>(N,min_size,in,buffer);
 			block_max<DataType,uint64_t>(N,min_size,in,buffer3);
 			//#pragma omp parallel for reduction(+:max_hists[:1<<resolution])
-			for(int64_t i=0;i<n_max;i++)
+			for(uint64_t i=0;i<n_max;i++)
 			{
 				min_hists[buffer[i]] += 1;
 				max_hists[buffer3[i]] += 1;
@@ -793,7 +746,7 @@ class DigitizerBlockMinMax
 			count += 1;
 		}
 		
-		void recursion(int64_t N_in, int64_t block_size, uint64_t* out_min, uint64_t* out_max, 
+		void recursion(uint64_t N_in, uint64_t block_size, uint64_t* out_min, uint64_t* out_max, 
 						uint64_t* buf_in_min, uint64_t* buf_out_min, uint64_t* buf_in_max, 
 						uint64_t* buf_out_max)
 		{
@@ -802,7 +755,7 @@ class DigitizerBlockMinMax
 				block_min(N_in,2,buf_in_min,buf_out_min);
 				block_max(N_in,2,buf_in_max,buf_out_max);
 				//#pragma omp parallel for reduction(+:out[:1<<resolution])
-				for(int64_t i=0;i<(N_in/2);i++)
+				for(uint64_t i=0;i<(N_in/2);i++)
 				{
 					out_min[buf_out_min[i]] += 1;
 					out_max[buf_out_max[i]] += 1;
@@ -816,7 +769,7 @@ class DigitizerBlockMinMax
 				//out_max[std::max(buf_in_max[0],buf_in_max[1])] += 1;
 				block_min(N_in,2,buf_in_min,buf_out_min);
 				block_max(N_in,2,buf_in_max,buf_out_max);
-				for(int64_t i=0;i<(N_in/2);i++)
+				for(uint64_t i=0;i<(N_in/2);i++)
 				{
 					out_min[buf_out_min[i]] += 1;
 					out_max[buf_out_max[i]] += 1;
@@ -826,11 +779,11 @@ class DigitizerBlockMinMax
 		
 		uint64_t* get_min_hists(){return min_hists;}
 		uint64_t* get_max_hists(){return min_hists;}
-		int64_t get_resolution(){return resolution;}
-		int64_t get_N(){return N;}
-		int64_t get_min_size(){return min_size;}
-		int64_t get_max_size(){return max_size;}
-		int64_t get_count(){return count;}
+		uint64_t get_resolution(){return resolution;}
+		uint64_t get_N(){return N;}
+		uint64_t get_min_size(){return min_size;}
+		uint64_t get_max_size(){return max_size;}
+		uint64_t get_count(){return count;}
 		void clear()
 		{
 			std::memset(min_hists,0,sizeof(uint64_t)*hist_size);

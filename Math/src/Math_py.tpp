@@ -134,69 +134,67 @@ py::array_t<Datatype, py::array::c_style> nth_order_gradient_py(
 		free(coeff);
 
 		return result;
-		/*
-		py::capsule free_when_done(out, free);
-		return py::array_t<Datatype, py::array::c_style>(
-			{ n - N - N },
-			{ sizeof(Datatype) },
-			out,
-			free_when_done);
-		*/
 }
 
 template <class Datatype>
-np_int continuous_max_py(py::array_t<Datatype, py::array::c_style> py_in)
+np_uint64 continuous_max_py(py::array_t<Datatype, py::array::c_style> py_in)
 {
-		if (py_in.request().ndim != 1) {
-				throw std::runtime_error("U dumbdumb dimension must be 1.");
-		}
-		long long int* out = (long long int*)malloc(py_in.request().size * sizeof(long long int));
-		continuous_max(out, (Datatype*)py_in.request().ptr, py_in.request().size);
-		py::capsule free_when_done(out, free);
-		return py::array_t<long long int, py::array::c_style>(
-			{ py_in.request().size },
-			{ sizeof(long long int) },
-			out,
-			free_when_done);
+		// get buffer from python
+		py::buffer_info buf_in = py_in.request();
+		
+		// Check array is 1D
+		if (buf_in.ndim != 1) {throw std::runtime_error("U dumbdumb dimension must be 1.");}
+
+		// Create output array and get pointer
+		py::array_t<uint64_t, py::array::c_style> result(buf_in.shape);
+		uint64_t* out = (uint64_t*) result.request().ptr;
+
+		// Compute
+		continuous_max(buf_in.size, (Datatype*) buf_in.ptr, out);
+
+		return result;
 }
 
 template <class Datatype>
-np_int continuous_min_py(py::array_t<Datatype, py::array::c_style> py_in)
+np_uint64 continuous_min_py(py::array_t<Datatype, py::array::c_style> py_in)
 {
-		if (py_in.request().ndim != 1) {
-				throw std::runtime_error("U dumbdumb dimension must be 1.");
-		}
-		long long int* out = (long long int*)malloc(py_in.request().size * sizeof(long long int));
-		continuous_min(out, (Datatype*)py_in.request().ptr, py_in.request().size);
-		py::capsule free_when_done(out, free);
-		return py::array_t<long long int, py::array::c_style>(
-			{ py_in.request().size },
-			{ sizeof(long long int) },
-			out,
-			free_when_done);
+		// get buffer from python
+		py::buffer_info buf_in = py_in.request();
+		
+		// Check array is 1D
+		if (buf_in.ndim != 1) {throw std::runtime_error("U dumbdumb dimension must be 1.");}
+
+		// Create output array and get pointer
+		py::array_t<uint64_t, py::array::c_style> result(buf_in.shape);
+		uint64_t* out = (uint64_t*) result.request().ptr;
+		
+		// Compute
+		continuous_min(buf_in.size, (Datatype*) buf_in.ptr, out);
+		
+		return result;
 }
 
 template <class Datatype>
 Datatype sum_py(py::array_t<Datatype, py::array::c_style>& py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		long int n = buf1.size;
-		Datatype* in = (Datatype*)buf1.ptr;
-		return sum_pairwise(in, n);
+		uint64_t n = buf1.size;
+		Datatype* in = (Datatype*) buf1.ptr;
+		return sum_pairwise(n,in);
 }
 
 template <class Datatype>
 double mean_py(py::array_t<Datatype, py::array::c_style> py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		return (double)sum_pairwise((Datatype*)buf1.ptr, buf1.size) / buf1.size;
+		return (double) sum_pairwise(buf1.size, (Datatype*) buf1.ptr) / buf1.size;
 }
 
 template <class Datatype>
 Datatype mean_complex_py(py::array_t<Datatype, py::array::c_style> py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		Datatype res = sum_pairwise((Datatype*)buf1.ptr, buf1.size);
+		Datatype res = sum_pairwise(buf1.size, (Datatype*) buf1.ptr);
 		return Datatype(std::real(res) / buf1.size, std::imag(res) / buf1.size);
 }
 
@@ -204,38 +202,43 @@ template <class Datatype>
 Datatype variance_py(py::array_t<Datatype, py::array::c_style> py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		Datatype* ptr = (Datatype*)buf1.ptr;
-		return variance_pairwise(ptr, buf1.size);
+		Datatype* ptr = (Datatype*) buf1.ptr;
+		return variance_pairwise(buf1.size, ptr);
 }
 
 template <class Datatype>
 Datatype skewness_py(py::array_t<Datatype, py::array::c_style> py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		return skewness_pairwise((Datatype*)buf1.ptr, buf1.size);
+		return skewness_pairwise(buf1.size, (Datatype*) buf1.ptr);
 }
 
 template <class Datatype>
 Datatype max_py(py::array_t<Datatype, py::array::c_style> py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		Datatype* ptr = (Datatype*)buf1.ptr;
-		return max(ptr, buf1.size);
+		Datatype* ptr = (Datatype*) buf1.ptr;
+		return max(buf1.size, ptr);
 }
 
 template <class Datatype>
 Datatype min_py(py::array_t<Datatype, py::array::c_style> py_in1)
 {
 		py::buffer_info buf1 = py_in1.request();
-		Datatype* ptr = (Datatype*)buf1.ptr;
-		return min(ptr, buf1.size);
+		Datatype* ptr = (Datatype*) buf1.ptr;
+		return min(buf1.size, ptr);
 }
 
 template <class Datatype, class Datatype2>
-py::array_t<Datatype, py::array::c_style> product_py(py::array_t<Datatype, py::array::c_style> py_in1, py::array_t<Datatype2, py::array::c_style> py_in2)
+py::array_t<Datatype, py::array::c_style> 
+product_py(py::array_t<Datatype, py::array::c_style> py_in1, 
+py::array_t<Datatype2, py::array::c_style> py_in2)
 {
+		// Get buffers from python
 		py::buffer_info buf1 = py_in1.request();
 		py::buffer_info buf2 = py_in2.request();
+
+		// Check dimensions and size
 		if (buf1.ndim != buf2.ndim) {
 				throw std::runtime_error("U dumbdumb dimension must be same.");
 		}
@@ -243,22 +246,80 @@ py::array_t<Datatype, py::array::c_style> product_py(py::array_t<Datatype, py::a
 				throw std::runtime_error("U dumbdumb size must be same.");
 		}
 
-		Datatype* out = (Datatype*)malloc(sizeof(Datatype) * buf1.size);
-		product((Datatype*)buf1.ptr, (Datatype2*)buf2.ptr, out, buf1.size);
+		// Create output array and get pointer
+		py::array_t<Datatype, py::array::c_style> result(buf1.shape);
+		Datatype* out = (Datatype*) result.request().ptr;
+		
+		// Compute
+		product(buf1.size, (Datatype*) buf1.ptr, (Datatype2*) buf2.ptr, out);
 
-		py::capsule free_when_done(out, free);
-		return py::array_t<Datatype, py::array::c_style>(
-			buf1.shape,
-			buf1.strides,
-			out,
-			free_when_done);
+		return result;
 }
 
 template <class Datatype, class Datatype2>
-py::array_t<Datatype, py::array::c_style> sum_py(py::array_t<Datatype, py::array::c_style> py_in1, py::array_t<Datatype2, py::array::c_style> py_in2)
+py::array_t<Datatype, py::array::c_style> 
+sum_py(py::array_t<Datatype, py::array::c_style> py_in1, 
+py::array_t<Datatype2, py::array::c_style> py_in2)
 {
+		// Get buffers from python
 		py::buffer_info buf1 = py_in1.request();
 		py::buffer_info buf2 = py_in2.request();
+
+		// Check dimensions
+		if (buf1.ndim != buf2.ndim) {
+				throw std::runtime_error("U dumbdumb dimension must be same.");
+		}
+		if (buf1.size != buf2.size) {
+				throw std::runtime_error("U dumbdumb size must be same.");
+		}
+		
+		// Create output array and get pointer
+		py::array_t<Datatype, py::array::c_style> result(buf1.shape);
+		Datatype* out = (Datatype*) result.request().ptr;
+	
+		// Compute	
+		sum(buf1.size, (Datatype*) buf1.ptr, (Datatype2*) buf2.ptr, out);
+
+		return result;
+}
+
+template <class Datatype, class Datatype2>
+py::array_t<Datatype, py::array::c_style> 
+difference_py(py::array_t<Datatype, py::array::c_style> py_in1, 
+py::array_t<Datatype2, py::array::c_style> py_in2)
+{
+		// Get buffers from python
+		py::buffer_info buf1 = py_in1.request();
+		py::buffer_info buf2 = py_in2.request();
+
+		// Check dimensions
+		if (buf1.ndim != buf2.ndim) {
+				throw std::runtime_error("U dumbdumb dimension must be same.");
+		}
+		if (buf1.size != buf2.size) {
+				throw std::runtime_error("U dumbdumb size must be same.");
+		}
+		
+		// Create output array and get pointer
+		py::array_t<Datatype, py::array::c_style> result(buf1.shape);
+		Datatype* out = (Datatype*) result.request().ptr;
+		
+		// Compute
+		difference(buf1.size, (Datatype*) buf1.ptr, (Datatype*) buf2.ptr, out);
+
+		return result;
+}
+
+template <class Datatype, class Datatype2>
+py::array_t<Datatype, py::array::c_style> 
+division_py(py::array_t<Datatype, py::array::c_style> py_in1, 
+py::array_t<Datatype2, py::array::c_style> py_in2)
+{
+		// Get buffers from python
+		py::buffer_info buf1 = py_in1.request();
+		py::buffer_info buf2 = py_in2.request();
+
+		// Check dimensions
 		if (buf1.ndim != buf2.ndim) {
 				throw std::runtime_error("U dumbdumb dimension must be same.");
 		}
@@ -266,68 +327,21 @@ py::array_t<Datatype, py::array::c_style> sum_py(py::array_t<Datatype, py::array
 				throw std::runtime_error("U dumbdumb size must be same.");
 		}
 
-		Datatype* out = (Datatype*)malloc(sizeof(Datatype) * buf1.size);
-		sum((Datatype*)buf1.ptr, (Datatype2*)buf2.ptr, out, buf1.size);
+		// Create output array and get pointer
+		py::array_t<Datatype, py::array::c_style> result(buf1.shape);
+		Datatype* out = (Datatype*) result.request().ptr;
+		
+		// Compute
+		division(buf1.size, (Datatype*) buf1.ptr, (Datatype2*) buf2.ptr, out);
 
-		py::capsule free_when_done(out, free);
-		return py::array_t<Datatype, py::array::c_style>(
-			buf1.shape,
-			buf1.strides,
-			out,
-			free_when_done);
-}
-
-template <class Datatype, class Datatype2>
-py::array_t<Datatype, py::array::c_style> difference_py(py::array_t<Datatype, py::array::c_style> py_in1, py::array_t<Datatype2, py::array::c_style> py_in2)
-{
-		py::buffer_info buf1 = py_in1.request();
-		py::buffer_info buf2 = py_in2.request();
-		if (buf1.ndim != buf2.ndim) {
-				throw std::runtime_error("U dumbdumb dimension must be same.");
-		}
-		if (buf1.size != buf2.size) {
-				throw std::runtime_error("U dumbdumb size must be same.");
-		}
-
-		Datatype* out = (Datatype*)malloc(sizeof(Datatype) * buf1.size);
-		difference((Datatype*)buf1.ptr, (Datatype*)buf2.ptr, out, buf1.size);
-
-		py::capsule free_when_done(out, free);
-		return py::array_t<Datatype, py::array::c_style>(
-			buf1.shape,
-			buf1.strides,
-			out,
-			free_when_done);
-}
-
-template <class Datatype, class Datatype2>
-py::array_t<Datatype, py::array::c_style> division_py(py::array_t<Datatype, py::array::c_style> py_in1, py::array_t<Datatype2, py::array::c_style> py_in2)
-{
-		py::buffer_info buf1 = py_in1.request();
-		py::buffer_info buf2 = py_in2.request();
-		if (buf1.ndim != buf2.ndim) {
-				throw std::runtime_error("U dumbdumb dimension must be same.");
-		}
-		if (buf1.size != buf2.size) {
-				throw std::runtime_error("U dumbdumb size must be same.");
-		}
-
-		Datatype* out = (Datatype*)malloc(sizeof(Datatype) * buf1.size);
-		division((Datatype*)buf1.ptr, (Datatype2*)buf2.ptr, out, buf1.size);
-
-		py::capsule free_when_done(out, free);
-		return py::array_t<Datatype, py::array::c_style>(
-			buf1.shape,
-			buf1.strides,
-			out,
-			free_when_done);
+		return result;
 }
 
 class DigitizerBlockMaxPy : public DigitizerBlockMax {
 	private:
 	public:
-		DigitizerBlockMaxPy(int64_t N_in, int64_t min_size_in,
-			int64_t max_size_in, int64_t resolution_in)
+		DigitizerBlockMaxPy(uint64_t N_in, uint64_t min_size_in,
+			uint64_t max_size_in, uint64_t resolution_in)
 			: DigitizerBlockMax(N_in, min_size_in, max_size_in, resolution_in)
 		{
 		}
@@ -342,11 +356,12 @@ class DigitizerBlockMaxPy : public DigitizerBlockMax {
 		py::array_t<uint64_t, py::array::c_style> get_max_hists_py()
 		{
 				uint64_t* out = (uint64_t*)malloc(sizeof(uint64_t) * hist_size);
-#pragma omp parallel for
-				for (int64_t i = 0; i < hist_size; i++) {
+				#pragma omp parallel for
+				for (uint64_t i = 0; i < hist_size; i++) {
 						out[i] = max_hists[i];
 				}
-				std::vector<int64_t> out_size = { (int64_t)(log2(n_max / n_min) + 1), 1 << resolution };
+				std::vector<uint64_t> out_size = 
+				{ (uint64_t)(log2(n_max / n_min) + 1), (uint64_t) (1<<resolution) };
 				py::capsule free_when_done(out, free);
 				return py::array_t<uint64_t, py::array::c_style>(
 					out_size,
@@ -359,8 +374,8 @@ class DigitizerBlockMaxPy : public DigitizerBlockMax {
 class DigitizerBlockMinPy : public DigitizerBlockMin {
 	private:
 	public:
-		DigitizerBlockMinPy(int64_t N_in, int64_t min_size_in,
-			int64_t max_size_in, int64_t resolution_in)
+		DigitizerBlockMinPy(uint64_t N_in, uint64_t min_size_in,
+			uint64_t max_size_in, uint64_t resolution_in)
 			: DigitizerBlockMin(N_in, min_size_in, max_size_in, resolution_in)
 		{
 		}
@@ -375,11 +390,12 @@ class DigitizerBlockMinPy : public DigitizerBlockMin {
 		py::array_t<uint64_t, py::array::c_style> get_min_hists_py()
 		{
 				uint64_t* out = (uint64_t*)malloc(sizeof(uint64_t) * hist_size);
-#pragma omp parallel for
-				for (int64_t i = 0; i < hist_size; i++) {
+				#pragma omp parallel for
+				for (uint64_t i = 0; i < hist_size; i++) {
 						out[i] = min_hists[i];
 				}
-				std::vector<int64_t> out_size = { (int64_t)(log2(n_max / n_min) + 1), 1 << resolution };
+				std::vector<uint64_t> out_size = 
+				{ (uint64_t)(log2(n_max / n_min) + 1), (uint64_t) (1<<resolution) };
 				py::capsule free_when_done(out, free);
 				return py::array_t<uint64_t, py::array::c_style>(
 					out_size,
@@ -392,8 +408,8 @@ class DigitizerBlockMinPy : public DigitizerBlockMin {
 class DigitizerBlockMinMaxPy : public DigitizerBlockMinMax {
 	private:
 	public:
-		DigitizerBlockMinMaxPy(int64_t N_in, int64_t min_size_in,
-			int64_t max_size_in, int64_t resolution_in)
+		DigitizerBlockMinMaxPy(uint64_t N_in, uint64_t min_size_in,
+			uint64_t max_size_in, uint64_t resolution_in)
 			: DigitizerBlockMinMax(N_in, min_size_in, max_size_in, resolution_in)
 		{
 		}
@@ -408,11 +424,12 @@ class DigitizerBlockMinMaxPy : public DigitizerBlockMinMax {
 		py::array_t<uint64_t, py::array::c_style> get_min_hists_py()
 		{
 				uint64_t* out = (uint64_t*)malloc(sizeof(uint64_t) * hist_size);
-#pragma omp parallel for
-				for (int64_t i = 0; i < hist_size; i++) {
+				#pragma omp parallel for
+				for (uint64_t i = 0; i < hist_size; i++) {
 						out[i] = min_hists[i];
 				}
-				std::vector<int64_t> out_size = { (int64_t)(log2(n_max / n_min) + 1), 1 << resolution };
+				std::vector<uint64_t> out_size = 
+				{ (uint64_t)(log2(n_max / n_min) + 1), (uint64_t) (1<<resolution) };
 				py::capsule free_when_done(out, free);
 				return py::array_t<uint64_t, py::array::c_style>(
 					out_size,
@@ -423,11 +440,12 @@ class DigitizerBlockMinMaxPy : public DigitizerBlockMinMax {
 		py::array_t<uint64_t, py::array::c_style> get_max_hists_py()
 		{
 				uint64_t* out = (uint64_t*)malloc(sizeof(uint64_t) * hist_size);
-#pragma omp parallel for
-				for (int64_t i = 0; i < hist_size; i++) {
+				#pragma omp parallel for
+				for (uint64_t i = 0; i < hist_size; i++) {
 						out[i] = max_hists[i];
 				}
-				std::vector<int64_t> out_size = { (int64_t)(log2(n_max / n_min) + 1), 1 << resolution };
+				std::vector<uint64_t> out_size = 
+				{ (uint64_t)(log2(n_max / n_min) + 1), (uint64_t) (1<<resolution) };
 				py::capsule free_when_done(out, free);
 				return py::array_t<uint64_t, py::array::c_style>(
 					out_size,
