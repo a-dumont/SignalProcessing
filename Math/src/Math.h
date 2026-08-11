@@ -23,11 +23,11 @@ template<class DataType, class DataType2>
 void gradient2(int n, DataType* x, DataType2 dt, DataType* out);
 
 template<class DataType>
-void finite_difference_coefficients(int M, int N, DataType* coeff);
+void finite_difference_coefficients(uint64_t M, uint64_t N, DataType* coeff);
 
 template<class DataType, class DataType2>
 void nth_order_gradient(int n, DataType* x,
-				DataType2 dt, DataType* out, int M, int N, DataType* coeff);
+				DataType2 dt, DataType* out, uint64_t M, uint64_t N, DataType* coeff);
 
 template<class DataType>
 void continuous_max(long long int* out, DataType* in, int n);

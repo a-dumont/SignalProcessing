@@ -35,11 +35,11 @@ void manage_thread_affinity()
 
 // Gradient with full size x and t
 template<class DataType, class DataType2>
-void gradient(int n, DataType* x, DataType2* t, DataType* out)
+void gradient(uint64_t n, DataType* x, DataType2* t, DataType* out)
 {
 	out[0] = (x[1]-x[0])/(t[1]-t[0]);
 	out[n-1] = (x[n-1]-x[n-2])/(t[n-1]-t[n-2]);
-	for (int i=1; i<(n-1); i++)
+	for (uint64_t i=1; i<(n-1); i++)
 	{
 			DataType hd = t[i+1]-t[i];
 			DataType hs = t[i]-t[i-1];
@@ -51,26 +51,26 @@ void gradient(int n, DataType* x, DataType2* t, DataType* out)
 
 // Gradient with fullsize x and constant dt
 template<class DataType, class DataType2>
-void gradient2(int n, DataType* x, DataType2 dt, DataType* out)
+void gradient2(uint64_t n, DataType* x, DataType2 dt, DataType* out)
 {
 	DataType h = (DataType) 1/(2*dt);
 	out[0] = 2*h*(x[1]-x[0]);
 	out[n-1] = 2*h*(x[n-1]-x[n-2]);
-	for (int i=1; i<(n-1); i++)
+	for (uint64_t i=1; i<(n-1); i++)
 	{
 			out[i] = h*(x[i+1]-x[i-1]);
 	}
 }
 
 template<class DataType>
-void finite_difference_coefficients(int M, int N, DataType* coeff)
+void finite_difference_coefficients(uint64_t M, uint64_t N, DataType* coeff)
 {
 	DataType alpha[2*N+1];
 	N = 2*N;	
 	alpha[0] = 0;
 	alpha[1] = 1;
 	DataType a; DataType b; DataType c;
-	for(int i=2;i<(N+1);i++)
+	for(uint64_t i=2;i<(N+1);i++)
 	{
 		if(alpha[i-1] > 0)
 		{
@@ -83,14 +83,14 @@ void finite_difference_coefficients(int M, int N, DataType* coeff)
 	}
 	coeff[0] = 1;
 	a = 1;
-	for(int n=1;n<(N+1);n++)
+	for(uint64_t n=1;n<(N+1);n++)
 	{
 		b = 1;
-		for(int v=0;v<n;v++)
+		for(uint64_t v=0;v<n;v++)
 		{
 			c = alpha[n]-alpha[v];
 			b = b*c;
-			for(int m=0;m<(std::min(M,n)+1);m++)
+			for(uint64_t m=0;m<(std::min(M,n)+1);m++)
 			{
 				if (m != 0)
 				{
@@ -102,7 +102,7 @@ void finite_difference_coefficients(int M, int N, DataType* coeff)
 				}
 			}
 		}
-		for(int m=0;m<(std::min(M,n)+1);m++)
+		for(uint64_t m=0;m<(std::min(M,n)+1);m++)
 		{
 			if (m != 0)
 			{
@@ -118,22 +118,22 @@ void finite_difference_coefficients(int M, int N, DataType* coeff)
 }
 
 template<class DataType, class DataType2>
-void nth_order_gradient(int n, DataType* x,
-				DataType2 dt, DataType* out, int M, int N, DataType* coeff)
+void nth_order_gradient(uint64_t n, DataType* x,
+				DataType2 dt, DataType* out, uint64_t M, uint64_t N, DataType* coeff)
 {
 	coeff += (M*(2*N+1)*(2*N+1)+2*N*(2*N+1));
 	DataType norm = (DataType) 1.0/dt;
-	int k;
-	for(int i=N;i<(n-N);i++)
+	uint64_t k;
+	for(uint64_t i=N;i<(n-N);i++)
 	{
 		out[i-N] = coeff[0]*x[i];
 		k = 1;
-		for(int j=0;j<N;j++)
+		for(uint64_t j=0;j<N;j++)
 		{
 			out[i-N] += coeff[k]*x[i+j+1]+coeff[k+1]*x[i-(j+1)];
 			k += 2;
 		}
-		for(int l=0;l<M;l++){out[i-N] *= norm;}
+		for(uint64_t l=0;l<M;l++){out[i-N] *= norm;}
 	}
 	coeff -= (M*(2*N+1)*(2*N+1)+2*N*(2*N+1));
 }
