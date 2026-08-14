@@ -292,6 +292,622 @@ void aCorrCircFreqReduceAVX<double>(uint64_t N, uint64_t size, double* data)
 	}
 }
 
+template<class DataType>
+void thirdMomentCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data, DataType* out){}
+
+template<>
+void thirdMomentCircFreqReduceAVX<float>(uint64_t N, uint64_t size, float* data, float* out)
+{
+	__m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+	__m256 ymm8, ymm9, ymm10, ymm11, ymm12, ymm13, ymm14, ymm15;
+	uint64_t howmany = N/size;
+	uint64_t howmany2 = howmany/16;
+	uint64_t extras = howmany-16*howmany2;
+	uint64_t Nregisters = size/8;
+	uint64_t I = 0;
+	uint64_t J = 0;
+	float temp[34];
+	float* ptr;
+	
+	ymm15 = _mm256_set_ps(-1.0,1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0);
+	
+	if(howmany == 1)
+	{
+		for(uint64_t j=0;j<size;j+=2)
+		{
+			for(uint64_t i=0;i<(1+j-2*(j-(size/2))*(j>(size/2)));i+=2)
+			{
+				// Decomposed product of (a+ib)(c+id)(e-if)
+				out[i*size+j] = data[i+j]*(data[j]*data[i]-data[j+1]*data[i+1]);
+				out[i*size+j] += data[i+j+1]*(data[j]*data[i+1]+data[j+1]*data[i]);
+				out[i*size+j+1] = data[i+j]*(data[j]*data[i+1]+data[j+1]*data[i]);
+				out[i*size+j+1] -= data[i+j+1]*(data[j]*data[i]-data[j+1]*data[i+1]);
+			}
+		}
+		return;
+	}
+	if(howmany < 16)
+	{
+		for(uint64_t j=0;j<size;j+=2)
+		{
+			for(uint64_t i=0;i<(1+j-2*(j-(size/2))*(j>(size/2)));i+=2)
+			{
+				// Decomposed product of (a+ib)(c+id)(e-if)
+				temp[0] = data[j]*data[i]-data[j+1]*data[i+1];
+				temp[1] = data[j]*data[i+1]+data[j+1]*data[i];
+				out[i*size+j] = data[i+j]*temp[0]+data[i+j+1]*temp[1];
+				out[i*size+j+1] = data[i+j]*temp[1]-data[i+j+1]*temp[0];
+				
+				for(uint64_t k=1;k<howmany;k++)
+				{
+					// Shift data pointer to get to next blocks
+					ptr = data+k*size;
+						
+					// Decomposed product of (a+ib)(c+id)(e-if)	
+					temp[0] = ptr[j]*ptr[i]-ptr[j+1]*ptr[i+1];
+					temp[1] = ptr[j]*ptr[i+1]+ptr[j+1]*ptr[i];
+					out[i*size+j] = ptr[i+j]*temp[0]+ptr[i+j+1]*temp[1];
+					out[i*size+j+1] = ptr[i+j]*temp[1]-ptr[i+j+1]*temp[0];
+				}
+			}
+		}
+		return;
+	}
+
+	// Blocks
+	for(uint64_t i=0;i<howmany2;i++)
+	{
+		// 16 Blocks per loop iteration
+		I = i<<4;
+
+		// Output size
+		J = I*((size+1)*(size+1)/4);
+
+		// Number of columns to fill in the output matrix
+		for(uint64_t j=0;j<size;j+=2)
+		{
+			J += (size-4*j); 
+			// Number of registers needed for the row
+			Nregisters = (size-4*j)/8;
+			
+			// Useful numbers
+			temp[0] = data[I*size+j]; temp[1] = data[I*size+j+1];
+			temp[2] = data[(I+1)*size+j]; temp[3] = data[(I+1)*size+j+1];
+			temp[4] = data[(I+2)*size+j]; temp[5] = data[(I+2)*size+j+1];
+			temp[6] = data[(I+3)*size+j]; temp[7] = data[(I+3)*size+j+1];
+			temp[8] = data[(I+4)*size+j]; temp[9] = data[(I+4)*size+j+1];
+			temp[10] = data[(I+5)*size+j]; temp[11] = data[(I+5)*size+j+1]; 
+			temp[12] = data[(I+6)*size+j]; temp[13] = data[(I+6)*size+j+1];
+			temp[14] = data[(I+7)*size+j]; temp[15] = data[(I+7)*size+j+1];
+			temp[16] = data[(I+8)*size+j]; temp[17] = data[(I+8)*size+j+1];
+			temp[18] = data[(I+9)*size+j]; temp[19] = data[(I+9)*size+j+1];
+			temp[20] = data[(I+10)*size+j]; temp[21] = data[(I+10)*size+j+1];
+			temp[22] = data[(I+11)*size+j]; temp[23] = data[(I+11)*size+j+1];
+			temp[24] = data[(I+12)*size+j]; temp[25] = data[(I+12)*size+j+1];
+			temp[26] = data[(I+13)*size+j]; temp[27] = data[(I+13)*size+j+1]; 
+			temp[28] = data[(I+14)*size+j]; temp[29] = data[(I+14)*size+j+1];
+			temp[30] = data[(I+15)*size+j]; temp[31] = data[(I+15)*size+j+1];
+
+			for(uint64_t k=0;k<Nregisters;k++)
+			{
+				///////////////////// Blocks 0 and 1 //////////////////
+ 				// Load S(f1)
+				ymm11 = _mm256_set_ps(temp[0],temp[1],temp[0],temp[1],
+								temp[0],temp[1],temp[0],temp[1]);
+				
+				// Load S(f2)
+				ymm12 = _mm256_loadu_ps(data+I*size+j+8*k);
+				
+				// Load S(f1+f2)
+				ymm13 = _mm256_loadu_ps(data+I*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm0 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[2],temp[3],temp[2],temp[3],
+								temp[2],temp[3],temp[2],temp[3]);
+				ymm12 = _mm256_loadu_ps(data+(I+1)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+1)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm1 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm0 = _mm256_add_ps(ymm0,ymm1);
+
+				///////////////////// Blocks 2 and 3 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[4],temp[5],temp[4],temp[5],
+								temp[4],temp[5],temp[4],temp[5]);
+				ymm12 = _mm256_loadu_ps(data+(I+2)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+2)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm1 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[6],temp[7],temp[6],temp[7],
+								temp[6],temp[7],temp[6],temp[7]);
+				ymm12 = _mm256_loadu_ps(data+(I+3)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+3)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm2 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm1 = _mm256_add_ps(ymm1,ymm2);
+
+				///////////////////// Blocks 4 and 5 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[8],temp[9],temp[8],temp[9],
+								temp[8],temp[9],temp[8],temp[9]);
+				ymm12 = _mm256_loadu_ps(data+(I+4)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+4)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm2 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[10],temp[11],temp[10],temp[11],
+								temp[10],temp[11],temp[10],temp[11]);
+				ymm12 = _mm256_loadu_ps(data+(I+5)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+5)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm3 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm2 = _mm256_add_ps(ymm2,ymm3);
+
+				///////////////////// Blocks 6 and 7 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[12],temp[13],temp[12],temp[13],
+								temp[12],temp[13],temp[12],temp[13]);
+				ymm12 = _mm256_loadu_ps(data+(I+6)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+6)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm3 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[14],temp[15],temp[14],temp[15],
+								temp[14],temp[15],temp[14],temp[15]);
+				ymm12 = _mm256_loadu_ps(data+(I+7)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+7)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm4 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm3 = _mm256_add_ps(ymm3,ymm4);
+
+				///////////////////// Blocks 8 and 9 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[16],temp[17],temp[16],temp[17],
+								temp[16],temp[17],temp[16],temp[17]);
+				ymm12 = _mm256_loadu_ps(data+(I+8)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+8)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm4 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[18],temp[19],temp[18],temp[19],
+								temp[18],temp[19],temp[18],temp[19]);
+				ymm12 = _mm256_loadu_ps(data+(I+9)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+9)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm5 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm4 = _mm256_add_ps(ymm4,ymm5);
+
+				///////////////////// Blocks 10 and 11 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[20],temp[21],temp[20],temp[21],
+								temp[20],temp[21],temp[20],temp[21]);
+				ymm12 = _mm256_loadu_ps(data+(I+10)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+10)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm5 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[22],temp[23],temp[22],temp[23],
+								temp[22],temp[23],temp[22],temp[23]);
+				ymm12 = _mm256_loadu_ps(data+(I+11)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+11)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm6 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm5 = _mm256_add_ps(ymm5,ymm6);
+
+				///////////////////// Blocks 12 and 13 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[24],temp[25],temp[24],temp[25],
+								temp[24],temp[25],temp[24],temp[25]);
+				ymm12 = _mm256_loadu_ps(data+(I+12)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+12)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm6 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[26],temp[27],temp[26],temp[27],
+								temp[26],temp[27],temp[26],temp[27]);
+				ymm12 = _mm256_loadu_ps(data+(I+13)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+13)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm7 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm6 = _mm256_add_ps(ymm6,ymm7);
+
+				///////////////////// Blocks 14 and 15 //////////////////
+				// Load
+				ymm11 = _mm256_set_ps(temp[28],temp[29],temp[28],temp[29],
+								temp[28],temp[29],temp[28],temp[29]);
+				ymm12 = _mm256_loadu_ps(data+(I+14)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+14)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm7 = _mm256_permute_ps(ymm12,0b11011000);
+
+ 				// Load
+				ymm11 = _mm256_set_ps(temp[30],temp[31],temp[30],temp[31],
+								temp[30],temp[31],temp[30],temp[31]);
+				ymm12 = _mm256_loadu_ps(data+(I+15)*size+j+8*k);
+				ymm13 = _mm256_loadu_ps(data+(I+15)*size+2*j+8*k);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15); // Conjugate
+
+				// S(f1)S(f2) product
+				ymm14 = _mm256_mul_ps(ymm11,ymm12);
+				ymm12 = _mm256_mul_ps(ymm12,ymm15);
+				ymm12 = _mm256_permute_ps(ymm12,0b10110001);
+				ymm12 = _mm256_mul_ps(ymm11,ymm12);
+				ymm11 = _mm256_hadd_ps(ymm14,ymm12);
+				ymm12 = _mm256_permute_ps(ymm11,0b11011000);
+
+				//Second product
+				ymm14 = _mm256_mul_ps(ymm12,ymm13);
+				ymm13 = _mm256_mul_ps(ymm13,ymm15);
+				ymm13 = _mm256_permute_ps(ymm13,0b10110001);
+				ymm13 = _mm256_mul_ps(ymm12,ymm13);
+				ymm12 = _mm256_hadd_ps(ymm14,ymm13);
+				ymm8 = _mm256_permute_ps(ymm12,0b11011000);
+
+				ymm7 = _mm256_add_ps(ymm7,ymm8);
+
+				// Reduction
+				ymm0 = _mm256_add_ps(ymm0,ymm7);
+				ymm1 = _mm256_add_ps(ymm1,ymm6);
+				ymm2 = _mm256_add_ps(ymm2,ymm5);
+				ymm3 = _mm256_add_ps(ymm3,ymm4);
+
+				ymm0 = _mm256_add_ps(ymm0,ymm3);
+				ymm1 = _mm256_add_ps(ymm1,ymm2);
+				
+				ymm0 = _mm256_add_ps(ymm0,ymm1);
+
+				// Write to output
+				_mm256_storeu_ps(out+J+k*Nregisters,ymm0);
+			}
+			// Rest of data
+			for(uint64_t k=8*Nregisters;k<(size-4j);k+=2)
+			{
+				// Block 0
+				ptr = data+I*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] = ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] = ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 1
+				ptr = data+(I+1)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 2
+				ptr = data+(I+2)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 3
+				ptr = data+(I+3)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 4
+				ptr = data+(I+4)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 5
+				ptr = data+(I+5)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 6
+				ptr = data+(I+6)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 7
+				ptr = data+(I+7)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 8
+				ptr = data+(I+8)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 9
+				ptr = data+(I+9)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 10
+				ptr = data+(I+10)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 11
+				ptr = data+(I+11)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 12
+				ptr = data+(I+12)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 13
+				ptr = data+(I+13)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 14
+				ptr = data+(I+14)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+				// Block 15
+				ptr = data+(I+15)*size+j+k;
+				temp[32] = ptr[j]*ptr[0]-ptr[j+1]*ptr[1];
+				temp[33] = ptr[j]*ptr[1]+ptr[j+1]*ptr[0];
+				out[J+k] += ptr[j]*temp[32]+ptr[j+1]*temp[33];
+				out[J+k+1] += ptr[j]*temp[33]-ptr[j+1]*temp[32];
+			}
+
+			}
+		}
+	
+	}
+}
+
+
 ///////////////////////////////////////////////////////////////////
 //                      __  ______                               //
 //                      \ \/ / ___|___  _ __ _ __                //

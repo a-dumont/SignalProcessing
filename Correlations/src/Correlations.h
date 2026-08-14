@@ -42,6 +42,10 @@ void xCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType
 template<class DataType>
 void fCorrCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data1, DataType* data2);
 
+// Third moment
+template<class DataType>
+void thirdMomentCircFreqReduceAVX(uint64_t N, uint64_t size, DataType* data, DataType* out);
+
 // rFFT
 template<class DataType>
 void rfftBlock(int N, int size, DataType* in, std::complex<DataType>* out);
